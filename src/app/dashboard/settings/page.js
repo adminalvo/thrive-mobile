@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { User, Globe, Shield, ChevronRight, LogOut, ChevronDown, CheckCircle, X } from 'lucide-react';
+import { User, Globe, Shield, ChevronRight, LogOut, ChevronDown, CheckCircle, X, HelpCircle } from 'lucide-react';
 import { supabase } from '../../../api/supabase';
 import { useRouter } from 'next/navigation';
 import styles from '../dashboard.module.css';
@@ -146,7 +146,21 @@ export default function SettingsPage() {
           )}
         </div>
 
-        {/* 3. Legal and Administered */}
+        {/* 3. Help and FAQ */}
+        <div className={styles.glassCard} style={{ margin: 0, padding: 0, overflow: 'hidden' }}>
+          <button 
+            onClick={() => router.push('/dashboard/faq')}
+            style={{ width: '100%', padding: '20px', background: 'transparent', border: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <HelpCircle color="#38bdf8" size={24} />
+              <span style={{ color: '#f8fafc', fontSize: '1.1rem', fontWeight: 500 }}>FAQ & {language === 'az' ? 'Yardım' : language === 'en' ? 'Help' : 'Помощь'}</span>
+            </div>
+            <ChevronRight color="#94a3b8" />
+          </button>
+        </div>
+
+        {/* 4. Legal and Administered */}
         <div className={styles.glassCard} style={{ margin: 0, padding: 0, overflow: 'hidden' }}>
           <button 
             onClick={() => toggleSection('legal')}

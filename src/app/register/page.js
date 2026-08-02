@@ -29,7 +29,7 @@ export default function Register() {
           data: {
             full_name: name,
           },
-          emailRedirectTo: `${window.location.origin}/update-password`,
+          emailRedirectTo: `${window.location.origin}/confirm`,
         }
       });
 

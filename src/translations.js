@@ -27,6 +27,7 @@ export const translations = {
     navCourses: "Courses",
     navSchedule: "Schedule",
     navAchievements: "Success",
+    navUpdates: "Updates",
     navSettings: "Settings",
     
     // Dashboard Home
@@ -119,6 +120,7 @@ export const translations = {
     navCourses: "Kurslar",
     navSchedule: "Cədvəl",
     navAchievements: "Nailiyyətlər",
+    navUpdates: "Yeniliklər",
     navSettings: "Parametrlər",
     
     // Dashboard Home
@@ -211,6 +213,7 @@ export const translations = {
     navCourses: "Курсы",
     navSchedule: "Расписание",
     navAchievements: "Успехи",
+    navUpdates: "Обновления",
     navSettings: "Настройки",
     
     // Dashboard Home

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../api/supabase';
-import { Home, BookOpen, Settings, Loader2, RefreshCw, Trophy, Calendar } from 'lucide-react';
+import { Home, BookOpen, Settings, Loader2, RefreshCw, Trophy, Calendar, Bell } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import styles from './dashboard.module.css';
 
@@ -59,6 +59,9 @@ export default function DashboardLayout({ children }) {
         </Link>
         <Link href="/dashboard/achievements" className={`${styles.navItem} ${pathname === '/dashboard/achievements' ? styles.navItemActive : ''}`}>
           <Trophy size={26} />
+        </Link>
+        <Link href="/dashboard/updates" className={`${styles.navItem} ${pathname === '/dashboard/updates' ? styles.navItemActive : ''}`}>
+          <Bell size={26} />
         </Link>
         <Link href="/dashboard/settings" className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.navItemActive : ''}`}>
           <Settings size={26} />

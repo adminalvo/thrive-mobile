@@ -63,7 +63,8 @@ export default function DashboardHome() {
   if (!user && !loading) return null;
 
   const role = user?.user_metadata?.role || 'student';
-  const firstName = user?.user_metadata?.first_name || t.user;
+  const firstName = user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || t.user;
+  const avatar = user?.user_metadata?.avatar_url;
 
   const avgProgress = enrollments.length > 0 
     ? Math.round(enrollments.reduce((acc, curr) => acc + curr.progress, 0) / enrollments.length)
@@ -101,11 +102,14 @@ export default function DashboardHome() {
           </p>
         </div>
         <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <p style={{ color: '#38bdf8', fontSize: '1rem', fontWeight: '500', margin: 0 }}>{currentDate}</p>
-            <button onClick={handleReload} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}>
+            <button onClick={handleReload} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
               <RefreshCw size={16} />
             </button>
+            {avatar && (
+              <img src={avatar} alt="Profile" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid #38bdf8' }} />
+            )}
           </div>
         </div>
       </div>

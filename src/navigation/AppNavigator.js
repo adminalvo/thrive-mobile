@@ -13,6 +13,7 @@ import OnboardingScreen from '../screens/OnboardingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RoleSelectionScreen from '../screens/auth/RoleSelectionScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
+import Preloader from '../components/Preloader';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -63,7 +64,7 @@ export default function AppNavigator() {
   }, []);
 
   if (isLoading) {
-    return null; // Can render a splash screen here if needed
+    return <Preloader />;
   }
 
   return (

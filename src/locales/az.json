@@ -1,10 +1,13 @@
 {
   "onboarding": {
     "welcome": "Thrive-a Xoş Gəlmisiniz",
-    "summary": "Təhsilinizdə və karyeranızda uğura gedən yolda bizimlə addımlayın. Xaricdə təhsil proqramları və xüsusi kurslarla potensialınızı kəşf edin.",
-    "getStarted": "Başlayaq",
+    "summary": "Təhsiliniz və Karyeranız üçün ən yaxşı bələdçi.",
+    "getStarted": "Başlamaq üçün bir seçim edin",
     "login": "Daxil Ol",
-    "register": "Qeydiyyat"
+    "register": "Qeydiyyatdan Keç",
+    "feature1": "Xaricdə Təhsil",
+    "feature2": "Karyera İnkişafı",
+    "feature3": "Ağıllı Öyrənmə"
   },
   "auth": {
     "selectRole": "Siz kimsiniz?",

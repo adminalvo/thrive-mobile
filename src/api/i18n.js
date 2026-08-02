@@ -18,7 +18,7 @@ const getDeviceLanguage = () => {
   if (resources[lang]) {
     return lang;
   }
-  return 'az'; // Default language
+  return 'en'; // Default language
 };
 
 i18n
@@ -26,7 +26,7 @@ i18n
   .init({
     resources,
     lng: getDeviceLanguage(),
-    fallbackLng: 'az',
+    fallbackLng: 'en',
     interpolation: {
       escapeValue: false, // React already safeguards from XSS
     },

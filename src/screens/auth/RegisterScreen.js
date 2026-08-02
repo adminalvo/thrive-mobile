@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS, SIZES } from '../../constants/theme';
 import { supabase } from '../../api/supabase';
+import { COLORS, SIZES } from '../../constants/theme';
 
 export default function RegisterScreen({ route, navigation }) {
+  const { role } = route.params;
   const { t } = useTranslation();
-  const role = route.params?.role || 'student';
-
+  
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [idCard, setIdCard] = useState('');
@@ -17,7 +17,7 @@ export default function RegisterScreen({ route, navigation }) {
 
   const handleRegister = async () => {
     if (!firstName || !lastName || !idCard || !email || !password) {
-      Alert.alert('Xəta', 'Bütün xanaları doldurun');
+      Alert.alert(t('auth.error'), 'Bütün xanaları doldurun');
       return;
     }
 
@@ -34,73 +34,33 @@ export default function RegisterScreen({ route, navigation }) {
         }
       }
     });
-
     setLoading(false);
 
     if (error) {
-      Alert.alert('Xəta', error.message);
+      Alert.alert(t('auth.error'), error.message);
     } else {
-      Alert.alert('Uğurlu', 'Qeydiyyat uğurla tamamlandı. Təsdiq linki emailinizə göndərildi (əgər aktivdirsə).');
-      // Navigate to login or wait for email verification
+      Alert.alert('Uğurlu!', 'Qeydiyyat tamamlandı. Zəhmət olmasa daxil olun.');
       navigation.navigate('Login');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{t('auth.registerTitle')} ({t(`auth.${role}`)})</Text>
+      <Text style={styles.title}>{t('onboarding.register')}</Text>
+      <Text style={styles.subtitle}>Rol: {t(`auth.${role}`)}</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder={t('auth.firstName')}
-        value={firstName}
-        onChangeText={setFirstName}
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder={t('auth.lastName')}
-        value={lastName}
-        onChangeText={setLastName}
-      />
+      <TextInput style={styles.input} placeholder="Ad" placeholderTextColor="rgba(255,255,255,0.5)" value={firstName} onChangeText={setFirstName} />
+      <TextInput style={styles.input} placeholder="Soyad" placeholderTextColor="rgba(255,255,255,0.5)" value={lastName} onChangeText={setLastName} />
+      <TextInput style={styles.input} placeholder="Şəxsiyyət Vəsiqəsi (FİN / Seriya)" placeholderTextColor="rgba(255,255,255,0.5)" value={idCard} onChangeText={setIdCard} />
+      <TextInput style={styles.input} placeholder="E-poçt" placeholderTextColor="rgba(255,255,255,0.5)" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
+      <TextInput style={styles.input} placeholder="Şifrə" placeholderTextColor="rgba(255,255,255,0.5)" value={password} onChangeText={setPassword} secureTextEntry />
 
-      <TextInput
-        style={styles.input}
-        placeholder={t('auth.idCard')}
-        value={idCard}
-        onChangeText={setIdCard}
-        autoCapitalize="characters"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder={t('auth.email')}
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder={t('auth.password')}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      <TouchableOpacity 
-        style={styles.primaryButton}
-        onPress={handleRegister}
-        disabled={loading}
-      >
-        <Text style={styles.primaryButtonText}>
-          {loading ? '...' : t('common.submit')}
-        </Text>
+      <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Yüklənir...' : t('onboarding.register')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>{t('common.back')}</Text>
+        <Text style={styles.backButtonText}>Geri Qayıt</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -112,44 +72,52 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 500,
     alignSelf: 'center',
-    backgroundColor: COLORS.grayLight,
+    backgroundColor: COLORS.deepNavy,
     padding: SIZES.padding * 2,
     justifyContent: 'center',
   },
   title: {
     fontSize: SIZES.extraLarge,
     fontWeight: 'bold',
-    color: COLORS.deepNavy,
+    color: COLORS.white,
+    marginBottom: 5,
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: SIZES.medium,
+    color: COLORS.aquaTeal,
     marginBottom: 30,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   input: {
-    backgroundColor: COLORS.white,
-    padding: 15,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: SIZES.padding,
     borderRadius: 10,
     marginBottom: 15,
+    fontSize: SIZES.medium,
+    color: COLORS.white,
     borderWidth: 1,
-    borderColor: COLORS.borderColor,
-    fontSize: SIZES.font,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  primaryButton: {
-    backgroundColor: COLORS.oceanBlue,
+  button: {
+    backgroundColor: COLORS.aquaTeal,
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 10,
   },
-  primaryButtonText: {
+  buttonText: {
     color: COLORS.white,
     fontSize: SIZES.medium,
     fontWeight: 'bold',
   },
   backButton: {
-    marginTop: 30,
+    marginTop: 20,
     alignItems: 'center',
   },
   backButtonText: {
-    color: COLORS.textSecondary,
+    color: 'rgba(255,255,255,0.7)',
     fontSize: SIZES.medium,
   },
 });

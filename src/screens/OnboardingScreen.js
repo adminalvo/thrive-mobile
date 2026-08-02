@@ -1,8 +1,27 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, ScrollView, Platform } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, ScrollView, Platform, Animated } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../constants/theme';
-import '../api/i18n'; // Initialize i18n
+import '../api/i18n';
+
+// Typewriter Hook
+function useTypewriter(text, speed = 50) {
+  const [displayedText, setDisplayedText] = useState('');
+  
+  useEffect(() => {
+    setDisplayedText('');
+    let i = 0;
+    const timer = setInterval(() => {
+      setDisplayedText(text.substring(0, i + 1));
+      i++;
+      if (i === text.length) clearInterval(timer);
+    }, speed);
+    return () => clearInterval(timer);
+  }, [text, speed]);
+
+  return displayedText;
+}
 
 export default function OnboardingScreen({ navigation }) {
   const { t, i18n } = useTranslation();
@@ -10,9 +29,10 @@ export default function OnboardingScreen({ navigation }) {
   const [currentPage, setCurrentPage] = useState(0);
   const { width: windowWidth } = useWindowDimensions();
   
-  // Constrain width for desktop web to look like a mobile app
   const isWebDesktop = Platform.OS === 'web' && windowWidth > 500;
   const contentWidth = isWebDesktop ? 500 : windowWidth;
+
+  const typewriterText = useTypewriter(t('onboarding.welcome'), 60);
 
   const changeLanguage = (lang) => {
     i18n.changeLanguage(lang);
@@ -44,7 +64,8 @@ export default function OnboardingScreen({ navigation }) {
               style={styles.logo} 
               resizeMode="contain" 
             />
-            <Text style={styles.title}>{t('onboarding.welcome')}</Text>
+            <Text style={styles.title}>{typewriterText}<Text style={{color: COLORS.aquaTeal}}>|</Text></Text>
+            
             <View style={styles.langContainer}>
               <TouchableOpacity onPress={() => changeLanguage('az')} style={[styles.langBtn, i18n.language === 'az' && styles.langBtnActive]}>
                 <Text style={[styles.langText, i18n.language === 'az' && styles.langTextActive]}>AZ</Text>
@@ -58,10 +79,30 @@ export default function OnboardingScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Page 2: Summary */}
+          {/* Page 2: Features Redesign */}
           <View style={[styles.page, { width: contentWidth }]}>
-            <Text style={styles.title}>{t('onboarding.welcome')}</Text>
-            <Text style={styles.summary}>{t('onboarding.summary')}</Text>
+            <Text style={[styles.title, { marginBottom: 40 }]}>{t('onboarding.summary')}</Text>
+            
+            <View style={styles.featureItem}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="earth" size={32} color={COLORS.aquaTeal} />
+              </View>
+              <Text style={styles.featureText}>{t('onboarding.feature1')}</Text>
+            </View>
+
+            <View style={styles.featureItem}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="briefcase" size={32} color={COLORS.aquaTeal} />
+              </View>
+              <Text style={styles.featureText}>{t('onboarding.feature2')}</Text>
+            </View>
+
+            <View style={styles.featureItem}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="bulb" size={32} color={COLORS.aquaTeal} />
+              </View>
+              <Text style={styles.featureText}>{t('onboarding.feature3')}</Text>
+            </View>
           </View>
 
           {/* Page 3: Auth Gateway */}
@@ -98,6 +139,11 @@ export default function OnboardingScreen({ navigation }) {
             />
           ))}
         </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>www.thrive.az</Text>
+        </View>
       </View>
     </View>
   );
@@ -107,11 +153,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.deepNavy,
-    alignItems: 'center', // Center the mobile wrapper on web
+    alignItems: 'center',
   },
   mobileWrapper: {
     flex: 1,
     overflow: 'hidden',
+    position: 'relative',
   },
   pagerView: {
     flex: 1,
@@ -120,6 +167,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: SIZES.padding * 2,
+    paddingBottom: 100, // Leave space for footer
   },
   logo: {
     width: '70%',
@@ -138,18 +186,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  summary: {
-    fontSize: SIZES.medium,
-    color: COLORS.grayLight,
-    textAlign: 'center',
-    lineHeight: 24,
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '80%',
+    marginBottom: 30,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: 15,
+    borderRadius: 15,
+  },
+  iconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(57, 192, 198, 0.1)', // Aqua teal with low opacity
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  featureText: {
+    fontSize: SIZES.large,
+    color: COLORS.white,
+    fontWeight: '600',
+    flex: 1,
   },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 50,
+    bottom: 80,
     width: '100%',
   },
   dot: {
@@ -165,7 +231,7 @@ const styles = StyleSheet.create({
   },
   langContainer: {
     flexDirection: 'row',
-    marginTop: 30,
+    marginTop: 40,
   },
   langBtn: {
     paddingHorizontal: 15,
@@ -214,4 +280,16 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
     fontWeight: 'bold',
   },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    width: '100%',
+    alignItems: 'center',
+  },
+  footerText: {
+    color: COLORS.grayLight,
+    fontSize: SIZES.small,
+    letterSpacing: 1,
+    opacity: 0.6,
+  }
 });

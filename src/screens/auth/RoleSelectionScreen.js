@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, SIZES } from '../../constants/theme';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function RoleSelectionScreen({ navigation }) {
   const { t } = useTranslation();
@@ -14,24 +13,21 @@ export default function RoleSelectionScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('auth.selectRole')}</Text>
-
-      <TouchableOpacity style={styles.roleCard} onPress={() => handleRoleSelect('student')}>
-        <Ionicons name="school" size={40} color={COLORS.oceanBlue} />
-        <Text style={styles.roleText}>{t('auth.student')}</Text>
+      
+      <TouchableOpacity style={styles.roleCard} onPress={() => handleRoleSelect('parent')}>
+        <Text style={styles.roleTitle}>{t('auth.parent')}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.roleCard} onPress={() => handleRoleSelect('parent')}>
-        <Ionicons name="people" size={40} color={COLORS.oceanBlue} />
-        <Text style={styles.roleText}>{t('auth.parent')}</Text>
+      <TouchableOpacity style={styles.roleCard} onPress={() => handleRoleSelect('student')}>
+        <Text style={styles.roleTitle}>{t('auth.student')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.roleCard} onPress={() => handleRoleSelect('admin')}>
-        <Ionicons name="settings" size={40} color={COLORS.oceanBlue} />
-        <Text style={styles.roleText}>{t('auth.admin')}</Text>
+        <Text style={styles.roleTitle}>{t('auth.admin')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>{t('common.back')}</Text>
+        <Text style={styles.backButtonText}>Geri Qayıt</Text>
       </TouchableOpacity>
     </View>
   );
@@ -43,42 +39,37 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 500,
     alignSelf: 'center',
-    backgroundColor: COLORS.grayLight,
+    backgroundColor: COLORS.deepNavy,
     padding: SIZES.padding * 2,
     justifyContent: 'center',
   },
   title: {
     fontSize: SIZES.extraLarge,
     fontWeight: 'bold',
-    color: COLORS.deepNavy,
-    textAlign: 'center',
+    color: COLORS.white,
     marginBottom: 40,
+    textAlign: 'center',
   },
   roleCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     padding: 20,
     borderRadius: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  roleText: {
+  roleTitle: {
     fontSize: SIZES.large,
+    color: COLORS.aquaTeal,
     fontWeight: 'bold',
-    color: COLORS.deepNavy,
-    marginLeft: 20,
   },
   backButton: {
     marginTop: 30,
     alignItems: 'center',
   },
   backButtonText: {
-    color: COLORS.textSecondary,
+    color: 'rgba(255,255,255,0.7)',
     fontSize: SIZES.medium,
   },
 });

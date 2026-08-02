@@ -1,10 +1,13 @@
 {
   "onboarding": {
     "welcome": "Welcome to Thrive",
-    "summary": "Step with us towards success in your education and career. Discover your potential with study abroad programs and specialized courses.",
-    "getStarted": "Get Started",
+    "summary": "Your ultimate guide for Education and Career.",
+    "getStarted": "Choose an option to begin",
     "login": "Login",
-    "register": "Register"
+    "register": "Register",
+    "feature1": "Global Education",
+    "feature2": "Career Growth",
+    "feature3": "Smart Learning"
   },
   "auth": {
     "selectRole": "Who are you?",

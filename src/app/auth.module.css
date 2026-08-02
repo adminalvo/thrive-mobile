@@ -1,0 +1,120 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background-color: var(--deep-navy);
+}
+
+.logo {
+  max-width: 150px;
+  margin-bottom: 30px;
+  object-fit: contain;
+}
+
+.card {
+  background-color: rgba(17, 34, 64, 0.8);
+  padding: 40px 30px;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+  border: 1px solid rgba(57, 192, 198, 0.1);
+  text-align: center;
+}
+
+.title {
+  font-size: 1.8rem;
+  color: var(--white);
+  margin-bottom: 25px;
+  font-weight: bold;
+}
+
+.inputGroup {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--gray-light);
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  background-color: rgba(10, 25, 47, 0.5);
+  border: 1px solid rgba(57, 192, 198, 0.2);
+  color: var(--white);
+  padding: 14px 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--aqua-teal);
+}
+
+.forgotPassword {
+  display: block;
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--aqua-teal);
+  margin-top: 8px;
+  margin-bottom: 25px;
+  transition: opacity 0.2s;
+}
+
+.forgotPassword:hover {
+  opacity: 0.8;
+}
+
+.primaryButton {
+  background-color: var(--aqua-teal);
+  color: var(--white);
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  width: 100%;
+  transition: opacity 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.primaryButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.footer {
+  margin-top: 25px;
+  font-size: 0.9rem;
+  color: var(--gray-light);
+}
+
+.link {
+  color: var(--aqua-teal);
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.error {
+  color: #ff4d4f;
+  background-color: rgba(255, 77, 79, 0.1);
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255, 77, 79, 0.2);
+}

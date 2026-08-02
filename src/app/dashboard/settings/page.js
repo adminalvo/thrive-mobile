@@ -9,7 +9,7 @@ import styles from '../dashboard.module.css';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { lang, changeLanguage } = useLanguage();
+  const { lang, changeLanguage, t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   
@@ -28,11 +28,11 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) throw error;
-      setMsg('Təsdiq linki yeni e-poçt ünvanınıza göndərildi.');
+      setMsg(t.successReg);
       setMsgType('success');
       setNewEmail('');
     } catch (err) {
-      setMsg(err.message || 'Xəta baş verdi');
+      setMsg(err.message || t.errorOccurred);
       setMsgType('error');
     } finally {
       setLoading(false);
@@ -48,11 +48,11 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      setMsg('Şifrəniz uğurla yeniləndi!');
+      setMsg(t.successReg);
       setMsgType('success');
       setNewPassword('');
     } catch (err) {
-      setMsg(err.message || 'Xəta baş verdi');
+      setMsg(err.message || t.errorOccurred);
       setMsgType('error');
     } finally {
       setLoading(false);
@@ -67,7 +67,7 @@ export default function SettingsPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className={styles.greeting} style={{ marginBottom: '25px' }}>Ayarlar</h1>
+      <h1 className={styles.greeting} style={{ marginBottom: '25px' }}>{t.settingsTitle}</h1>
 
       {msg && (
         <div className={`${styles.alertMessage} ${msgType === 'success' ? styles.alertSuccess : styles.alertError}`}>
@@ -77,7 +77,7 @@ export default function SettingsPage() {
 
       {/* Language Selection */}
       <div className={styles.glassCard}>
-        <h2 className={styles.sectionTitle}><Globe size={20} color="#39C0C6" /> Dil Seçimi</h2>
+        <h2 className={styles.sectionTitle}><Globe size={20} color="#39C0C6" /> {t.languageSelect}</h2>
         <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
           <button 
             onClick={() => changeLanguage('en')}
@@ -99,52 +99,53 @@ export default function SettingsPage() {
 
       {/* Email Change */}
       <div className={styles.glassCard}>
-        <h2 className={styles.sectionTitle}><Mail size={20} color="#39C0C6" /> E-poçtu Dəyişdir</h2>
+        <h2 className={styles.sectionTitle}><Mail size={20} color="#39C0C6" /> {t.changeEmail}</h2>
         <form onSubmit={handleUpdateEmail}>
-          <label className={styles.inputLabel}>Yeni E-poçt</label>
+          <label className={styles.inputLabel}>{t.newEmail}</label>
           <input 
             type="email" 
             className={styles.inputField} 
-            placeholder="yeni@email.com" 
+            placeholder="example@thrive.edu.az" 
             value={newEmail}
             onChange={(e) => setNewEmail(e.target.value)}
             required
           />
-          <button type="submit" className={styles.primaryBtn} disabled={loading}>
-            {loading ? <Loader2 className="animate-spin" /> : 'E-poçtu Yenilə'}
+          <button type="submit" className={styles.primaryBtn} disabled={loading || !newEmail}>
+            {loading ? <Loader2 className="animate-spin" /> : t.updateEmailBtn}
           </button>
         </form>
       </div>
 
       {/* Password Change */}
       <div className={styles.glassCard}>
-        <h2 className={styles.sectionTitle}><Lock size={20} color="#39C0C6" /> Şifrəni Yenilə</h2>
+        <h2 className={styles.sectionTitle}><Lock size={20} color="#39C0C6" /> {t.changePassword}</h2>
         <form onSubmit={handleUpdatePassword}>
-          <label className={styles.inputLabel}>Yeni Şifrə</label>
+          <label className={styles.inputLabel}>{t.newPassword}</label>
           <input 
             type="password" 
             className={styles.inputField} 
-            placeholder="Yeni şifrə (Min 6 simvol)" 
+            placeholder="••••••••" 
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
             minLength={6}
           />
-          <button type="submit" className={styles.primaryBtn} disabled={loading}>
-            {loading ? <Loader2 className="animate-spin" /> : 'Şifrəni Yenilə'}
+          <button type="submit" className={styles.primaryBtn} disabled={loading || !newPassword}>
+            {loading ? <Loader2 className="animate-spin" /> : t.updatePassBtn}
           </button>
         </form>
       </div>
 
       {/* Logout */}
-      <button 
-        onClick={handleLogout} 
-        className={`${styles.primaryBtn} ${styles.dangerBtn}`} 
-        style={{ marginTop: '30px' }}
-        disabled={logoutLoading}
-      >
-        {logoutLoading ? <Loader2 className="animate-spin" /> : <><LogOut size={20} /> Sistemdən Çıx</>}
-      </button>
+      <div className={styles.glassCard} style={{ borderColor: 'rgba(255, 77, 79, 0.3)' }}>
+        <button 
+          onClick={handleLogout} 
+          className={`${styles.primaryBtn} ${styles.dangerBtn}`} 
+          disabled={logoutLoading}
+        >
+          {logoutLoading ? <Loader2 className="animate-spin" /> : <><LogOut size={20} /> {t.logout}</>}
+        </button>
+      </div>
     </div>
   );
 }

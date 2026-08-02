@@ -3,11 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../../api/supabase';
 import { BookOpen, PlayCircle, CheckCircle } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
 import styles from '../dashboard.module.css';
 
 export default function CoursesPage() {
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -29,7 +31,7 @@ export default function CoursesPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className={styles.greeting} style={{ marginBottom: '25px' }}>Kurslarım</h1>
+      <h1 className={styles.greeting} style={{ marginBottom: '25px' }}>{t.myCourses}</h1>
 
       {loading ? (
         <>
@@ -38,7 +40,7 @@ export default function CoursesPage() {
         </>
       ) : enrollments.length === 0 ? (
         <div className={styles.glassCard} style={{ textAlign: 'center' }}>
-          <p style={{ color: '#a4b1d6' }}>Hələ heç bir kursa qeydiyyatdan keçməmisiniz.</p>
+          <p style={{ color: '#a4b1d6' }}>{t.noCourses}</p>
         </div>
       ) : (
         enrollments.map((en, idx) => {
@@ -47,10 +49,10 @@ export default function CoursesPage() {
             <div key={idx} className={styles.glassCard} style={{ borderLeft: `4px solid ${isCompleted ? '#52c41a' : '#39C0C6'}`, opacity: isCompleted ? 0.7 : 1 }}>
               <h2 className={styles.sectionTitle} style={{ color: isCompleted ? 'var(--gray-light)' : 'var(--white)' }}>
                 {isCompleted ? <CheckCircle size={20} color="#52c41a" /> : <BookOpen size={20} color="#39C0C6" />} 
-                {en.courses?.title || 'Bilinməyən Kurs'}
+                {en.courses?.title || t.unknownCourse}
               </h2>
               <p className={styles.subtitle} style={{ marginBottom: isCompleted ? '0' : '15px' }}>
-                {isCompleted ? 'Kurs Tamamlanıb - 100%' : `Davam edən kurs - ${en.progress}% Tamamlanıb`}
+                {isCompleted ? t.courseCompleted : `${t.ongoingCourse} ${en.progress}%`}
               </p>
               
               {!isCompleted && (
@@ -60,7 +62,7 @@ export default function CoursesPage() {
                   </div>
 
                   <button className={styles.primaryBtn} style={{ padding: '12px' }}>
-                    <PlayCircle size={20} /> Dərsə Davam Et
+                    <PlayCircle size={20} /> {t.continueLesson}
                   </button>
                 </>
               )}

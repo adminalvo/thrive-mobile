@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../api/supabase';
-import { Home, BookOpen, Settings, Loader2 } from 'lucide-react';
+import { Home, BookOpen, Settings, Loader2, RefreshCw } from 'lucide-react';
 import styles from './dashboard.module.css';
 
 export default function DashboardLayout({ children }) {
@@ -26,6 +26,10 @@ export default function DashboardLayout({ children }) {
     checkAuth();
   }, [router]);
 
+  const handleReload = () => {
+    window.location.reload();
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: 'var(--deep-navy)' }}>
@@ -36,6 +40,12 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className={styles.dashboardWrapper}>
+      <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 50 }}>
+        <button onClick={handleReload} style={{ background: 'rgba(57, 192, 198, 0.1)', border: '1px solid rgba(57,192,198,0.3)', padding: '8px', borderRadius: '50%', color: '#39C0C6' }}>
+          <RefreshCw size={20} />
+        </button>
+      </div>
+
       <div className={styles.content}>
         {/* Pass the user object to children if needed via Context, or just let them fetch, but for static layouts children can't receive props directly in Next.js app router. They will fetch their own session, but layout ensures protection. */}
         {children}

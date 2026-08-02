@@ -3,11 +3,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../api/supabase';
-import { LogOut, Mail, Lock, Loader2 } from 'lucide-react';
+import { LogOut, Mail, Lock, Loader2, Globe } from 'lucide-react';
+import { useLanguage } from '../../../context/LanguageContext';
 import styles from '../dashboard.module.css';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { lang, changeLanguage } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   
@@ -72,6 +74,28 @@ export default function SettingsPage() {
           {msg}
         </div>
       )}
+
+      {/* Language Selection */}
+      <div className={styles.glassCard}>
+        <h2 className={styles.sectionTitle}><Globe size={20} color="#39C0C6" /> Dil Seçimi</h2>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+          <button 
+            onClick={() => changeLanguage('en')}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #39C0C6', background: lang === 'en' ? '#39C0C6' : 'transparent', color: lang === 'en' ? '#fff' : '#39C0C6', fontWeight: 'bold' }}>
+            English
+          </button>
+          <button 
+            onClick={() => changeLanguage('az')}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #39C0C6', background: lang === 'az' ? '#39C0C6' : 'transparent', color: lang === 'az' ? '#fff' : '#39C0C6', fontWeight: 'bold' }}>
+            Azərbaycan
+          </button>
+          <button 
+            onClick={() => changeLanguage('ru')}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #39C0C6', background: lang === 'ru' ? '#39C0C6' : 'transparent', color: lang === 'ru' ? '#fff' : '#39C0C6', fontWeight: 'bold' }}>
+            Русский
+          </button>
+        </div>
+      </div>
 
       {/* Email Change */}
       <div className={styles.glassCard}>

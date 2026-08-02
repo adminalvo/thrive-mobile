@@ -46,9 +46,17 @@ export default function DashboardHome() {
     ? Math.round(enrollments.reduce((acc, curr) => acc + curr.progress, 0) / enrollments.length)
     : 0;
 
+  const currentDate = new Date().toLocaleDateString('az-AZ', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   return (
     <div className="animate-fade-in">
       <h1 className={styles.greeting}>Salam, {firstName}!</h1>
+      <p style={{ color: '#39C0C6', fontSize: '0.9rem', marginBottom: '10px', fontWeight: 'bold' }}>{currentDate}</p>
       <p className={styles.subtitle}>
         {role === 'parent' ? 'Övladınızın təhsilinə nəzarət edin.' : 'Bugünkü təhsil hədəflərinizə çatmağa hazırsınız?'}
       </p>

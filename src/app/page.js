@@ -5,13 +5,12 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { BookOpen, TrendingUp, Award, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { supabase } from '../api/supabase';
-import { translations } from '../translations';
+import { useLanguage } from '../context/LanguageContext';
 import styles from './page.module.css';
 
 export default function OnboardingSlider() {
   const router = useRouter();
-  const [lang, setLang] = useState('en');
-  const t = translations[lang];
+  const { lang, changeLanguage, t } = useLanguage();
 
   const [currentSlide, setCurrentSlide] = useState(0);
   
@@ -150,9 +149,9 @@ export default function OnboardingSlider() {
     <div className={styles.wrapper}>
       {/* Language Switcher */}
       <div className={styles.langSwitcher}>
-        <button className={lang === 'en' ? styles.langActive : ''} onClick={() => setLang('en')}>EN</button>
-        <button className={lang === 'az' ? styles.langActive : ''} onClick={() => setLang('az')}>AZ</button>
-        <button className={lang === 'ru' ? styles.langActive : ''} onClick={() => setLang('ru')}>RU</button>
+        <button className={lang === 'en' ? styles.langActive : ''} onClick={() => changeLanguage('en')}>EN</button>
+        <button className={lang === 'az' ? styles.langActive : ''} onClick={() => changeLanguage('az')}>AZ</button>
+        <button className={lang === 'ru' ? styles.langActive : ''} onClick={() => changeLanguage('ru')}>RU</button>
       </div>
 
       <div className={styles.sliderContainer} style={{ transform: `translateX(-${currentSlide * 33.3333}%)` }}>

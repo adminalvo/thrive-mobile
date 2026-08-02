@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../api/supabase';
-import { Shield, Users, BookOpen, Calendar, LogOut, Loader2, Plus, Trash2, TrendingUp, Save } from 'lucide-react';
+import { Shield, Users, BookOpen, Calendar, LogOut, Loader2, Plus, Trash2, TrendingUp, Save, MessageSquare } from 'lucide-react';
 import styles from '../dashboard/dashboard.module.css';
 
 export default function AdminDashboard() {
@@ -17,6 +17,7 @@ export default function AdminDashboard() {
   const [schedules, setSchedules] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [stats, setStats] = useState([]);
+  const [consultations, setConsultations] = useState([]);
 
   // Forms
   const [newCourse, setNewCourse] = useState({ title: '', description: '', image_url: '', monthly_price: '0 ₼' });
@@ -42,16 +43,18 @@ export default function AdminDashboard() {
   }, [router]);
 
   const fetchData = async () => {
-    const [coursesRes, schedRes, regRes, statsRes] = await Promise.all([
+    const [coursesRes, schedRes, regRes, statsRes, consRes] = await Promise.all([
       supabase.from('courses').select('*').order('created_at', { ascending: false }),
       supabase.from('schedules').select('*').order('created_at', { ascending: false }),
       supabase.from('course_registrations').select('id, status, created_at, courses(title), user_id, course_id').order('created_at', { ascending: false }),
-      supabase.from('student_stats').select('*, courses(title)').order('created_at', { ascending: false })
+      supabase.from('student_stats').select('*, courses(title)').order('created_at', { ascending: false }),
+      supabase.from('consultations').select('*').order('created_at', { ascending: false })
     ]);
     if (coursesRes.data) setCourses(coursesRes.data);
     if (schedRes.data) setSchedules(schedRes.data);
     if (regRes.data) setRegistrations(regRes.data);
     if (statsRes.data) setStats(statsRes.data);
+    if (consRes.data) setConsultations(consRes.data);
   };
 
   const handleUpdateReg = async (id, status, user_id, course_id) => {
@@ -72,6 +75,11 @@ export default function AdminDashboard() {
       setMsg({ type: 'success', text: 'Stats updated successfully!' });
       fetchData();
     }
+  };
+
+  const handleUpdateConsultation = async (id, status) => {
+    const { error } = await supabase.from('consultations').update({ status }).eq('id', id);
+    if (!error) fetchData();
   };
 
   const handleAddCourse = async (e) => {
@@ -153,6 +161,9 @@ export default function AdminDashboard() {
         <button onClick={() => setActiveTab('stats')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'stats' ? '#38bdf8' : 'rgba(255,255,255,0.05)', color: activeTab === 'stats' ? '#0f1219' : '#94a3b8', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <TrendingUp size={18} /> Nəticələr
         </button>
+        <button onClick={() => setActiveTab('consultations')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'consultations' ? '#38bdf8' : 'rgba(255,255,255,0.05)', color: activeTab === 'consultations' ? '#0f1219' : '#94a3b8', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <MessageSquare size={18} /> Konsultasiya
+        </button>
       </div>
 
       {/* Registrations Tab */}
@@ -180,6 +191,41 @@ export default function AdminDashboard() {
                       </button>
                     </div>
                   )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Consultations Tab */}
+      {activeTab === 'consultations' && (
+        <div>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', color: '#f8fafc' }}>Konsultasiya Müraciətləri</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {consultations.length === 0 ? (
+              <p style={{ color: '#94a3b8' }}>Heç bir konsultasiya müraciəti yoxdur.</p>
+            ) : (
+              consultations.map(cons => (
+                <div key={cons.id} className={styles.glassCard} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4 style={{ color: '#fff', fontSize: '1.1rem' }}>Ad: {cons.full_name} <span style={{color:'#38bdf8'}}>({cons.exam_type})</span></h4>
+                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '5px' }}>Tel: {cons.phone_number}</p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '2px' }}>Status: {cons.status === 'pending' ? 'Gözləmədədir' : cons.status === 'called' ? 'Zəng edilib' : 'Həll olunub'}</p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '2px' }}>Tarix: {new Date(cons.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+                    {cons.status === 'pending' && (
+                      <button onClick={() => handleUpdateConsultation(cons.id, 'called')} style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56,189,248,0.2)', padding: '6px 12px', borderRadius: '8px', color: '#38bdf8', cursor: 'pointer', fontWeight: 600 }}>
+                        Zəng edildi
+                      </button>
+                    )}
+                    {cons.status !== 'resolved' && (
+                      <button onClick={() => handleUpdateConsultation(cons.id, 'resolved')} style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34,197,94,0.2)', padding: '6px 12px', borderRadius: '8px', color: '#22c55e', cursor: 'pointer', fontWeight: 600 }}>
+                        Həll olundu
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             )}

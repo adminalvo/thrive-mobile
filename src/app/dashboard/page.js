@@ -81,15 +81,29 @@ export default function DashboardHome() {
   const [booking, setBooking] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookExam, setBookExam] = useState('SAT');
+  const [bookName, setBookName] = useState(firstName);
+  const [bookPhone, setBookPhone] = useState(user?.user_metadata?.phone || '');
 
-  const handleBooking = (e) => {
+  const handleBooking = async (e) => {
     e.preventDefault();
     setBookingLoading(true);
-    setTimeout(() => {
-      setBookingLoading(false);
+    
+    const { error } = await supabase.from('consultations').insert([{
+      user_id: user.id,
+      exam_type: bookExam,
+      full_name: bookName,
+      phone_number: bookPhone
+    }]);
+
+    setBookingLoading(false);
+
+    if (!error) {
       setBookingSuccess(true);
       setBooking(false);
-    }, 1500);
+    } else {
+      alert('Xəta baş verdi: ' + error.message);
+    }
   };
 
   return (
@@ -121,7 +135,7 @@ export default function DashboardHome() {
       )}
 
       {!booking ? (
-        <button onClick={() => setBooking(true)} className={styles.primaryBtn} style={{ background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', marginBottom: '25px', display: 'flex', justifyContent: 'center' }}>
+        <button onClick={() => { setBooking(true); setBookingSuccess(false); }} className={styles.primaryBtn} style={{ background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', marginBottom: '25px', display: 'flex', justifyContent: 'center' }}>
           <Star size={20} /> {t.bookConsultation}
         </button>
       ) : (
@@ -133,17 +147,17 @@ export default function DashboardHome() {
           
           <form onSubmit={handleBooking}>
             <label className={styles.inputLabel}>{t.examType}</label>
-            <select className={styles.inputField} required style={{ appearance: 'none', background: '#0f1219' }}>
+            <select value={bookExam} onChange={(e) => setBookExam(e.target.value)} className={styles.inputField} required style={{ appearance: 'none', background: '#0f1219' }}>
               <option value="SAT">SAT Preparation</option>
               <option value="CSCA">CSCA (Math & Physics)</option>
               <option value="Duolingo">Duolingo English Test</option>
             </select>
 
             <label className={styles.inputLabel}>{t.fullName}</label>
-            <input type="text" className={styles.inputField} required placeholder="Məmməd Məmmədov" />
+            <input type="text" value={bookName} onChange={(e) => setBookName(e.target.value)} className={styles.inputField} required placeholder="Məmməd Məmmədov" />
 
             <label className={styles.inputLabel}>{t.phoneNumber}</label>
-            <input type="tel" className={styles.inputField} required placeholder="+994 51 000 00 00" />
+            <input type="tel" value={bookPhone} onChange={(e) => setBookPhone(e.target.value)} className={styles.inputField} required placeholder="+994 51 000 00 00" />
 
             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
               <button type="button" onClick={() => setBooking(false)} className={`${styles.primaryBtn} ${styles.dangerBtn}`} style={{ flex: 1 }}>

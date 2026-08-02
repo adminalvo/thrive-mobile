@@ -1,0 +1,29 @@
+{
+  "onboarding": {
+    "welcome": "Thrive-a Xoş Gəlmisiniz",
+    "summary": "Təhsilinizdə və karyeranızda uğura gedən yolda bizimlə addımlayın. Xaricdə təhsil proqramları və xüsusi kurslarla potensialınızı kəşf edin.",
+    "getStarted": "Başlayaq",
+    "login": "Daxil Ol",
+    "register": "Qeydiyyat"
+  },
+  "auth": {
+    "selectRole": "Siz kimsiniz?",
+    "student": "Şagird",
+    "parent": "Valideyn",
+    "admin": "Admin",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "email": "E-poçt",
+    "password": "Şifrə",
+    "idCard": "Şəxsiyyət Vəsiqəsi (FİN və ya Seriya)",
+    "loginTitle": "Hesaba Giriş",
+    "registerTitle": "Qeydiyyatdan Keç",
+    "dontHaveAccount": "Hesabınız yoxdur?",
+    "alreadyHaveAccount": "Artıq hesabınız var?"
+  },
+  "common": {
+    "next": "İrəli",
+    "back": "Geri",
+    "submit": "Təsdiqlə"
+  }
+}

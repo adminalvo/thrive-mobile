@@ -1,0 +1,29 @@
+{
+  "onboarding": {
+    "welcome": "Welcome to Thrive",
+    "summary": "Step with us towards success in your education and career. Discover your potential with study abroad programs and specialized courses.",
+    "getStarted": "Get Started",
+    "login": "Login",
+    "register": "Register"
+  },
+  "auth": {
+    "selectRole": "Who are you?",
+    "student": "Student",
+    "parent": "Parent",
+    "admin": "Admin",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "password": "Password",
+    "idCard": "ID Card (PIN or Serial)",
+    "loginTitle": "Account Login",
+    "registerTitle": "Sign Up",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?"
+  },
+  "common": {
+    "next": "Next",
+    "back": "Back",
+    "submit": "Submit"
+  }
+}

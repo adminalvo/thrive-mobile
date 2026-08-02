@@ -322,3 +322,34 @@
   background: var(--aqua-teal);
   border-radius: 5px;
 }
+
+/* Floating Background Icons */
+.floatingBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1; /* Below the glass container */
+  pointer-events: none;
+}
+
+.floatIcon {
+  position: absolute;
+  color: #38bdf8;
+  opacity: 0.05;
+  animation: floatAnim 15s linear infinite;
+}
+
+.floatIcon:nth-child(1) { top: 15%; left: 10%; font-size: 3rem; animation-duration: 20s; }
+.floatIcon:nth-child(2) { top: 60%; left: 15%; font-size: 4rem; animation-duration: 25s; animation-direction: reverse; }
+.floatIcon:nth-child(3) { top: 25%; right: 15%; font-size: 3.5rem; animation-duration: 22s; }
+.floatIcon:nth-child(4) { top: 75%; right: 10%; font-size: 5rem; animation-duration: 28s; animation-direction: reverse; }
+.floatIcon:nth-child(5) { top: 45%; left: 50%; font-size: 2.5rem; animation-duration: 18s; }
+
+@keyframes floatAnim {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.03; }
+  50% { transform: translateY(-30px) rotate(10deg); opacity: 0.08; }
+  100% { transform: translateY(0) rotate(0deg); opacity: 0.03; }
+}

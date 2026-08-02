@@ -3,307 +3,199 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { BookOpen, TrendingUp, Award, Loader2, ChevronRight, ChevronLeft, Shield } from 'lucide-react';
+import { BookOpen, TrendingUp, Award, Loader2, ChevronRight, ChevronLeft, Shield, PenTool, Globe } from 'lucide-react';
 import { supabase } from '../api/supabase';
 import { useLanguage } from '../context/LanguageContext';
 import styles from './page.module.css';
 
-export default function OnboardingSlider() {
+export default function AuthPage() {
   const router = useRouter();
-  const { lang, changeLanguage, t } = useLanguage();
-
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const { t } = useLanguage();
   
-  // Slide 3: Auth States
   const [isLogin, setIsLogin] = useState(true);
-  const [role, setRole] = useState('student'); // 'student' or 'parent'
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
   
-  // Form States
+  const [role, setRole] = useState('student');
+  const [step, setStep] = useState(1);
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [surname, setSurname] = useState('');
-  const [fin, setFin] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [pin, setPin] = useState('');
 
-  // Typewriter effect for Welcome text
-  const [displayText, setDisplayText] = useState('');
-  const [isTyping, setIsTyping] = useState(true);
-  
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
+    const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         router.push('/dashboard');
       }
     };
-    checkUser();
+    checkSession();
   }, [router]);
 
-  useEffect(() => {
-    // Typewriter effect logic when language changes or slide 0 renders
-    setDisplayText('');
-    setIsTyping(true);
-    let i = 0;
-    const text = t.welcome;
-    
-    const intervalId = setInterval(() => {
-      setDisplayText(text.substring(0, i + 1));
-      i++;
-      if (i >= text.length) {
-        clearInterval(intervalId);
-        setIsTyping(false);
-      }
-    }, 100);
-    
-    return () => clearInterval(intervalId);
-  }, [lang, t.welcome, currentSlide]);
-
-  const handleNext = () => {
-    if (currentSlide < 2) setCurrentSlide(curr => curr + 1);
-  };
-  
-  const handlePrev = () => {
-    if (currentSlide > 0) setCurrentSlide(curr => curr - 1);
-  };
-
-  const validatePhone = (val) => {
-    // Matches +994 51 389 48 04 or +9940513894804
-    const phoneRegex = /^\+994\s?(0?[1-9][0-9])\s?([0-9]{3})\s?([0-9]{2})\s?([0-9]{2})$/;
-    return phoneRegex.test(val);
-  };
-
-  const validatePassword = (val) => {
-    // At least 1 uppercase, 1 lowercase, 1 number, 1 special char, min 6 chars
-    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-    return passRegex.test(val);
-  };
-
-  const handleAuth = async (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(false);
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
-    if (isLogin) {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        if (data.session) router.push('/dashboard');
-      } catch (err) {
-        setError(err.message || 'Login failed');
-      } finally {
-        setLoading(false);
-      }
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setErrorMsg(t.loginError || error.message);
+      setLoading(false);
     } else {
-      // Validation for Signup
-      if (!name || !surname || !email || !password || !fin || !phone) {
-        setError(t.errRequired);
-        return;
-      }
-      if (fin.length !== 7) {
-        setError(t.errFin);
-        return;
-      }
-      if (!validatePhone(phone)) {
-        setError(t.errPhone);
-        return;
-      }
-      if (!validatePassword(password)) {
-        setError(t.errPass);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              first_name: name,
-              last_name: surname,
-              fin_code: fin,
-              phone: phone,
-              role: role,
-            },
-            emailRedirectTo: `${window.location.origin}/confirm`,
-          }
-        });
-        if (error) throw error;
-        setSuccess(true);
-      } catch (err) {
-        setError(err.message || 'Registration failed');
-      } finally {
-        setLoading(false);
-      }
+      router.push('/dashboard');
     }
+  };
+
+  const handleSignupSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          phone,
+          role,
+          parent_pin: role === 'parent' ? pin : null
+        }
+      }
+    });
+
+    if (error) {
+      setErrorMsg(error.message);
+      setLoading(false);
+    } else {
+      setSuccessMsg(t.signupSuccess || 'Uğurla qeydiyyatdan keçdiniz!');
+      setTimeout(() => {
+        setIsLogin(true);
+        setStep(1);
+        setSuccessMsg(null);
+        setLoading(false);
+      }, 3000);
+    }
+  };
+
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setFirstName('');
+    setLastName('');
+    setPhone('');
+    setPin('');
+    setStep(1);
+    setErrorMsg(null);
   };
 
   return (
     <div className={styles.wrapper}>
-      {/* Language Switcher */}
-      <div className={styles.langSwitcher}>
-        <button className={lang === 'en' ? styles.langActive : ''} onClick={() => changeLanguage('en')}>EN</button>
-        <button className={lang === 'az' ? styles.langActive : ''} onClick={() => changeLanguage('az')}>AZ</button>
-        <button className={lang === 'ru' ? styles.langActive : ''} onClick={() => changeLanguage('ru')}>RU</button>
+      {/* Floating Background Icons */}
+      <div className={styles.floatingBg}>
+        <BookOpen className={styles.floatIcon} />
+        <Award className={styles.floatIcon} />
+        <TrendingUp className={styles.floatIcon} />
+        <Globe className={styles.floatIcon} />
+        <PenTool className={styles.floatIcon} />
       </div>
 
-      <div className={styles.sliderContainer} style={{ transform: `translateX(-${currentSlide * 33.3333}%)` }}>
-        
-        {/* SLIDE 1: Welcome & Logo */}
-        <div className={styles.slide}>
-          <div className={styles.slideContent}>
-            <Image 
-              src="/logo.png" 
-              alt="Thrive Logo" 
-              width={250} 
-              height={120} 
-              className={styles.hugeLogo} 
-            />
-            <h1 className={styles.welcomeText}>
-              {currentSlide === 0 ? displayText : t.welcome}
-              {isTyping && currentSlide === 0 && <span className={styles.cursor}>|</span>}
-            </h1>
+      <div className={styles.glassContainer} style={{ position: 'relative', zIndex: 2 }}>
+        <div className={styles.header}>
+          {/* Logo enlarged */}
+          <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <span style={{ fontSize: '3rem', fontWeight: 900, color: '#38bdf8', letterSpacing: '-1px' }}>Thrive</span>
+            <span style={{ fontSize: '3rem', fontWeight: 300, color: '#f8fafc' }}>Edu</span>
           </div>
+          <h1 className={styles.title}>{t.welcomeToThrive}</h1>
+          <p className={styles.subtitle}>{isLogin ? t.loginSubtitle : t.signupSubtitle}</p>
         </div>
 
-        {/* SLIDE 2: Explainer */}
-        <div className={styles.slide}>
-          <div className={styles.slideContent}>
-            <h2 className={styles.slideTitle}>{t.slide2Title}</h2>
-            <p className={styles.slideDesc}>{t.slide2Desc}</p>
-            
-            <div className={styles.featureGrid}>
-              <div className={styles.featureCard}>
-                <BookOpen size={40} color="#39C0C6" />
-              </div>
-              <div className={styles.featureCard}>
-                <TrendingUp size={40} color="#39C0C6" />
-              </div>
-              <div className={styles.featureCard}>
-                <Award size={40} color="#39C0C6" />
-              </div>
-            </div>
-          </div>
-        </div>
+        {errorMsg && <div className={styles.errorAlert}>{errorMsg}</div>}
+        {successMsg && <div className={styles.successAlert}>{successMsg}</div>}
 
-        {/* SLIDE 3: Login / Signup */}
-        <div className={styles.slide}>
-          <div className={styles.authContainer}>
-            <div className={styles.authTabs}>
-              <button 
-                className={isLogin ? styles.tabActive : styles.tab} 
-                onClick={() => { setIsLogin(true); setError(null); setSuccess(false); }}
-              >
-                {t.loginTab}
-              </button>
-              <button 
-                className={!isLogin ? styles.tabActive : styles.tab} 
-                onClick={() => { setIsLogin(false); setError(null); setSuccess(false); }}
-              >
-                {t.signupTab}
-              </button>
-            </div>
+        <div className={styles.formArea}>
+          <form onSubmit={isLogin ? handleLoginSubmit : handleSignupSubmit}>
+            {!isLogin && step === 1 && (
+              <div className="animate-fade-in">
+                <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+                  <input type="text" placeholder={t.firstName} className={styles.inputField} value={firstName} onChange={e => setFirstName(e.target.value)} required />
+                  <input type="text" placeholder={t.lastName} className={styles.inputField} value={lastName} onChange={e => setLastName(e.target.value)} required />
+                </div>
+                
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                  <button type="button" className={`${styles.roleBtn} ${role === 'student' ? styles.roleBtnActive : ''}`} onClick={() => setRole('student')}>{t.student}</button>
+                  <button type="button" className={`${styles.roleBtn} ${role === 'parent' ? styles.roleBtnActive : ''}`} onClick={() => setRole('parent')}>{t.parent}</button>
+                </div>
 
-            <div className={styles.authCard}>
-              {error && <div className={styles.errorAlert}>{error}</div>}
-              {success && <div className={styles.successAlert}>{t.successReg}</div>}
-              
-              {!success && (
-                <form onSubmit={handleAuth} className={styles.authForm}>
-                  {!isLogin && (
-                    <>
-                      <div className={styles.roleToggle}>
-                        <button 
-                          type="button"
-                          className={role === 'student' ? styles.roleActive : styles.roleBtn}
-                          onClick={() => setRole('student')}
-                        >
-                          {t.roleStudent}
-                        </button>
-                        <button 
-                          type="button"
-                          className={role === 'parent' ? styles.roleActive : styles.roleBtn}
-                          onClick={() => setRole('parent')}
-                        >
-                          {t.roleParent}
-                        </button>
-                      </div>
-
-                      <div className={styles.row}>
-                        <div className={styles.inputGroup}>
-                          <input type="text" placeholder={t.name} className={styles.input} value={name} onChange={e => setName(e.target.value)} required />
-                        </div>
-                        <div className={styles.inputGroup}>
-                          <input type="text" placeholder={t.surname} className={styles.input} value={surname} onChange={e => setSurname(e.target.value)} required />
-                        </div>
-                      </div>
-
-                      <div className={styles.row}>
-                        <div className={styles.inputGroup}>
-                          <input type="text" placeholder={t.fin} maxLength={7} className={styles.input} value={fin} onChange={e => setFin(e.target.value.toUpperCase())} required />
-                        </div>
-                        <div className={styles.inputGroup}>
-                          <input type="tel" placeholder={t.phone} className={styles.input} value={phone} onChange={e => setPhone(e.target.value)} required />
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  <div className={styles.inputGroup}>
-                    <input type="email" placeholder={t.email} className={styles.input} value={email} onChange={e => setEmail(e.target.value)} required />
-                  </div>
-                  
-                  <div className={styles.inputGroup}>
-                    <input type="password" placeholder={t.password} className={styles.input} value={password} onChange={e => setPassword(e.target.value)} required />
-                  </div>
-
-                  <button type="submit" className={styles.submitBtn} disabled={loading}>
-                    {loading ? <Loader2 className="animate-spin" /> : (isLogin ? t.loginBtn : t.signupBtn)}
+                <div style={{ display: 'flex', gap: '15px' }}>
+                  <button type="button" onClick={() => setIsLogin(true)} className={styles.secondaryBtn}>Geri</button>
+                  <button type="button" onClick={() => setStep(2)} disabled={!firstName || !lastName} className={styles.primaryBtn}>
+                    İrəli <ChevronRight size={18} />
                   </button>
-                </form>
-              )}
-              {/* Moderator Icon to access Admin panel */}
-              <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                <button 
-                  onClick={() => router.push('/admin')}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 auto', gap: '5px' }}
-                  title="Admin Panel"
-                >
-                  <Shield size={24} />
-                  <span style={{ fontSize: '0.7rem' }}>Moderator</span>
-                </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {(!isLogin && step === 2) && (
+              <div className="animate-fade-in">
+                <input type="email" placeholder={t.emailLabel} className={styles.inputField} value={email} onChange={e => setEmail(e.target.value)} required />
+                <input type="tel" placeholder={t.phoneLabel} className={styles.inputField} value={phone} onChange={e => setPhone(e.target.value)} required />
+                {role === 'parent' && (
+                  <input type="password" maxLength="4" placeholder={t.parentPin} className={styles.inputField} value={pin} onChange={e => setPin(e.target.value)} required={role === 'parent'} />
+                )}
+                <input type="password" placeholder={t.passwordLabel} className={styles.inputField} value={password} onChange={e => setPassword(e.target.value)} required />
+
+                <div style={{ display: 'flex', gap: '15px' }}>
+                  <button type="button" onClick={() => setStep(1)} className={styles.secondaryBtn}><ChevronLeft size={18} /> Geri</button>
+                  <button type="submit" disabled={loading} className={styles.submitBtn}>
+                    {loading ? <Loader2 className="animate-spin" /> : 'Tamamla'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isLogin && (
+              <div className="animate-fade-in">
+                <input type="email" placeholder={t.emailLabel || "E-poçt"} className={styles.inputField} value={email} onChange={e => setEmail(e.target.value)} required />
+                <input type="password" placeholder={t.passwordLabel || "Şifrə"} className={styles.inputField} value={password} onChange={e => setPassword(e.target.value)} required />
+                
+                <button type="submit" className={styles.submitBtn} disabled={loading} style={{ marginTop: '10px' }}>
+                  {loading ? <Loader2 className="animate-spin" /> : t.loginBtn}
+                  <ChevronRight size={20} />
+                </button>
+                
+                <p style={{ textAlign: 'center', marginTop: '20px', color: '#94a3b8', fontSize: '0.9rem' }}>
+                  {t.noAccount} <span onClick={() => { setIsLogin(false); resetForm(); }} style={{ color: '#38bdf8', cursor: 'pointer', fontWeight: '600' }}>{t.signupBtn}</span>
+                </p>
+              </div>
+            )}
+          </form>
+
+          {/* Moderator Icon to access Admin panel */}
+          <div style={{ textAlign: 'center', marginTop: '30px' }}>
+            <button 
+              onClick={() => router.push('/admin/login')}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 auto', gap: '5px' }}
+              title="Admin Panel"
+            >
+              <Shield size={24} />
+              <span style={{ fontSize: '0.7rem' }}>Moderator</span>
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Navigation Controls */}
-      <div className={styles.controls}>
-        {currentSlide > 0 && (
-          <button className={styles.navBtn} onClick={handlePrev}>
-            <ChevronLeft size={24} />
-          </button>
-        )}
-        
-        <div className={styles.dots}>
-          {[0, 1, 2].map(idx => (
-            <div key={idx} className={currentSlide === idx ? styles.dotActive : styles.dot} onClick={() => setCurrentSlide(idx)} />
-          ))}
-        </div>
-
-        {currentSlide < 2 && (
-          <button className={styles.navBtn} onClick={handleNext}>
-            <ChevronRight size={24} />
-          </button>
-        )}
       </div>
     </div>
   );

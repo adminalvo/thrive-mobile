@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import styles from '../dashboard.module.css';
 
 export default function SettingsPage() {
-  const { t, language, changeLanguage } = useLanguage();
+  const { t, lang: language, changeLanguage } = useLanguage();
   const router = useRouter();
   
   const [activeSection, setActiveSection] = useState(null);

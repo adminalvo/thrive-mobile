@@ -1,9 +1,9 @@
 :root {
-  --deep-navy: #0A192F;
-  --aqua-teal: #39C0C6;
-  --white: #FFFFFF;
-  --gray-light: #8892B0;
-  --bg-gradient: linear-gradient(135deg, #0A192F 0%, #112240 100%);
+  --deep-navy: #0f1219;
+  --aqua-teal: #38bdf8;
+  --white: #f8fafc;
+  --gray-light: #94a3b8;
+  --bg-gradient: #0f1219;
 }
 
 * {
@@ -16,8 +16,6 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   background: var(--bg-gradient);
   color: var(--white);
   min-height: 100vh;
@@ -37,12 +35,12 @@ button {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes spin {
@@ -61,6 +59,8 @@ button {
   min-height: 100vh;
   position: relative;
   background-color: var(--deep-navy);
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  box-shadow: 0 0 40px rgba(0,0,0,0.2);
+  border-left: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid rgba(255,255,255,0.05);
   overflow: hidden;
 }

@@ -25,6 +25,7 @@ export const translations = {
     // Dashboard Common
     navHome: "Home",
     navCourses: "Courses",
+    navSchedule: "Schedule",
     navAchievements: "Success",
     navSettings: "Settings",
     
@@ -50,13 +51,17 @@ export const translations = {
     perfectAttendance: "Your child attended all classes this month.",
     missedClasses: "Has missed some classes.",
     participation: "Participation",
+    todaysPlan: "Today's Plan",
+    noClassesToday: "No classes scheduled for today.",
     
-    // Courses Page
+    // Courses & Schedule Page
     myCourses: "My Courses",
     unknownCourse: "Unknown Course",
     courseCompleted: "Course Completed",
     ongoingCourse: "Ongoing course -",
     continueLesson: "Continue Lesson",
+    scheduleTitle: "Class Schedule",
+    scheduleDesc: "Your upcoming classes for the week.",
     
     // Achievements & Consultation
     achievementsTitle: "Hall of Fame",
@@ -80,7 +85,10 @@ export const translations = {
     newPassword: "New Password (Min 6 chars)",
     updatePassBtn: "Update Password",
     logout: "Log Out",
-    errorOccurred: "An error occurred"
+    errorOccurred: "An error occurred",
+    privacyPolicy: "Privacy Policy",
+    termsOfUse: "Terms of Use",
+    readMore: "Read More"
   },
   
   az: {
@@ -107,17 +115,18 @@ export const translations = {
     successReg: "Qeydiyyat uğurludur! Zəhmət olmasa e-poçtunuzu təsdiqləyin.",
     
     // Dashboard Common
-    navHome: "Əsas",
+    navHome: "Baş Səhifə",
     navCourses: "Kurslar",
-    navAchievements: "Uğurlar",
-    navSettings: "Ayarlar",
+    navSchedule: "Cədvəl",
+    navAchievements: "Nailiyyətlər",
+    navSettings: "Parametrlər",
     
     // Dashboard Home
-    hello: "Salam",
+    hello: "Xoş gəldiniz",
     user: "İstifadəçi",
     parentSubtitle: "Övladınızın təhsilinə nəzarət edin.",
     studentSubtitle: "Bugünkü təhsil hədəflərinizə çatmağa hazırsınız?",
-    progressTitle: "Tərəqqi (Progress)",
+    progressTitle: "Göstəricilər",
     noCourses: "Heç bir kursa qeydiyyatdan keçməmisiniz",
     progressAchieved: "Hədəflərinizin",
     ofYourGoals: "%-nə çatmısınız!",
@@ -134,16 +143,20 @@ export const translations = {
     perfectAttendance: "Bu ay övladınız bütün dərslərdə iştirak edib.",
     missedClasses: "Dərslərdən qayıbı var.",
     participation: "İştirak",
+    todaysPlan: "Bugünkü Gündəlik",
+    noClassesToday: "Bu gün üçün planlaşdırılmış dərs yoxdur.",
     
-    // Courses Page
+    // Courses & Schedule Page
     myCourses: "Kurslarım",
     unknownCourse: "Bilinməyən Kurs",
     courseCompleted: "Kurs Tamamlanıb",
     ongoingCourse: "Davam edən kurs -",
     continueLesson: "Dərsə Davam Et",
+    scheduleTitle: "Dərs Cədvəli",
+    scheduleDesc: "Həftəlik planlaşdırılmış dərsləriniz.",
     
     // Achievements & Consultation
-    achievementsTitle: "Uğurlarımız (Hall of Fame)",
+    achievementsTitle: "Nailiyyətlərimiz",
     achievementsSubtitle: "Yüksək nəticə göstərən tələbələrimizlə tanış olun!",
     bookConsultation: "Konsultasiya",
     consultationTitle: "Konsultasiyaya Yazılın",
@@ -155,7 +168,7 @@ export const translations = {
     consultationSuccess: "Müraciətiniz qəbul olundu! Sizinlə qısa zamanda əlaqə saxlayacağıq.",
     
     // Settings Page
-    settingsTitle: "Ayarlar",
+    settingsTitle: "Parametrlər",
     languageSelect: "Dil Seçimi",
     changeEmail: "E-poçtu Dəyişdir",
     newEmail: "Yeni E-poçt",
@@ -164,7 +177,10 @@ export const translations = {
     newPassword: "Yeni şifrə (Min 6 simvol)",
     updatePassBtn: "Şifrəni Yenilə",
     logout: "Sistemdən Çıx",
-    errorOccurred: "Xəta baş verdi"
+    errorOccurred: "Xəta baş verdi",
+    privacyPolicy: "Məxfilik Siyasəti",
+    termsOfUse: "İstifadəçi Şərtləri",
+    readMore: "Daha Ətraflı Oxu"
   },
   
   ru: {
@@ -193,6 +209,7 @@ export const translations = {
     // Dashboard Common
     navHome: "Главная",
     navCourses: "Курсы",
+    navSchedule: "Расписание",
     navAchievements: "Успехи",
     navSettings: "Настройки",
     
@@ -218,13 +235,17 @@ export const translations = {
     perfectAttendance: "В этом месяце ваш ребенок посетил все занятия.",
     missedClasses: "Есть пропуски занятий.",
     participation: "Участие",
+    todaysPlan: "План на сегодня",
+    noClassesToday: "На сегодня занятия не запланированы.",
     
-    // Courses Page
+    // Courses & Schedule Page
     myCourses: "Мои курсы",
     unknownCourse: "Неизвестный курс",
     courseCompleted: "Курс завершен",
     ongoingCourse: "Текущий курс -",
     continueLesson: "Продолжить урок",
+    scheduleTitle: "Расписание",
+    scheduleDesc: "Ваши предстоящие занятия на неделю.",
     
     // Achievements & Consultation
     achievementsTitle: "Наши Успехи",
@@ -248,6 +269,9 @@ export const translations = {
     newPassword: "Новый пароль (Мин 6 символов)",
     updatePassBtn: "Обновить Пароль",
     logout: "Выйти из системы",
-    errorOccurred: "Произошла ошибка"
+    errorOccurred: "Произошла ошибка",
+    privacyPolicy: "Политика Конфиденциальности",
+    termsOfUse: "Условия Использования",
+    readMore: "Читать далее"
   }
 };

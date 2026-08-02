@@ -1,45 +1,36 @@
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @keyframes skeletonPulse {
-  0% { background-color: rgba(57, 192, 198, 0.05); }
-  50% { background-color: rgba(57, 192, 198, 0.15); }
-  100% { background-color: rgba(57, 192, 198, 0.05); }
+  0% { background-color: rgba(255, 255, 255, 0.02); }
+  50% { background-color: rgba(255, 255, 255, 0.08); }
+  100% { background-color: rgba(255, 255, 255, 0.02); }
 }
 
 .dashboardWrapper {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  /* More vibrant animated background */
-  background: linear-gradient(-45deg, #0A192F, #0b2647, #0A192F, #081e36);
-  background-size: 400% 400%;
-  animation: gradientMove 15s ease infinite;
-  color: var(--white);
+  /* Minimalist dark background */
+  background: #0f1219;
+  color: #e2e8f0;
   padding-bottom: 80px; 
 }
 
 .content {
-  padding: 20px;
+  padding: 24px;
   animation: fadeIn 0.4s ease-out;
 }
 
-/* Glassmorphism Bottom Nav */
+/* Clean Bottom Nav */
 .bottomNav {
-  position: fixed; /* Keep it fixed at bottom of viewport */
+  position: fixed; 
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: 500px;
   height: 70px;
-  background: rgba(10, 25, 47, 0.85);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(57, 192, 198, 0.4);
-  box-shadow: 0 -5px 25px rgba(57, 192, 198, 0.15);
+  background: rgba(15, 18, 25, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -51,84 +42,64 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--gray-light);
-  gap: 4px;
+  color: #64748b;
+  gap: 6px;
   width: 70px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .navItem:hover {
-  transform: translateY(-5px) scale(1.05);
-  color: #fff;
+  color: #f8fafc;
 }
 
 .navItemActive {
-  color: var(--aqua-teal);
-  text-shadow: 0 0 15px rgba(57, 192, 198, 0.8);
-  transform: translateY(-5px);
+  color: #38bdf8;
 }
 
 .navLabel {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
-/* Glassmorphism Cards */
+/* Minimalist Cards */
 .glassCard {
-  background: rgba(17, 34, 64, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(57, 192, 198, 0.3);
-  border-radius: 20px;
-  padding: 25px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 20px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.glassCard::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(135deg, rgba(57, 192, 198, 0.1) 0%, transparent 100%);
-  pointer-events: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease;
 }
 
 .glassCard:hover {
-  border-color: rgba(57, 192, 198, 0.8);
-  box-shadow: 0 0 25px rgba(57, 192, 198, 0.2);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 /* Typography */
 .greeting {
-  font-size: 2rem;
-  font-weight: 900;
-  margin-bottom: 5px;
-  background: linear-gradient(90deg, #FFFFFF 0%, #39C0C6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 20px rgba(57, 192, 198, 0.3);
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #f8fafc;
 }
 
 .subtitle {
-  color: #a4b1d6;
-  font-size: 1rem;
+  color: #94a3b8;
+  font-size: 0.95rem;
   margin-bottom: 25px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .sectionTitle {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--white);
-  margin-bottom: 15px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 10px;
-  text-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
 /* Skeleton Loaders */

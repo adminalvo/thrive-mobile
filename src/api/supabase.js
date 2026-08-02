@@ -13,3 +13,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+/**
+ * Vercel '@vercel/connect' paketinin getToken funksiyasının
+ * Mobil/Client-side tətbiqimizə uyğunlaşdırılmış versiyası.
+ * Cari aktiv istifadəçinin (usr_...) access_token-ini qaytarır.
+ */
+export const getToken = async () => {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error || !session) {
+    console.warn('Sessiya tapılmadı və ya xəta baş verdi:', error);
+    return null;
+  }
+  return session.access_token;
+};

@@ -1,0 +1,121 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 2rem;
+  text-align: center;
+}
+
+.bgIcon1 {
+  position: absolute;
+  top: -50px;
+  right: -100px;
+  opacity: 0.03;
+  transform: rotate(15deg);
+  pointer-events: none;
+}
+
+.bgIcon2 {
+  position: absolute;
+  bottom: 50px;
+  left: -80px;
+  opacity: 0.03;
+  transform: rotate(-20deg);
+  pointer-events: none;
+}
+
+.logo {
+  width: 80%;
+  max-width: 300px;
+  margin-bottom: 40px;
+  object-fit: contain;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.cursor {
+  color: var(--aqua-teal);
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.primaryButton {
+  background-color: var(--aqua-teal);
+  color: var(--white);
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  width: 100%;
+  margin-top: 20px;
+  transition: opacity 0.2s;
+}
+
+.primaryButton:hover {
+  opacity: 0.9;
+}
+
+.secondaryButton {
+  background-color: transparent;
+  color: var(--aqua-teal);
+  border: 1px solid var(--aqua-teal);
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  width: 100%;
+  margin-top: 15px;
+  transition: background-color 0.2s;
+}
+
+.secondaryButton:hover {
+  background-color: rgba(57, 192, 198, 0.1);
+}
+
+.footer {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footerText {
+  color: var(--gray-light);
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  opacity: 0.5;
+}
+
+.langContainer {
+  display: flex;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.langBtn {
+  padding: 6px 15px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.7);
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.langBtnActive {
+  background-color: var(--aqua-teal);
+  border-color: var(--aqua-teal);
+  color: var(--white);
+}

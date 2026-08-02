@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../api/supabase';
 import { COLORS, SIZES } from '../../constants/theme';
@@ -22,10 +22,17 @@ export default function RegisterScreen({ route, navigation }) {
     }
 
     setLoading(true);
+    
+    // Determine the redirect URL based on environment
+    const redirectUrl = Platform.OS === 'web' 
+      ? window.location.origin // Dynamic for web (will use vercel app url on production)
+      : 'https://thrive-mobile.vercel.app'; // Fallback for native
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectUrl,
         data: {
           first_name: firstName,
           last_name: lastName,

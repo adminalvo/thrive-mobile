@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../api/supabase';
-import { Shield, Users, BookOpen, Calendar, LogOut, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Shield, Users, BookOpen, Calendar, LogOut, Loader2, Plus, Trash2, TrendingUp, Save } from 'lucide-react';
 import styles from '../dashboard/dashboard.module.css';
 
 export default function AdminDashboard() {
@@ -16,6 +16,7 @@ export default function AdminDashboard() {
   const [courses, setCourses] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [registrations, setRegistrations] = useState([]);
+  const [stats, setStats] = useState([]);
 
   // Forms
   const [newCourse, setNewCourse] = useState({ title: '', description: '', image_url: '', monthly_price: '0 ₼' });
@@ -41,19 +42,36 @@ export default function AdminDashboard() {
   }, [router]);
 
   const fetchData = async () => {
-    const [coursesRes, schedRes, regRes] = await Promise.all([
+    const [coursesRes, schedRes, regRes, statsRes] = await Promise.all([
       supabase.from('courses').select('*').order('created_at', { ascending: false }),
       supabase.from('schedules').select('*').order('created_at', { ascending: false }),
-      supabase.from('course_registrations').select('id, status, created_at, courses(title), user_id').order('created_at', { ascending: false })
+      supabase.from('course_registrations').select('id, status, created_at, courses(title), user_id, course_id').order('created_at', { ascending: false }),
+      supabase.from('student_stats').select('*, courses(title)').order('created_at', { ascending: false })
     ]);
     if (coursesRes.data) setCourses(coursesRes.data);
     if (schedRes.data) setSchedules(schedRes.data);
     if (regRes.data) setRegistrations(regRes.data);
+    if (statsRes.data) setStats(statsRes.data);
   };
 
-  const handleUpdateReg = async (id, status) => {
+  const handleUpdateReg = async (id, status, user_id, course_id) => {
     const { error } = await supabase.from('course_registrations').update({ status }).eq('id', id);
-    if (!error) fetchData();
+    if (!error) {
+      if (status === 'approved' && user_id && course_id) {
+        await supabase.from('student_stats').insert([{ user_id, course_id }]).select();
+      }
+      fetchData();
+    }
+  };
+
+  const handleUpdateStat = async (id, updatedFields) => {
+    const { error } = await supabase.from('student_stats').update(updatedFields).eq('id', id);
+    if (error) {
+      setMsg({ type: 'error', text: 'Error updating stats: ' + error.message });
+    } else {
+      setMsg({ type: 'success', text: 'Stats updated successfully!' });
+      fetchData();
+    }
   };
 
   const handleAddCourse = async (e) => {
@@ -132,6 +150,9 @@ export default function AdminDashboard() {
         <button onClick={() => setActiveTab('registrations')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'registrations' ? '#38bdf8' : 'rgba(255,255,255,0.05)', color: activeTab === 'registrations' ? '#0f1219' : '#94a3b8', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <Users size={18} /> Müraciətlər
         </button>
+        <button onClick={() => setActiveTab('stats')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'stats' ? '#38bdf8' : 'rgba(255,255,255,0.05)', color: activeTab === 'stats' ? '#0f1219' : '#94a3b8', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <TrendingUp size={18} /> Nəticələr
+        </button>
       </div>
 
       {/* Registrations Tab */}
@@ -151,10 +172,10 @@ export default function AdminDashboard() {
                   </div>
                   {reg.status === 'pending' && (
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <button onClick={() => handleUpdateReg(reg.id, 'approved')} style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34,197,94,0.2)', padding: '8px 15px', borderRadius: '8px', color: '#22c55e', cursor: 'pointer', fontWeight: 600 }}>
+                      <button onClick={() => handleUpdateReg(reg.id, 'approved', reg.user_id, reg.course_id)} style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34,197,94,0.2)', padding: '8px 15px', borderRadius: '8px', color: '#22c55e', cursor: 'pointer', fontWeight: 600 }}>
                         Təsdiqlə
                       </button>
-                      <button onClick={() => handleUpdateReg(reg.id, 'rejected')} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 15px', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontWeight: 600 }}>
+                      <button onClick={() => handleUpdateReg(reg.id, 'rejected', reg.user_id, reg.course_id)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 15px', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontWeight: 600 }}>
                         Rədd et
                       </button>
                     </div>
@@ -264,6 +285,75 @@ export default function AdminDashboard() {
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+      {/* Stats Tab */}
+      {activeTab === 'stats' && (
+        <div>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', color: '#f8fafc' }}>Tələbə Nəticələri</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {stats.length === 0 ? (
+              <p style={{ color: '#94a3b8' }}>Göstərici tapılmadı.</p>
+            ) : (
+              stats.map(s => (
+                <div key={s.id} className={styles.glassCard} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h4 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '5px' }}>Kurs: {s.courses?.title || 'Bilinmir'} <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>(ID: {s.user_id.slice(0,8)}...)</span></h4>
+                  
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+                    <div style={{ flex: '1 1 45%' }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>İrəliləyiş (Progress %)</label>
+                      <input 
+                        type="number" 
+                        defaultValue={s.progress} 
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: '#0f1219', color: '#fff' }} 
+                        id={`prog_${s.id}`} 
+                      />
+                    </div>
+                    <div style={{ flex: '1 1 45%' }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>Davamiyyət (Attendance %)</label>
+                      <input 
+                        type="number" 
+                        defaultValue={s.attendance_percentage} 
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: '#0f1219', color: '#fff' }} 
+                        id={`att_${s.id}`} 
+                      />
+                    </div>
+                    <div style={{ flex: '1 1 45%' }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>Son İmtahan Adı</label>
+                      <input 
+                        type="text" 
+                        defaultValue={s.last_exam_name} 
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: '#0f1219', color: '#fff' }} 
+                        id={`ename_${s.id}`} 
+                      />
+                    </div>
+                    <div style={{ flex: '1 1 45%' }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>Son İmtahan Balı</label>
+                      <input 
+                        type="number" 
+                        defaultValue={s.last_exam_score} 
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: '#0f1219', color: '#fff' }} 
+                        id={`escore_${s.id}`} 
+                      />
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const updatedFields = {
+                        progress: parseInt(document.getElementById(`prog_${s.id}`).value) || 0,
+                        attendance_percentage: parseInt(document.getElementById(`att_${s.id}`).value) || 0,
+                        last_exam_name: document.getElementById(`ename_${s.id}`).value,
+                        last_exam_score: parseInt(document.getElementById(`escore_${s.id}`).value) || 0,
+                      };
+                      handleUpdateStat(s.id, updatedFields);
+                    }}
+                    style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', padding: '10px 15px', borderRadius: '8px', color: '#38bdf8', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px' }}>
+                    <Save size={16} /> Yadda saxla
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

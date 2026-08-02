@@ -22,15 +22,31 @@ export default function DashboardHome() {
       
       setUser(session.user);
       
-      const [enrollRes, gradeRes, attendRes] = await Promise.all([
-        supabase.from('enrollments').select('progress, next_lesson, courses(title)').eq('user_id', session.user.id),
-        supabase.from('grades').select('exam_name, score').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(1),
-        supabase.from('attendance').select('month, percentage').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(1)
+      const [enrollRes, statsRes] = await Promise.all([
+        supabase.from('course_registrations').select('id, course_id, status, courses(title)').eq('user_id', session.user.id).eq('status', 'approved'),
+        supabase.from('student_stats').select('*').eq('user_id', session.user.id)
       ]);
 
-      if (enrollRes.data) setEnrollments(enrollRes.data);
-      if (gradeRes.data && gradeRes.data.length > 0) setGrades(gradeRes.data[0]);
-      if (attendRes.data && attendRes.data.length > 0) setAttendance(attendRes.data[0]);
+      if (enrollRes.data) {
+        const enrichedEnrollments = enrollRes.data.map(en => {
+          const stat = statsRes.data?.find(s => s.course_id === en.course_id) || {};
+          return {
+            ...en,
+            progress: stat.progress || 0,
+            next_lesson: 'Cədvələ baxın'
+          };
+        });
+        setEnrollments(enrichedEnrollments);
+      }
+      
+      if (statsRes.data && statsRes.data.length > 0) {
+        const s = statsRes.data[0];
+        setGrades({ exam_name: s.last_exam_name || 'Bilinmir', score: s.last_exam_score || 0 });
+        setAttendance({ month: 'Bu ay', percentage: s.attendance_percentage || 0 });
+      } else {
+        setGrades(null);
+        setAttendance(null);
+      }
 
       // Fetch today's schedule
       const days = ['Bazar', 'Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə'];

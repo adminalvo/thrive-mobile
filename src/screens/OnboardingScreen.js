@@ -1,15 +1,18 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, ScrollView, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, SIZES } from '../constants/theme';
 import '../api/i18n'; // Initialize i18n
-
-const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const scrollViewRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const { width: windowWidth } = useWindowDimensions();
+  
+  // Constrain width for desktop web to look like a mobile app
+  const isWebDesktop = Platform.OS === 'web' && windowWidth > 500;
+  const contentWidth = isWebDesktop ? 500 : windowWidth;
 
   const changeLanguage = (lang) => {
     i18n.changeLanguage(lang);
@@ -17,7 +20,7 @@ export default function OnboardingScreen({ navigation }) {
 
   const handleScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const page = Math.round(contentOffsetX / width);
+    const page = Math.round(contentOffsetX / contentWidth);
     if (page !== currentPage) {
       setCurrentPage(page);
     }
@@ -25,74 +28,76 @@ export default function OnboardingScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        ref={scrollViewRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={handleScroll}
-        style={styles.pagerView}
-      >
-        {/* Page 1: Logo & Welcome */}
-        <View style={styles.page}>
-          <Image 
-            source={require('../../assets/logo.png')} 
-            style={styles.logo} 
-            resizeMode="contain" 
-          />
-          <Text style={styles.title}>{t('onboarding.welcome')}</Text>
-          <View style={styles.langContainer}>
-            <TouchableOpacity onPress={() => changeLanguage('az')} style={[styles.langBtn, i18n.language === 'az' && styles.langBtnActive]}>
-              <Text style={[styles.langText, i18n.language === 'az' && styles.langTextActive]}>AZ</Text>
+      <View style={[styles.mobileWrapper, { width: contentWidth }]}>
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleScroll}
+          style={styles.pagerView}
+        >
+          {/* Page 1: Logo & Welcome */}
+          <View style={[styles.page, { width: contentWidth }]}>
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={styles.logo} 
+              resizeMode="contain" 
+            />
+            <Text style={styles.title}>{t('onboarding.welcome')}</Text>
+            <View style={styles.langContainer}>
+              <TouchableOpacity onPress={() => changeLanguage('az')} style={[styles.langBtn, i18n.language === 'az' && styles.langBtnActive]}>
+                <Text style={[styles.langText, i18n.language === 'az' && styles.langTextActive]}>AZ</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => changeLanguage('en')} style={[styles.langBtn, i18n.language === 'en' && styles.langBtnActive]}>
+                <Text style={[styles.langText, i18n.language === 'en' && styles.langTextActive]}>EN</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => changeLanguage('ru')} style={[styles.langBtn, i18n.language === 'ru' && styles.langBtnActive]}>
+                <Text style={[styles.langText, i18n.language === 'ru' && styles.langTextActive]}>RU</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Page 2: Summary */}
+          <View style={[styles.page, { width: contentWidth }]}>
+            <Text style={styles.title}>{t('onboarding.welcome')}</Text>
+            <Text style={styles.summary}>{t('onboarding.summary')}</Text>
+          </View>
+
+          {/* Page 3: Auth Gateway */}
+          <View style={[styles.page, { width: contentWidth }]}>
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={styles.logoSmall} 
+              resizeMode="contain" 
+            />
+            <Text style={styles.title}>{t('onboarding.getStarted')}</Text>
+            
+            <TouchableOpacity 
+              style={styles.primaryButton}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.primaryButtonText}>{t('onboarding.login')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => changeLanguage('en')} style={[styles.langBtn, i18n.language === 'en' && styles.langBtnActive]}>
-              <Text style={[styles.langText, i18n.language === 'en' && styles.langTextActive]}>EN</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => changeLanguage('ru')} style={[styles.langBtn, i18n.language === 'ru' && styles.langBtnActive]}>
-              <Text style={[styles.langText, i18n.language === 'ru' && styles.langTextActive]}>RU</Text>
+
+            <TouchableOpacity 
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('RoleSelection')}
+            >
+              <Text style={styles.secondaryButtonText}>{t('onboarding.register')}</Text>
             </TouchableOpacity>
           </View>
+        </ScrollView>
+
+        {/* Dots Indicator */}
+        <View style={styles.dotsContainer}>
+          {[0, 1, 2].map((i) => (
+            <View 
+              key={i} 
+              style={[styles.dot, currentPage === i && styles.activeDot]} 
+            />
+          ))}
         </View>
-
-        {/* Page 2: Summary */}
-        <View style={styles.page}>
-          <Text style={styles.title}>{t('onboarding.welcome')}</Text>
-          <Text style={styles.summary}>{t('onboarding.summary')}</Text>
-        </View>
-
-        {/* Page 3: Auth Gateway */}
-        <View style={styles.page}>
-          <Image 
-            source={require('../../assets/logo.png')} 
-            style={styles.logoSmall} 
-            resizeMode="contain" 
-          />
-          <Text style={styles.title}>{t('onboarding.getStarted')}</Text>
-          
-          <TouchableOpacity 
-            style={styles.primaryButton}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Text style={styles.primaryButtonText}>{t('onboarding.login')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.secondaryButton}
-            onPress={() => navigation.navigate('RoleSelection')}
-          >
-            <Text style={styles.secondaryButtonText}>{t('onboarding.register')}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      {/* Dots Indicator */}
-      <View style={styles.dotsContainer}>
-        {[0, 1, 2].map((i) => (
-          <View 
-            key={i} 
-            style={[styles.dot, currentPage === i && styles.activeDot]} 
-          />
-        ))}
       </View>
     </View>
   );
@@ -101,24 +106,28 @@ export default function OnboardingScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.deepNavy, // Matching the logo background visually
+    backgroundColor: COLORS.deepNavy,
+    alignItems: 'center', // Center the mobile wrapper on web
+  },
+  mobileWrapper: {
+    flex: 1,
+    overflow: 'hidden',
   },
   pagerView: {
     flex: 1,
   },
   page: {
-    width,
     justifyContent: 'center',
     alignItems: 'center',
     padding: SIZES.padding * 2,
   },
   logo: {
-    width: width * 0.7,
+    width: '70%',
     height: 120,
     marginBottom: 40,
   },
   logoSmall: {
-    width: width * 0.5,
+    width: '50%',
     height: 80,
     marginBottom: 30,
   },

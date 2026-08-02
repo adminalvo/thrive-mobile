@@ -40,6 +40,9 @@ export default function RoleSelectionScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
     backgroundColor: COLORS.grayLight,
     padding: SIZES.padding * 2,
     justifyContent: 'center',

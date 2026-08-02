@@ -109,6 +109,9 @@ export default function RegisterScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
     backgroundColor: COLORS.grayLight,
     padding: SIZES.padding * 2,
     justifyContent: 'center',

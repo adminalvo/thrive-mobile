@@ -1,0 +1,224 @@
+.dashboardWrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--deep-navy);
+  color: var(--white);
+  padding-bottom: 80px; /* Space for bottom nav */
+}
+
+.content {
+  padding: 20px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Glassmorphism Bottom Nav */
+.bottomNav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  background: rgba(10, 25, 47, 0.85);
+  backdrop-filter: blur(15px);
+  border-top: 1px solid rgba(57, 192, 198, 0.2);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-light);
+  gap: 4px;
+  width: 70px;
+  transition: all 0.3s ease;
+}
+
+.navItem:hover {
+  transform: translateY(-3px);
+}
+
+.navItemActive {
+  color: var(--aqua-teal);
+  text-shadow: 0 0 10px rgba(57, 192, 198, 0.5);
+  transform: translateY(-3px);
+}
+
+.navLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Glassmorphism Cards */
+.glassCard {
+  background: rgba(17, 34, 64, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(57, 192, 198, 0.15);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.glassCard:hover {
+  border-color: rgba(57, 192, 198, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(57, 192, 198, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Typography */
+.greeting {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+  background: linear-gradient(90deg, #FFFFFF 0%, #39C0C6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--gray-light);
+  font-size: 0.95rem;
+  margin-bottom: 25px;
+}
+
+.sectionTitle {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--white);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Rings and Progress */
+.progressRingContainer {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.progressRingText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--aqua-teal);
+}
+
+.courseItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.courseItem:last-child {
+  border-bottom: none;
+}
+
+.courseInfo h4 {
+  font-size: 1.1rem;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.courseInfo p {
+  font-size: 0.85rem;
+  color: var(--gray-light);
+}
+
+/* Inputs and Forms */
+.inputLabel {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--gray-light);
+  margin-bottom: 8px;
+}
+
+.inputField {
+  width: 100%;
+  background: rgba(10, 25, 47, 0.8);
+  border: 1px solid rgba(57, 192, 198, 0.3);
+  color: var(--white);
+  padding: 12px 15px;
+  border-radius: 12px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--aqua-teal);
+  box-shadow: 0 0 10px rgba(57, 192, 198, 0.2);
+}
+
+.primaryBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #39C0C6 0%, #208e93 100%);
+  color: var(--white);
+  border: none;
+  padding: 15px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(57, 192, 198, 0.3);
+}
+
+.primaryBtn:hover {
+  box-shadow: 0 6px 20px rgba(57, 192, 198, 0.5);
+  transform: translateY(-2px);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dangerBtn {
+  background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
+  box-shadow: 0 4px 15px rgba(255, 77, 79, 0.3);
+}
+
+.dangerBtn:hover {
+  box-shadow: 0 6px 20px rgba(255, 77, 79, 0.5);
+}
+
+.alertMessage {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.alertSuccess {
+  background: rgba(82, 196, 26, 0.1);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+  color: #52c41a;
+}
+
+.alertError {
+  background: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  color: #ff4d4f;
+}

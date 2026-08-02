@@ -36,6 +36,17 @@ function MainTabNavigator() {
         tabBarActiveTintColor: COLORS.aquaTeal,
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#07152B', // Even darker navy for tab bar
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(255,255,255,0.05)',
+          maxWidth: 500,
+          width: '100%',
+          alignSelf: 'center',
+          height: 60,
+          paddingBottom: 10,
+          paddingTop: 10,
+        },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, ScrollView, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, useWindowDimensions, ScrollView, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../constants/theme';
@@ -49,6 +49,11 @@ export default function OnboardingScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={[styles.mobileWrapper, { width: contentWidth }]}>
+        
+        {/* Background Icons for Aesthetic */}
+        <Ionicons name="school" size={300} color={COLORS.aquaTeal} style={styles.bgIcon1} />
+        <Ionicons name="planet" size={250} color={COLORS.aquaTeal} style={styles.bgIcon2} />
+        
         <ScrollView
           ref={scrollViewRef}
           horizontal
@@ -65,18 +70,6 @@ export default function OnboardingScreen({ navigation }) {
               resizeMode="contain" 
             />
             <Text style={styles.title}>{typewriterText}<Text style={{color: COLORS.aquaTeal}}>|</Text></Text>
-            
-            <View style={styles.langContainer}>
-              <TouchableOpacity onPress={() => changeLanguage('az')} style={[styles.langBtn, i18n.language === 'az' && styles.langBtnActive]}>
-                <Text style={[styles.langText, i18n.language === 'az' && styles.langTextActive]}>AZ</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => changeLanguage('en')} style={[styles.langBtn, i18n.language === 'en' && styles.langBtnActive]}>
-                <Text style={[styles.langText, i18n.language === 'en' && styles.langTextActive]}>EN</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => changeLanguage('ru')} style={[styles.langBtn, i18n.language === 'ru' && styles.langBtnActive]}>
-                <Text style={[styles.langText, i18n.language === 'ru' && styles.langTextActive]}>RU</Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
           {/* Page 2: Features Redesign */}
@@ -140,8 +133,20 @@ export default function OnboardingScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Footer */}
+        {/* Footer with Language Selection & Website */}
         <View style={styles.footer}>
+          <View style={styles.langContainer}>
+            <TouchableOpacity onPress={() => changeLanguage('az')} style={[styles.langBtn, i18n.language === 'az' && styles.langBtnActive]}>
+              <Text style={[styles.langText, i18n.language === 'az' && styles.langTextActive]}>AZ</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => changeLanguage('en')} style={[styles.langBtn, i18n.language === 'en' && styles.langBtnActive]}>
+              <Text style={[styles.langText, i18n.language === 'en' && styles.langTextActive]}>EN</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => changeLanguage('ru')} style={[styles.langBtn, i18n.language === 'ru' && styles.langBtnActive]}>
+              <Text style={[styles.langText, i18n.language === 'ru' && styles.langTextActive]}>RU</Text>
+            </TouchableOpacity>
+          </View>
+
           <Text style={styles.footerText}>www.thrive.az</Text>
         </View>
       </View>
@@ -159,24 +164,40 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     position: 'relative',
+    backgroundColor: COLORS.deepNavy,
+  },
+  bgIcon1: {
+    position: 'absolute',
+    top: -50,
+    right: -100,
+    opacity: 0.03,
+    transform: [{ rotate: '15deg' }]
+  },
+  bgIcon2: {
+    position: 'absolute',
+    bottom: 50,
+    left: -80,
+    opacity: 0.03,
+    transform: [{ rotate: '-20deg' }]
   },
   pagerView: {
     flex: 1,
+    zIndex: 1,
   },
   page: {
     justifyContent: 'center',
     alignItems: 'center',
     padding: SIZES.padding * 2,
-    paddingBottom: 100, // Leave space for footer
+    paddingBottom: 120, // Leave space for footer + language
   },
   logo: {
-    width: '70%',
-    height: 120,
+    width: '90%', // Larger logo
+    height: 160, // Taller logo
     marginBottom: 40,
   },
   logoSmall: {
-    width: '50%',
-    height: 80,
+    width: '60%',
+    height: 100,
     marginBottom: 30,
   },
   title: {
@@ -189,7 +210,7 @@ const styles = StyleSheet.create({
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '80%',
+    width: '90%',
     marginBottom: 30,
     backgroundColor: 'rgba(255,255,255,0.05)',
     padding: 15,
@@ -199,7 +220,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(57, 192, 198, 0.1)', // Aqua teal with low opacity
+    backgroundColor: 'rgba(57, 192, 198, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 20,
@@ -215,8 +236,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 80,
+    bottom: 110,
     width: '100%',
+    zIndex: 2,
   },
   dot: {
     width: 8,
@@ -229,17 +251,24 @@ const styles = StyleSheet.create({
     width: 20,
     backgroundColor: COLORS.aquaTeal,
   },
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    width: '100%',
+    alignItems: 'center',
+    zIndex: 2,
+  },
   langContainer: {
     flexDirection: 'row',
-    marginTop: 40,
+    marginBottom: 15,
   },
   langBtn: {
     paddingHorizontal: 15,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderRadius: 20,
     marginHorizontal: 5,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   langBtnActive: {
     backgroundColor: COLORS.aquaTeal,
@@ -248,6 +277,7 @@ const styles = StyleSheet.create({
   langText: {
     color: 'rgba(255,255,255,0.7)',
     fontWeight: 'bold',
+    fontSize: SIZES.small,
   },
   langTextActive: {
     color: COLORS.white,
@@ -280,16 +310,10 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
     fontWeight: 'bold',
   },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    width: '100%',
-    alignItems: 'center',
-  },
   footerText: {
     color: COLORS.grayLight,
     fontSize: SIZES.small,
     letterSpacing: 1,
-    opacity: 0.6,
+    opacity: 0.5,
   }
 });

@@ -12,6 +12,7 @@ export default function DashboardHome() {
   const [enrollments, setEnrollments] = useState([]);
   const [grades, setGrades] = useState([]);
   const [attendance, setAttendance] = useState(null);
+  const [todaysSchedule, setTodaysSchedule] = useState([]);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -30,6 +31,12 @@ export default function DashboardHome() {
       if (enrollRes.data) setEnrollments(enrollRes.data);
       if (gradeRes.data && gradeRes.data.length > 0) setGrades(gradeRes.data[0]);
       if (attendRes.data && attendRes.data.length > 0) setAttendance(attendRes.data[0]);
+
+      // Fetch today's schedule
+      const days = ['Bazar', 'Bazar ertəsi', 'Çərşənbə axşamı', 'Çərşənbə', 'Cümə axşamı', 'Cümə', 'Şənbə'];
+      const currentDayName = days[new Date().getDay()];
+      const { data: schedData } = await supabase.from('schedules').select('*').eq('day', currentDayName);
+      if (schedData) setTodaysSchedule(schedData);
 
       setLoading(false);
     };
@@ -140,33 +147,25 @@ export default function DashboardHome() {
           {/* Today's Schedule Card */}
           <div className={styles.glassCard}>
             <h2 className={styles.sectionTitle}><Calendar size={20} color="#38bdf8" /> {t.todaysPlan}</h2>
-            <div style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h4 style={{ color: '#f8fafc', fontWeight: 500, fontSize: '1rem' }}>SAT Mathematics</h4>
-                  <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <Clock size={14} /> 14:00 - 15:30
-                  </p>
+            {todaysSchedule.length === 0 ? (
+              <p style={{ color: '#94a3b8' }}>{t.noCourses || 'Bu gün üçün dərs təyin edilməyib.'}</p>
+            ) : (
+              todaysSchedule.map((cls, idx) => (
+                <div key={idx} style={{ padding: '12px 0', borderBottom: idx !== todaysSchedule.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4 style={{ color: '#f8fafc', fontWeight: 500, fontSize: '1rem' }}>{cls.subject}</h4>
+                      <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <Clock size={14} /> {cls.time}
+                      </p>
+                    </div>
+                    <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 500 }}>
+                      {cls.room}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 500 }}>
-                  Room 101
-                </div>
-              </div>
-            </div>
-            {/* Adding one more dummy class for detail */}
-            <div style={{ padding: '12px 0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h4 style={{ color: '#f8fafc', fontWeight: 500, fontSize: '1rem' }}>SAT English</h4>
-                  <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <Clock size={14} /> 16:00 - 17:30
-                  </p>
-                </div>
-                <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '6px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 500 }}>
-                  Room 104
-                </div>
-              </div>
-            </div>
+              ))
+            )}
           </div>
 
           <div className={styles.glassCard} style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>

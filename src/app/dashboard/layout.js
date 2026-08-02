@@ -49,24 +49,19 @@ export default function DashboardLayout({ children }) {
       {/* Bottom Navigation */}
       <nav className={styles.bottomNav}>
         <Link href="/dashboard" className={`${styles.navItem} ${pathname === '/dashboard' ? styles.navItemActive : ''}`}>
-          <Home size={22} />
-          <span className={styles.navLabel}>{t.navHome}</span>
+          <Home size={26} />
         </Link>
         <Link href="/dashboard/schedule" className={`${styles.navItem} ${pathname === '/dashboard/schedule' ? styles.navItemActive : ''}`}>
-          <Calendar size={22} />
-          <span className={styles.navLabel}>{t.navSchedule}</span>
+          <Calendar size={26} />
         </Link>
         <Link href="/dashboard/courses" className={`${styles.navItem} ${pathname === '/dashboard/courses' ? styles.navItemActive : ''}`}>
-          <BookOpen size={22} />
-          <span className={styles.navLabel}>{t.navCourses}</span>
+          <BookOpen size={26} />
         </Link>
         <Link href="/dashboard/achievements" className={`${styles.navItem} ${pathname === '/dashboard/achievements' ? styles.navItemActive : ''}`}>
-          <Trophy size={22} />
-          <span className={styles.navLabel}>{t.navAchievements}</span>
+          <Trophy size={26} />
         </Link>
         <Link href="/dashboard/settings" className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.navItemActive : ''}`}>
-          <Settings size={22} />
-          <span className={styles.navLabel}>{t.navSettings}</span>
+          <Settings size={26} />
         </Link>
       </nav>
     </div>

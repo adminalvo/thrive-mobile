@@ -15,6 +15,7 @@ export default function AdminDashboard() {
   // States for dynamic data
   const [courses, setCourses] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
 
   // Forms
   const [newCourse, setNewCourse] = useState({ title: '', description: '', image_url: '', monthly_price: '0 ₼' });
@@ -40,12 +41,19 @@ export default function AdminDashboard() {
   }, [router]);
 
   const fetchData = async () => {
-    const [coursesRes, schedRes] = await Promise.all([
+    const [coursesRes, schedRes, regRes] = await Promise.all([
       supabase.from('courses').select('*').order('created_at', { ascending: false }),
-      supabase.from('schedules').select('*').order('created_at', { ascending: false })
+      supabase.from('schedules').select('*').order('created_at', { ascending: false }),
+      supabase.from('course_registrations').select('id, status, created_at, courses(title), user_id').order('created_at', { ascending: false })
     ]);
     if (coursesRes.data) setCourses(coursesRes.data);
     if (schedRes.data) setSchedules(schedRes.data);
+    if (regRes.data) setRegistrations(regRes.data);
+  };
+
+  const handleUpdateReg = async (id, status) => {
+    const { error } = await supabase.from('course_registrations').update({ status }).eq('id', id);
+    if (!error) fetchData();
   };
 
   const handleAddCourse = async (e) => {
@@ -116,12 +124,47 @@ export default function AdminDashboard() {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '30px' }}>
         <button onClick={() => setActiveTab('courses')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'courses' ? '#38bdf8' : 'rgba(255,255,255,0.05)', color: activeTab === 'courses' ? '#0f1219' : '#94a3b8', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <BookOpen size={18} /> Kurslar & Ödənişlər
+          <BookOpen size={18} /> Kurslar
         </button>
         <button onClick={() => setActiveTab('schedule')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'schedule' ? '#38bdf8' : 'rgba(255,255,255,0.05)', color: activeTab === 'schedule' ? '#0f1219' : '#94a3b8', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <Calendar size={18} /> Dərs Cədvəli
+          <Calendar size={18} /> Cədvəl
+        </button>
+        <button onClick={() => setActiveTab('registrations')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'registrations' ? '#38bdf8' : 'rgba(255,255,255,0.05)', color: activeTab === 'registrations' ? '#0f1219' : '#94a3b8', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <Users size={18} /> Müraciətlər
         </button>
       </div>
+
+      {/* Registrations Tab */}
+      {activeTab === 'registrations' && (
+        <div>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '20px', color: '#f8fafc' }}>Tələbə Müraciətləri</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {registrations.length === 0 ? (
+              <p style={{ color: '#94a3b8' }}>Heç bir müraciət yoxdur.</p>
+            ) : (
+              registrations.map(reg => (
+                <div key={reg.id} className={styles.glassCard} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4 style={{ color: '#fff', fontSize: '1.1rem' }}>Kurs: {reg.courses?.title || 'Bilinmir'}</h4>
+                    <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '5px' }}>Status: {reg.status === 'pending' ? 'Gözləmədədir' : reg.status === 'approved' ? 'Təsdiqlənib' : 'Rədd edilib'}</p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '2px' }}>Tarix: {new Date(reg.created_at).toLocaleDateString()}</p>
+                  </div>
+                  {reg.status === 'pending' && (
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button onClick={() => handleUpdateReg(reg.id, 'approved')} style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34,197,94,0.2)', padding: '8px 15px', borderRadius: '8px', color: '#22c55e', cursor: 'pointer', fontWeight: 600 }}>
+                        Təsdiqlə
+                      </button>
+                      <button onClick={() => handleUpdateReg(reg.id, 'rejected')} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 15px', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', fontWeight: 600 }}>
+                        Rədd et
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Courses Tab */}
       {activeTab === 'courses' && (

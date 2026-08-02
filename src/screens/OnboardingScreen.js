@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
-import PagerView from 'react-native-pager-view';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, SIZES } from '../constants/theme';
 import '../api/i18n'; // Initialize i18n
@@ -9,23 +8,33 @@ const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen({ navigation }) {
   const { t, i18n } = useTranslation();
-  const pagerRef = useRef(null);
+  const scrollViewRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(0);
 
   const changeLanguage = (lang) => {
     i18n.changeLanguage(lang);
   };
 
+  const handleScroll = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const page = Math.round(contentOffsetX / width);
+    if (page !== currentPage) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <PagerView 
-        style={styles.pagerView} 
-        initialPage={0}
-        ref={pagerRef}
-        onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        style={styles.pagerView}
       >
         {/* Page 1: Logo & Welcome */}
-        <View key="1" style={styles.page}>
+        <View style={styles.page}>
           <Image 
             source={require('../../assets/logo.png')} 
             style={styles.logo} 
@@ -46,13 +55,13 @@ export default function OnboardingScreen({ navigation }) {
         </View>
 
         {/* Page 2: Summary */}
-        <View key="2" style={styles.page}>
+        <View style={styles.page}>
           <Text style={styles.title}>{t('onboarding.welcome')}</Text>
           <Text style={styles.summary}>{t('onboarding.summary')}</Text>
         </View>
 
         {/* Page 3: Auth Gateway */}
-        <View key="3" style={styles.page}>
+        <View style={styles.page}>
           <Image 
             source={require('../../assets/logo.png')} 
             style={styles.logoSmall} 
@@ -74,7 +83,7 @@ export default function OnboardingScreen({ navigation }) {
             <Text style={styles.secondaryButtonText}>{t('onboarding.register')}</Text>
           </TouchableOpacity>
         </View>
-      </PagerView>
+      </ScrollView>
 
       {/* Dots Indicator */}
       <View style={styles.dotsContainer}>
@@ -98,7 +107,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   page: {
-    flex: 1,
+    width,
     justifyContent: 'center',
     alignItems: 'center',
     padding: SIZES.padding * 2,

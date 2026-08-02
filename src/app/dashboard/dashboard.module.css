@@ -1,10 +1,25 @@
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes skeletonPulse {
+  0% { background-color: rgba(57, 192, 198, 0.05); }
+  50% { background-color: rgba(57, 192, 198, 0.15); }
+  100% { background-color: rgba(57, 192, 198, 0.05); }
+}
+
 .dashboardWrapper {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background-color: var(--deep-navy);
+  /* More vibrant animated background */
+  background: linear-gradient(-45deg, #0A192F, #0b2647, #0A192F, #081e36);
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
   color: var(--white);
-  padding-bottom: 80px; /* Space for bottom nav */
+  padding-bottom: 80px; 
 }
 
 .content {
@@ -14,14 +29,17 @@
 
 /* Glassmorphism Bottom Nav */
 .bottomNav {
-  position: absolute;
+  position: fixed; /* Keep it fixed at bottom of viewport */
   bottom: 0;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
+  max-width: 500px;
   height: 70px;
   background: rgba(10, 25, 47, 0.85);
-  backdrop-filter: blur(15px);
-  border-top: 1px solid rgba(57, 192, 198, 0.2);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(57, 192, 198, 0.4);
+  box-shadow: 0 -5px 25px rgba(57, 192, 198, 0.15);
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -36,75 +54,114 @@
   color: var(--gray-light);
   gap: 4px;
   width: 70px;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navItem:hover {
-  transform: translateY(-3px);
+  transform: translateY(-5px) scale(1.05);
+  color: #fff;
 }
 
 .navItemActive {
   color: var(--aqua-teal);
-  text-shadow: 0 0 10px rgba(57, 192, 198, 0.5);
-  transform: translateY(-3px);
+  text-shadow: 0 0 15px rgba(57, 192, 198, 0.8);
+  transform: translateY(-5px);
 }
 
 .navLabel {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   letter-spacing: 0.5px;
 }
 
 /* Glassmorphism Cards */
 .glassCard {
-  background: rgba(17, 34, 64, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(57, 192, 198, 0.15);
+  background: rgba(17, 34, 64, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(57, 192, 198, 0.3);
   border-radius: 20px;
   padding: 25px;
   margin-bottom: 20px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glassCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, rgba(57, 192, 198, 0.1) 0%, transparent 100%);
+  pointer-events: none;
 }
 
 .glassCard:hover {
-  border-color: rgba(57, 192, 198, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(57, 192, 198, 0.1);
-  transform: translateY(-2px);
+  border-color: rgba(57, 192, 198, 0.8);
+  box-shadow: 0 0 25px rgba(57, 192, 198, 0.2);
+  transform: translateY(-3px);
 }
 
 /* Typography */
 .greeting {
-  font-size: 1.8rem;
-  font-weight: bold;
+  font-size: 2rem;
+  font-weight: 900;
   margin-bottom: 5px;
   background: linear-gradient(90deg, #FFFFFF 0%, #39C0C6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(57, 192, 198, 0.3);
 }
 
 .subtitle {
-  color: var(--gray-light);
-  font-size: 0.95rem;
+  color: #a4b1d6;
+  font-size: 1rem;
   margin-bottom: 25px;
+  font-weight: 500;
 }
 
 .sectionTitle {
-  font-size: 1.3rem;
-  font-weight: bold;
+  font-size: 1.4rem;
+  font-weight: 800;
   color: var(--white);
   margin-bottom: 15px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Skeleton Loaders */
+.skeletonCard {
+  width: 100%;
+  height: 150px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  border: 1px solid rgba(57, 192, 198, 0.1);
+}
+.skeletonText {
+  height: 20px;
+  width: 60%;
+  border-radius: 10px;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  margin-bottom: 15px;
+}
+.skeletonCircle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
 }
 
 /* Rings and Progress */
 .progressRingContainer {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   margin: 0 auto;
+  filter: drop-shadow(0 0 10px rgba(57,192,198,0.4));
 }
 
 .progressRingText {
@@ -112,17 +169,18 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--aqua-teal);
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px #39C0C6;
 }
 
 .courseItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(57, 192, 198, 0.2);
 }
 
 .courseItem:last-child {
@@ -130,95 +188,105 @@
 }
 
 .courseInfo h4 {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: var(--white);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  font-weight: 700;
 }
 
 .courseInfo p {
-  font-size: 0.85rem;
-  color: var(--gray-light);
+  font-size: 0.9rem;
+  color: #a4b1d6;
 }
 
 /* Inputs and Forms */
 .inputLabel {
   display: block;
-  font-size: 0.9rem;
-  color: var(--gray-light);
+  font-size: 0.95rem;
+  color: #a4b1d6;
   margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .inputField {
   width: 100%;
-  background: rgba(10, 25, 47, 0.8);
-  border: 1px solid rgba(57, 192, 198, 0.3);
+  background: rgba(10, 25, 47, 0.9);
+  border: 2px solid rgba(57, 192, 198, 0.3);
   color: var(--white);
-  padding: 12px 15px;
+  padding: 14px 18px;
   border-radius: 12px;
-  font-size: 1rem;
-  margin-bottom: 20px;
+  font-size: 1.05rem;
+  margin-bottom: 22px;
   transition: all 0.3s;
 }
 
 .inputField:focus {
   outline: none;
   border-color: var(--aqua-teal);
-  box-shadow: 0 0 10px rgba(57, 192, 198, 0.2);
+  box-shadow: 0 0 15px rgba(57, 192, 198, 0.4);
 }
 
 .primaryBtn {
   width: 100%;
-  background: linear-gradient(135deg, #39C0C6 0%, #208e93 100%);
+  background: linear-gradient(135deg, #39C0C6 0%, #15797c 100%);
   color: var(--white);
   border: none;
-  padding: 15px;
+  padding: 16px;
   border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: bold;
+  font-size: 1.15rem;
+  font-weight: 800;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
   transition: all 0.3s;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(57, 192, 198, 0.3);
+  box-shadow: 0 5px 20px rgba(57, 192, 198, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .primaryBtn:hover {
-  box-shadow: 0 6px 20px rgba(57, 192, 198, 0.5);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(57, 192, 198, 0.7);
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, #4bd1d7 0%, #208e93 100%);
 }
 
 .primaryBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
 .dangerBtn {
-  background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
-  box-shadow: 0 4px 15px rgba(255, 77, 79, 0.3);
+  background: linear-gradient(135deg, #ff4d4f 0%, #a80a18 100%);
+  box-shadow: 0 5px 20px rgba(255, 77, 79, 0.3);
 }
 
 .dangerBtn:hover {
-  box-shadow: 0 6px 20px rgba(255, 77, 79, 0.5);
+  box-shadow: 0 8px 30px rgba(255, 77, 79, 0.6);
+  background: linear-gradient(135deg, #ff7070 0%, #cf1322 100%);
 }
 
 .alertMessage {
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .alertSuccess {
-  background: rgba(82, 196, 26, 0.1);
-  border: 1px solid rgba(82, 196, 26, 0.3);
-  color: #52c41a;
+  background: rgba(82, 196, 26, 0.15);
+  border: 1px solid rgba(82, 196, 26, 0.5);
+  color: #73d13d;
+  box-shadow: 0 0 15px rgba(82, 196, 26, 0.2);
 }
 
 .alertError {
-  background: rgba(255, 77, 79, 0.1);
-  border: 1px solid rgba(255, 77, 79, 0.3);
-  color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.15);
+  border: 1px solid rgba(255, 77, 79, 0.5);
+  color: #ff7875;
+  box-shadow: 0 0 15px rgba(255, 77, 79, 0.2);
 }

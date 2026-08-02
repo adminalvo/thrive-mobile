@@ -155,7 +155,7 @@ export default function OnboardingSlider() {
         <button className={lang === 'ru' ? styles.langActive : ''} onClick={() => setLang('ru')}>RU</button>
       </div>
 
-      <div className={styles.sliderContainer} style={{ transform: `translateX(-${currentSlide * 100}vw)` }}>
+      <div className={styles.sliderContainer} style={{ transform: `translateX(-${currentSlide * 33.3333}%)` }}>
         
         {/* SLIDE 1: Welcome & Logo */}
         <div className={styles.slide}>

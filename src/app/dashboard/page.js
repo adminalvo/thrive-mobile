@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../api/supabase';
-import { Award, BookOpen, Star, Calendar, Clock } from 'lucide-react';
+import { Award, BookOpen, Star, Calendar, Clock, RefreshCw } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import styles from './dashboard.module.css';
 
@@ -50,6 +50,24 @@ export default function DashboardHome() {
   const today = new Date();
   const currentDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
 
+  const handleReload = () => {
+    window.location.reload();
+  };
+
+  const [booking, setBooking] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(false);
+
+  const handleBooking = (e) => {
+    e.preventDefault();
+    setBookingLoading(true);
+    setTimeout(() => {
+      setBookingLoading(false);
+      setBookingSuccess(true);
+      setBooking(false);
+    }, 1500);
+  };
+
   return (
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -59,10 +77,58 @@ export default function DashboardHome() {
             {role === 'parent' ? t.parentSubtitle : t.studentSubtitle}
           </p>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ color: '#38bdf8', fontSize: '1rem', fontWeight: '500', margin: 0 }}>{currentDate}</p>
+        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <p style={{ color: '#38bdf8', fontSize: '1rem', fontWeight: '500', margin: 0 }}>{currentDate}</p>
+            <button onClick={handleReload} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}>
+              <RefreshCw size={16} />
+            </button>
+          </div>
         </div>
       </div>
+
+      {bookingSuccess && (
+        <div className={`${styles.alertMessage} ${styles.alertSuccess}`}>
+          {t.consultationSuccess}
+        </div>
+      )}
+
+      {!booking ? (
+        <button onClick={() => setBooking(true)} className={styles.primaryBtn} style={{ background: 'transparent', border: '1px solid #38bdf8', color: '#38bdf8', marginBottom: '25px', display: 'flex', justifyContent: 'center' }}>
+          <Star size={20} /> {t.bookConsultation}
+        </button>
+      ) : (
+        <div className={styles.glassCard} style={{ border: '1px solid #38bdf8' }}>
+          <h2 className={styles.sectionTitle} style={{ color: '#38bdf8' }}>
+            <Star size={20} color="#38bdf8" /> {t.consultationTitle}
+          </h2>
+          <p style={{ color: '#94a3b8', marginBottom: '20px', fontSize: '0.9rem' }}>{t.consultationDesc}</p>
+          
+          <form onSubmit={handleBooking}>
+            <label className={styles.inputLabel}>{t.examType}</label>
+            <select className={styles.inputField} required style={{ appearance: 'none', background: '#0f1219' }}>
+              <option value="SAT">SAT Preparation</option>
+              <option value="CSCA">CSCA (Math & Physics)</option>
+              <option value="Duolingo">Duolingo English Test</option>
+            </select>
+
+            <label className={styles.inputLabel}>{t.fullName}</label>
+            <input type="text" className={styles.inputField} required placeholder="Məmməd Məmmədov" />
+
+            <label className={styles.inputLabel}>{t.phoneNumber}</label>
+            <input type="tel" className={styles.inputField} required placeholder="+994 51 000 00 00" />
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button type="button" onClick={() => setBooking(false)} className={`${styles.primaryBtn} ${styles.dangerBtn}`} style={{ flex: 1 }}>
+                Geri
+              </button>
+              <button type="submit" className={styles.primaryBtn} style={{ flex: 2 }} disabled={bookingLoading}>
+                {bookingLoading ? <Loader2 className="animate-spin" /> : t.submitConsultation}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {loading ? (
         <>

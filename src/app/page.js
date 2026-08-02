@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { BookOpen, TrendingUp, Award, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { BookOpen, TrendingUp, Award, Loader2, ChevronRight, ChevronLeft, Shield } from 'lucide-react';
 import { supabase } from '../api/supabase';
 import { useLanguage } from '../context/LanguageContext';
 import styles from './page.module.css';
@@ -269,6 +269,17 @@ export default function OnboardingSlider() {
                   </button>
                 </form>
               )}
+              {/* Moderator Icon to access Admin panel */}
+              <div style={{ textAlign: 'center', marginTop: '30px' }}>
+                <button 
+                  onClick={() => router.push('/admin')}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 auto', gap: '5px' }}
+                  title="Admin Panel"
+                >
+                  <Shield size={24} />
+                  <span style={{ fontSize: '0.7rem' }}>Moderator</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

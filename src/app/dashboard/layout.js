@@ -42,12 +42,6 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className={styles.dashboardWrapper}>
-      <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 50 }}>
-        <button onClick={handleReload} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px', borderRadius: '50%', color: '#94a3b8' }}>
-          <RefreshCw size={18} />
-        </button>
-      </div>
-
       <div className={styles.content}>
         {children}
       </div>

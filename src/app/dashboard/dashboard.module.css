@@ -132,7 +132,6 @@
   width: 140px;
   height: 140px;
   margin: 0 auto;
-  filter: drop-shadow(0 0 10px rgba(57,192,198,0.4));
 }
 
 .progressRingText {
@@ -141,9 +140,8 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 1.8rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #fff;
-  text-shadow: 0 0 10px #39C0C6;
 }
 
 .courseItem {
@@ -151,7 +149,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 18px 0;
-  border-bottom: 1px solid rgba(57, 192, 198, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .courseItem:last-child {
@@ -159,105 +157,95 @@
 }
 
 .courseInfo h4 {
-  font-size: 1.2rem;
-  color: var(--white);
+  font-size: 1.1rem;
+  color: #f8fafc;
   margin-bottom: 6px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .courseInfo p {
   font-size: 0.9rem;
-  color: #a4b1d6;
+  color: #94a3b8;
 }
 
 /* Inputs and Forms */
 .inputLabel {
   display: block;
   font-size: 0.95rem;
-  color: #a4b1d6;
+  color: #94a3b8;
   margin-bottom: 8px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .inputField {
   width: 100%;
-  background: rgba(10, 25, 47, 0.9);
-  border: 2px solid rgba(57, 192, 198, 0.3);
-  color: var(--white);
+  background: #0f1219;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
   padding: 14px 18px;
-  border-radius: 12px;
-  font-size: 1.05rem;
-  margin-bottom: 22px;
-  transition: all 0.3s;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  transition: all 0.2s;
 }
 
 .inputField:focus {
   outline: none;
-  border-color: var(--aqua-teal);
-  box-shadow: 0 0 15px rgba(57, 192, 198, 0.4);
+  border-color: #38bdf8;
 }
 
 .primaryBtn {
   width: 100%;
-  background: linear-gradient(135deg, #39C0C6 0%, #15797c 100%);
-  color: var(--white);
+  background: #38bdf8;
+  color: #0f1219;
   border: none;
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 1.15rem;
-  font-weight: 800;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  transition: all 0.3s;
+  transition: all 0.2s;
   cursor: pointer;
-  box-shadow: 0 5px 20px rgba(57, 192, 198, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .primaryBtn:hover {
-  box-shadow: 0 8px 30px rgba(57, 192, 198, 0.7);
-  transform: translateY(-3px);
-  background: linear-gradient(135deg, #4bd1d7 0%, #208e93 100%);
+  background: #0284c7;
 }
 
 .primaryBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 .dangerBtn {
-  background: linear-gradient(135deg, #ff4d4f 0%, #a80a18 100%);
-  box-shadow: 0 5px 20px rgba(255, 77, 79, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .dangerBtn:hover {
-  box-shadow: 0 8px 30px rgba(255, 77, 79, 0.6);
-  background: linear-gradient(135deg, #ff7070 0%, #cf1322 100%);
+  background: rgba(239, 68, 68, 0.2);
 }
 
 .alertMessage {
   padding: 15px;
-  border-radius: 12px;
+  border-radius: 8px;
   margin-bottom: 25px;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .alertSuccess {
-  background: rgba(82, 196, 26, 0.15);
-  border: 1px solid rgba(82, 196, 26, 0.5);
-  color: #73d13d;
-  box-shadow: 0 0 15px rgba(82, 196, 26, 0.2);
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #22c55e;
 }
 
 .alertError {
-  background: rgba(255, 77, 79, 0.15);
-  border: 1px solid rgba(255, 77, 79, 0.5);
-  color: #ff7875;
-  box-shadow: 0 0 15px rgba(255, 77, 79, 0.2);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
 }

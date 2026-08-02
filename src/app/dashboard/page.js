@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../api/supabase';
-import { Award, BookOpen, Star, Calendar, Clock, RefreshCw } from 'lucide-react';
+import { Award, BookOpen, Star, Calendar, Clock, RefreshCw, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import styles from './dashboard.module.css';
 

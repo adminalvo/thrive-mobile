@@ -162,6 +162,7 @@ export default function OnboardingSlider() {
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.glassOverlay}></div>
       {/* Floating Background Icons */}
       <div className={styles.floatingBg}>
         <BookOpen className={styles.floatIcon} />
@@ -202,15 +203,18 @@ export default function OnboardingSlider() {
             <h2 className={styles.slideTitle}>{t.slide2Title}</h2>
             <p className={styles.slideDesc}>{t.slide2Desc}</p>
             
-            <div className={styles.featureGrid}>
-              <div className={styles.featureCard}>
-                <BookOpen size={40} color="#39C0C6" />
+            <div className={styles.bentoGrid}>
+              <div className={`${styles.bentoCard} ${styles.bentoCardLarge}`}>
+                <BookOpen size={32} color="#38bdf8" />
+                <h3>SAT & CSCA Hazırlığı</h3>
               </div>
-              <div className={styles.featureCard}>
-                <TrendingUp size={40} color="#39C0C6" />
+              <div className={styles.bentoCard}>
+                <TrendingUp size={32} color="#38bdf8" />
+                <h3 style={{ fontSize: '0.9rem', textAlign: 'center' }}>Real Nəticələr</h3>
               </div>
-              <div className={styles.featureCard}>
-                <Award size={40} color="#39C0C6" />
+              <div className={styles.bentoCard}>
+                <Shield size={32} color="#38bdf8" />
+                <h3 style={{ fontSize: '0.9rem', textAlign: 'center' }}>Valideyn Portalı</h3>
               </div>
             </div>
           </div>
@@ -219,14 +223,17 @@ export default function OnboardingSlider() {
         {/* SLIDE 3: Login / Signup */}
         <div className={styles.slide}>
           <div className={styles.authContainer}>
-            <div className={styles.authTabs}>
+            <div className={styles.authTabsWrapper}>
+              <div className={`${styles.slidingPill} ${isLogin ? styles.pillLogin : styles.pillSignup}`}></div>
               <button 
+                type="button"
                 className={isLogin ? styles.tabActive : styles.tab} 
                 onClick={() => { setIsLogin(true); setError(null); setSuccess(false); }}
               >
                 {t.loginTab}
               </button>
               <button 
+                type="button"
                 className={!isLogin ? styles.tabActive : styles.tab} 
                 onClick={() => { setIsLogin(false); setError(null); setSuccess(false); }}
               >
@@ -260,31 +267,37 @@ export default function OnboardingSlider() {
                       </div>
 
                       <div className={styles.row}>
-                        <div className={styles.inputGroup}>
-                          <input type="text" placeholder={t.name} className={styles.input} value={name} onChange={e => setName(e.target.value)} required />
+                        <div className={styles.inputWrapper}>
+                          <input type="text" placeholder=" " className={styles.input} value={name} onChange={e => setName(e.target.value)} required />
+                          <label className={styles.floatingLabel}>{t.name}</label>
                         </div>
-                        <div className={styles.inputGroup}>
-                          <input type="text" placeholder={t.surname} className={styles.input} value={surname} onChange={e => setSurname(e.target.value)} required />
+                        <div className={styles.inputWrapper}>
+                          <input type="text" placeholder=" " className={styles.input} value={surname} onChange={e => setSurname(e.target.value)} required />
+                          <label className={styles.floatingLabel}>{t.surname}</label>
                         </div>
                       </div>
 
                       <div className={styles.row}>
-                        <div className={styles.inputGroup}>
-                          <input type="text" placeholder={t.fin} maxLength={7} className={styles.input} value={fin} onChange={e => setFin(e.target.value.toUpperCase())} required />
+                        <div className={styles.inputWrapper}>
+                          <input type="text" placeholder=" " maxLength={7} className={styles.input} value={fin} onChange={e => setFin(e.target.value.toUpperCase())} required />
+                          <label className={styles.floatingLabel}>{t.fin}</label>
                         </div>
-                        <div className={styles.inputGroup}>
-                          <input type="tel" placeholder={t.phone} className={styles.input} value={phone} onChange={e => setPhone(e.target.value)} required />
+                        <div className={styles.inputWrapper}>
+                          <input type="tel" placeholder=" " className={styles.input} value={phone} onChange={e => setPhone(e.target.value)} required />
+                          <label className={styles.floatingLabel}>{t.phone}</label>
                         </div>
                       </div>
                     </>
                   )}
 
-                  <div className={styles.inputGroup}>
-                    <input type="email" placeholder={t.email} className={styles.input} value={email} onChange={e => setEmail(e.target.value)} required />
+                  <div className={styles.inputWrapper}>
+                    <input type="email" placeholder=" " className={styles.input} value={email} onChange={e => setEmail(e.target.value)} required />
+                    <label className={styles.floatingLabel}>{t.email}</label>
                   </div>
                   
-                  <div className={styles.inputGroup}>
-                    <input type="password" placeholder={t.password} className={styles.input} value={password} onChange={e => setPassword(e.target.value)} required />
+                  <div className={styles.inputWrapper}>
+                    <input type="password" placeholder=" " className={styles.input} value={password} onChange={e => setPassword(e.target.value)} required />
+                    <label className={styles.floatingLabel}>{t.password}</label>
                   </div>
 
                   <button type="submit" className={styles.submitBtn} disabled={loading}>

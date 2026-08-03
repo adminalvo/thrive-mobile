@@ -3,8 +3,29 @@
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background-color: var(--deep-navy);
+  background: linear-gradient(-45deg, #0a192f, #112240, #0d324d, #0f1219);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
   color: var(--white);
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glassmorphism utility overlay */
+.glassOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(57,192,198,0.15), transparent 40%),
+              radial-gradient(circle at bottom left, rgba(56,189,248,0.15), transparent 40%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .langSwitcher {
@@ -56,14 +77,23 @@
 
 .slideContent {
   text-align: center;
-  max-width: 500px;
+  max-width: 600px;
   width: 100%;
+  z-index: 10;
 }
 
 .hugeLogo {
   max-width: 250px;
   margin: 0 auto 40px auto;
   object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(57, 192, 198, 0.4));
+  animation: floatLogo 6s ease-in-out infinite;
+}
+
+@keyframes floatLogo {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
 }
 
 .welcomeText {
@@ -95,25 +125,47 @@
   margin-bottom: 40px;
 }
 
-.featureGrid {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
+/* BENTO GRID (Slide 2) */
+.bentoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: minmax(120px, auto);
+  gap: 15px;
+  width: 100%;
 }
 
-.featureCard {
-  background: rgba(57, 192, 198, 0.1);
+.bentoCard {
+  background: rgba(17, 34, 64, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(57, 192, 198, 0.2);
+  border-radius: 20px;
   padding: 20px;
-  border-radius: 15px;
-  border: 1px solid rgba(57, 192, 198, 0.3);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: transform 0.3s;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  color: var(--gray-light);
 }
 
-.featureCard:hover {
-  transform: translateY(-5px);
+.bentoCardLarge {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(57,192,198,0.1), rgba(17,34,64,0.8));
+  border: 1px solid rgba(57, 192, 198, 0.4);
+}
+
+.bentoCard:hover {
+  transform: translateY(-5px) scale(1.02);
+  border-color: rgba(57, 192, 198, 0.6);
+  box-shadow: 0 10px 40px rgba(57, 192, 198, 0.2);
+}
+
+.bentoCard h3 {
+  color: var(--white);
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 .authContainer {
@@ -128,32 +180,57 @@
   flex-direction: column;
 }
 
-.authTabs {
+.authTabsWrapper {
+  position: relative;
   display: flex;
-  background: rgba(10, 25, 47, 0.6);
+  background: rgba(10, 25, 47, 0.8);
+  border-radius: 15px;
+  margin: 20px 30px 0;
+  padding: 5px;
+}
+
+.slidingPill {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  width: calc(50% - 5px);
+  background: var(--aqua-teal);
+  border-radius: 10px;
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 1;
+}
+
+.pillLogin {
+  transform: translateX(0);
+}
+
+.pillSignup {
+  transform: translateX(100%);
 }
 
 .tab {
   flex: 1;
-  padding: 15px;
-  background: none;
+  padding: 12px;
+  background: transparent;
   border: none;
   color: var(--gray-light);
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s;
+  z-index: 2;
+  transition: color 0.3s;
 }
 
 .tabActive {
   flex: 1;
-  padding: 15px;
-  background: none;
+  padding: 12px;
+  background: transparent;
   border: none;
-  border-bottom: 3px solid var(--aqua-teal);
-  color: var(--aqua-teal);
+  color: var(--white);
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 2;
 }
 
 .authCard {
@@ -201,7 +278,9 @@
   flex: 1;
 }
 
-.inputGroup {
+/* FLOATING LABEL INPUTS */
+.inputWrapper {
+  position: relative;
   width: 100%;
 }
 
@@ -210,15 +289,34 @@
   background-color: rgba(10, 25, 47, 0.5);
   border: 1px solid rgba(57, 192, 198, 0.2);
   color: var(--white);
-  padding: 12px 15px;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: border-color 0.3s;
+  padding: 18px 15px 8px; /* Extra padding on top for label */
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s;
 }
 
 .input:focus {
   outline: none;
   border-color: var(--aqua-teal);
+  box-shadow: 0 0 15px rgba(57, 192, 198, 0.2);
+  background-color: rgba(10, 25, 47, 0.8);
+}
+
+.floatingLabel {
+  position: absolute;
+  left: 15px;
+  top: 13px;
+  color: var(--gray-light);
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  pointer-events: none;
+}
+
+.input:focus + .floatingLabel,
+.input:not(:placeholder-shown) + .floatingLabel {
+  top: 4px;
+  font-size: 0.7rem;
+  color: var(--aqua-teal);
 }
 
 .submitBtn {

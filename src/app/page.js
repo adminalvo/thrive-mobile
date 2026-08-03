@@ -370,6 +370,11 @@ export default function OnboardingSlider() {
           </button>
         )}
       </div>
+
+      {/* Footer Text */}
+      <div style={{ position: 'absolute', bottom: '10px', left: 0, width: '100%', textAlign: 'center', fontSize: '0.7rem', color: '#64748b', zIndex: 50, pointerEvents: 'none', letterSpacing: '0.5px' }}>
+        Developed by HacTag , Powered by Supabase
+      </div>
     </div>
   );
 }

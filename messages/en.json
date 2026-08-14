@@ -1,0 +1,395 @@
+{
+  "HomePage": {
+    "login": "LOGIN",
+    "typewriter1": "Thrive CRM",
+    "typewriter2": "Future of Education",
+    "typewriter3": "Smart Management",
+    "typewriter4": "Total Control",
+    "aboutTitle": "About Thrive CRM",
+    "aboutText": "Discover the next generation of education management. Thrive CRM combines advanced automation, seamless scheduling, and comprehensive tracking in a single futuristic hub. We don't just manage data; we design the future of education, providing institutions with tools that anticipate their every need.",
+    "developedBy": "Developed by",
+    "website": "www.thrive.az"
+  },
+  "Auth": {
+    "title": "Login to System",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "example@thrive.az",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "loginBtn": "LOGIN",
+    "loading": "WAITING...",
+    "forgotPassword": "Forgot your password?",
+    "contactAdmin": "Contact administrator",
+    "backHome": "Home Page"
+  },
+  "Sidebar": {
+    "dashboard": "Dashboard",
+    "leads": "Leads",
+    "students": "Students",
+    "groups": "Groups",
+    "parents": "Parents",
+    "teachers": "Teachers",
+    "schedule": "Schedule",
+    "finance": "Finance",
+    "tasks": "Tasks",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "Dashboard": {
+    "welcome": "Welcome",
+    "subtitle": "Review today's statistics and latest updates.",
+    "newStudent": "+ New Student",
+    "totalStudents": "Total Students",
+    "activeGroups": "Active Groups",
+    "monthlyIncome": "Monthly Income",
+    "pendingPayments": "Pending Payments",
+    "recentRegistrations": "Recent Registrations",
+    "todayClasses": "Today's Classes",
+    "table": {
+      "student": "Student",
+      "group": "Group",
+      "date": "Date",
+      "status": "Status"
+    }
+  },
+  "Leads": {
+    "title": "Leads",
+    "subtitle": "Track new inquiries and convert them to students.",
+    "newLead": "+ New Lead",
+    "addLeadTitle": "Add New Lead",
+    "search": "Search by name, phone or email...",
+    "table": {
+      "name": "Full Name",
+      "contact": "Contact",
+      "source": "Source",
+      "status": "Status",
+      "date": "Date"
+    },
+    "statuses": {
+      "NEW": "New",
+      "CONTACTED": "Contacted",
+      "INTERESTED": "Interested",
+      "CONVERTED": "Converted",
+      "LOST": "Lost"
+    },
+    "errors": {
+      "loadFailed": "Failed to load leads",
+      "unexpected": "An unexpected error occurred"
+    },
+    "loading": "Loading...",
+    "empty": "No data found."
+  },
+  "Students": {
+    "title": "Student Base",
+    "subtitle": "List of all students, groups, and general information.",
+    "newStudent": "+ New Student",
+    "search": "Search by name, phone or email...",
+    "table": {
+      "name": "Student (Full Name)",
+      "contact": "Contact",
+      "group": "Group / Major",
+      "status": "Status",
+      "enrollDate": "Enrollment"
+    }
+  },
+  "Teachers": {
+    "title": "Teachers & Subjects",
+    "subtitle": "List of teaching staff and their specialties.",
+    "newTeacher": "+ New Teacher",
+    "search": "Search by teacher name or subject...",
+    "noTeachers": "No teachers found",
+    "table": {
+      "name": "Teacher (Full Name)",
+      "contact": "Contact",
+      "subject": "Subject",
+      "status": "Status",
+      "joinDate": "Join Date"
+    },
+    "noSubject": "No subject specified",
+    "activeGroups": "Active groups",
+    "errors": {
+      "fetch": "Failed to load teachers",
+      "create": "Failed to add teacher"
+    },
+    "success": {
+      "created": "Teacher added successfully!"
+    }
+  },
+  "Schedule": {
+    "title": "Class Schedule",
+    "subtitle": "Manage weekly and daily class schedules.",
+    "newLesson": "+ New Lesson",
+    "today": "Today",
+    "week": "Week",
+    "month": "Month",
+    "days": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    },
+    "noSchedule": "No schedule set"
+  },
+  "Groups": {
+    "title": "Groups",
+    "subtitle": "Manage class groups and programs.",
+    "newGroup": "+ New Group",
+    "search": "Search groups...",
+    "table": {
+      "name": "Group Name",
+      "program": "Program",
+      "teacher": "Teacher",
+      "room": "Room"
+    }
+  },
+  "Parents": {
+    "title": "Parents",
+    "subtitle": "Manage parents and contacts.",
+    "newParent": "+ New Parent",
+    "search": "Search parents...",
+    "table": {
+      "name": "Parent Name",
+      "contact": "Contact",
+      "fin": "FIN",
+      "idCard": "ID Card"
+    }
+  },
+  "Finance": {
+    "title": "Finance & Payments",
+    "subtitle": "Track student payments, invoices, and debtors.",
+    "newInvoice": "New Invoice",
+    "monthlyIncome": "Monthly Income",
+    "totalDebt": "Total Debt (Pending)",
+    "search": "Search by student name or invoice number...",
+    "table": {
+      "invoice": "Invoice",
+      "student": "Student",
+      "amount": "Amount",
+      "paid": "Paid",
+      "debt": "Debt",
+      "status": "Status",
+      "deadline": "Deadline",
+      "contract": "Contract"
+    },
+    "statuses": {
+      "PAID": "Paid",
+      "PARTIAL": "Partial",
+      "PENDING": "Pending"
+    }
+  },
+  "Contract": {
+    "title": "Electronic Contract & Invoice",
+    "printPdf": "Print / PDF",
+    "desc": "Education Center Management System",
+    "invoiceNo": "Invoice",
+    "date": "Date",
+    "parties": "Parties",
+    "provider": "Service Provider",
+    "client": "Student / Parent",
+    "contact": "Contact",
+    "details": "Payment Details",
+    "service": "Service (Course)",
+    "status": "Status",
+    "amount": "Amount",
+    "serviceName": "Academic Teaching and Course Service",
+    "total": "Total Amount",
+    "terms": "Contract Terms",
+    "term1": "1. This contract concluded between the parties confirms the execution of the payment and the provision of the teaching service.",
+    "term2": "2. Payments must be made on time (without delay).",
+    "term3": "3. The electronic signature comes into legal force in accordance with the legislation of the Republic of Azerbaijan.",
+    "signatureProvider": "Center Management (Stamp/Signature)",
+    "signatureClient": "Student / Parent (Signature)",
+    "notSigned": "Not signed",
+    "digitalSignature": "Digital Signature (Sign on the pad below)",
+    "clear": "Clear"
+  },
+  "Tasks": {
+    "title": "Tasks & Workflow",
+    "subtitle": "Manage internal team tasks using Kanban methodology.",
+    "newTask": "+ New Task",
+    "columns": {
+      "TODO": "To Do",
+      "IN_PROGRESS": "In Progress",
+      "REVIEW": "Review",
+      "DONE": "Done"
+    },
+    "unassigned": "Unassigned"
+  },
+  "Settings": {
+    "title": "Settings",
+    "subtitle": "Manage your system and profile preferences.",
+    "tabs": {
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "security": "Security",
+      "system": "System"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "name": "Full Name",
+      "email": "Email",
+      "role": "Role"
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "newLead": "Notify me when a new lead is added",
+      "payments": "Daily summary of delayed payments",
+      "updates": "System updates"
+    },
+    "security": {
+      "title": "Security",
+      "oldPass": "Old Password",
+      "newPass": "New Password",
+      "newPassConfirm": "New Password (Confirm)"
+    },
+    "system": {
+      "title": "System Settings",
+      "theme": "Appearance Theme",
+      "lang": "Default Language",
+      "themes": {
+        "dark": "Dark - Recommended",
+        "light": "Light",
+        "sys": "System"
+      },
+      "langs": {
+        "az": "Azerbaijani",
+        "en": "English",
+        "ru": "Russian"
+      }
+    },
+    "save": "Save Changes",
+    "success": "Settings saved successfully!"
+  },
+  "Common": {
+    "active": "Active",
+    "pending": "Pending",
+    "inactive": "Inactive",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "empty": "No data found.",
+    "actions": "Actions",
+    "notSpecified": "Not specified",
+    "errors": {
+      "unexpected": "An unexpected error occurred"
+    }
+  },
+  "NotFound": {
+    "title": "System Error: Page Not Found",
+    "msg1": "the requested address does not exist.",
+    "msg2": "no data found on the server.",
+    "backHome": "Back to Home"
+  },
+  "Programs": {
+    "TOEFL": "TOEFL",
+    "IB": "IB (International Baccalaureate)",
+    "SAT": "SAT",
+    "IELTS": "IELTS",
+    "Duolingo": "Duolingo English Test",
+    "CSCA": "CSCA",
+    "AP_Microeconomics": "AP Microeconomics",
+    "AP_Calculus": "AP Calculus",
+    "AP_Business": "AP Business",
+    "AP_Macroeconomics": "AP Macroeconomics",
+    "AP_Statistics": "AP Statistics",
+    "Private_School": "Private School Tutoring",
+    "General_English": "General English",
+    "DIM_Math": "DIM Mathematics",
+    "DIM_English": "DIM English",
+    "DIM_Russian": "DIM Russian",
+    "DIM_Azerbaijani": "DIM Azerbaijani"
+  },
+  "Profile": {
+    "backToStudents": "Back to Students",
+    "backToTeachers": "Back to Teachers",
+    "backToGroups": "Back to Groups",
+    "overview": "Overview",
+    "groups": "Groups",
+    "payments": "Payments",
+    "attendance": "Attendance",
+    "schedule": "Schedule",
+    "subjects": "Subjects",
+    "students": "Students",
+    "generalInfo": "General Information",
+    "contactInfo": "Contact Information",
+    "academicInfo": "Academic Information",
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "fin": "FIN Code",
+    "idCard": "ID Card Number",
+    "joinDate": "Registration Date",
+    "specialty": "Specialty / Subject",
+    "room": "Room",
+    "program": "Program",
+    "teacher": "Teacher",
+    "capacity": "Capacity",
+    "totalPaid": "Total Paid",
+    "totalDebt": "Remaining Debt",
+    "attendanceRate": "Attendance Rate",
+    "enrolledGroups": "Enrolled Groups",
+    "activeGroups": "Active Groups",
+    "totalStudents": "Total Students",
+    "weeklyHours": "Weekly Hours",
+    "capacityUsage": "Capacity Usage",
+    "avgAttendance": "Average Attendance",
+    "noGroups": "No groups assigned",
+    "noPayments": "No payment records found",
+    "noAttendance": "No attendance records found",
+    "noStudents": "No students enrolled",
+    "noSchedule": "No schedule set",
+    "editProfile": "Edit",
+    "deleteProfile": "Delete",
+    "addPayment": "Add Payment",
+    "addStudent": "Add Student",
+    "printContract": "Print Contract / Invoice",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "status": "Status",
+    "date": "Date",
+    "amount": "Amount",
+    "notes": "Notes",
+    "topic": "Topic",
+    "day": "Day",
+    "time": "Time",
+    "duration": "Duration",
+    "months": "months",
+    "notFound": "Profile not found",
+    "loading": "Loading profile details..."
+  },
+  "Search": {
+    "placeholder": "Search students, teachers, groups...",
+    "title": "Global Search",
+    "students": "Students",
+    "teachers": "Teachers",
+    "groups": "Groups",
+    "searching": "Searching...",
+    "noResults": "No results found for \"{query}\"",
+    "noResultsShort": "No results found",
+    "shortcutHint": "Press ESC to close",
+    "viewProfile": "View profile",
+    "clear": "Clear search",
+    "quickActions": "Quick Navigation",
+    "typeToSearch": "Type at least 2 characters to search",
+    "recentSearches": "Recent searches",
+    "program": "Program",
+    "room": "Room",
+    "specialty": "Specialty",
+    "result": "result",
+    "results": "results"
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "noNotifications": "No new notifications",
+    "noNewNotifications": "No new notifications",
+    "loading": "Loading...",
+    "unread": "unread",
+    "markRead": "Mark as read"
+  }
+}

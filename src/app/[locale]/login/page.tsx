@@ -1,0 +1,109 @@
+"use client";
+
+import { useState } from "react";
+import styles from "./page.module.css";
+import { LogIn, Mail, Lock, ArrowLeft, LayoutDashboard } from "lucide-react";
+import { Link, useRouter } from "@/i18n/routing";
+import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
+import { signIn } from "next-auth/react";
+
+export default function LoginPage() {
+  const t = useTranslations("Auth");
+  const router = useRouter();
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const res = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (res?.error) {
+      setError(res.error);
+      setLoading(false);
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
+  return (
+    <main className={styles.main}>
+      {/* Background Orbs */}
+      <div className={styles.orb1}></div>
+      <div className={styles.orb2}></div>
+
+      {/* Back Button */}
+      <div className={styles.topBar}>
+        <Link href="/" className={styles.backLink}>
+          <ArrowLeft size={18} />
+          {t("backHome")}
+        </Link>
+      </div>
+
+      {/* Login Container */}
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className={styles.loginContainer}
+      >
+        <div className={styles.loginHeader}>
+          <LayoutDashboard className={styles.logoAccent} size={36} />
+          <h1 className={styles.title}>Thrive<span className={styles.logoAccent}>CRM</span></h1>
+          <p className={styles.subtitle}>{t("title")}</p>
+        </div>
+
+        <form onSubmit={handleLogin} className={styles.form}>
+          <div className={styles.inputGroup}>
+            <label>{t("emailLabel")}</label>
+            <div className={styles.inputWrapper}>
+              <Mail className={styles.inputIcon} size={20} />
+              <input 
+                type="email" 
+                placeholder={t("emailPlaceholder")}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
+            </div>
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label>{t("passwordLabel")}</label>
+            <div className={styles.inputWrapper}>
+              <Lock className={styles.inputIcon} size={20} />
+              <input 
+                type="password" 
+                placeholder={t("passwordPlaceholder")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+              />
+            </div>
+          </div>
+          
+          {error && <div className={styles.errorText}>{error}</div>}
+
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
+            <LogIn size={20} />
+            {loading ? t("loading") : t("loginBtn")}
+          </button>
+        </form>
+        
+        <div className={styles.footer}>
+          <p>{t("forgotPassword")} <span className={styles.link}>{t("contactAdmin")}</span></p>
+        </div>
+      </motion.div>
+    </main>
+  );
+}

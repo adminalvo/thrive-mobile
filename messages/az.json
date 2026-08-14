@@ -1,0 +1,395 @@
+{
+  "HomePage": {
+    "login": "DAXİL OL",
+    "typewriter1": "Thrive CRM",
+    "typewriter2": "Təhsilin Gələcəyi",
+    "typewriter3": "Ağıllı İdarəetmə",
+    "typewriter4": "Tam Nəzarət",
+    "aboutTitle": "Thrive CRM Haqqında",
+    "aboutText": "Təhsil idarəetməsinin yeni nəslini kəşf edin. Thrive CRM qabaqcıl avtomatlaşdırmanı, fasiləsiz cədvəlləşdirməni və hərtərəfli izləməni tək bir futuristik mərkəzdə birləşdirir. Biz sadəcə məlumatları idarə etmirik; təhsilin gələcəyini dizayn edir, qurumlara onların hər ehtiyacını qabaqcadan görən alətlər təqdim edirik.",
+    "developedBy": "Developed by",
+    "website": "www.thrive.az"
+  },
+  "Auth": {
+    "title": "Sistemə daxil olun",
+    "emailLabel": "Email adresi",
+    "emailPlaceholder": "ornek@thrive.az",
+    "passwordLabel": "Şifrə",
+    "passwordPlaceholder": "••••••••",
+    "loginBtn": "DAXİL OL",
+    "loading": "GÖZLƏYİN...",
+    "forgotPassword": "Şifrənizi unutmusunuz?",
+    "contactAdmin": "Adminlə əlaqə saxlayın",
+    "backHome": "Ana Səhifə"
+  },
+  "Sidebar": {
+    "dashboard": "İdarə Paneli",
+    "leads": "Potensial Müştəri",
+    "students": "Tələbələr",
+    "groups": "Qruplar",
+    "parents": "Valideynlər",
+    "teachers": "Müəllimlər",
+    "schedule": "Cədvəl",
+    "finance": "Maliyyə",
+    "tasks": "Tapşırıqlar",
+    "settings": "Tənzimləmələr",
+    "logout": "Çıxış"
+  },
+  "Dashboard": {
+    "welcome": "Xoş Gəldiniz",
+    "subtitle": "Bugünkü statistikaya və son yeniliklərə nəzər salın.",
+    "newStudent": "+ Yeni Tələbə",
+    "totalStudents": "Cəmi Tələbə",
+    "activeGroups": "Aktiv Qruplar",
+    "monthlyIncome": "Gəlir (Aylıq)",
+    "pendingPayments": "Gözləyən Ödənişlər",
+    "recentRegistrations": "Son Qeydiyyatlar",
+    "todayClasses": "Bugünkü Dərslər",
+    "table": {
+      "student": "Tələbə",
+      "group": "Qrup",
+      "date": "Tarix",
+      "status": "Status"
+    }
+  },
+  "Leads": {
+    "title": "Liderlər (Leads)",
+    "subtitle": "Yeni müraciətləri izləyin və onları tələbəyə çevirin.",
+    "newLead": "+ Yeni Müraciət",
+    "addLeadTitle": "Yeni Müraciət Əlavə Et",
+    "search": "Ad, telefon və ya e-poçt ilə axtar...",
+    "table": {
+      "name": "Ad Soyad",
+      "contact": "Əlaqə",
+      "source": "Mənbə",
+      "status": "Status",
+      "date": "Tarix"
+    },
+    "statuses": {
+      "NEW": "Yeni",
+      "CONTACTED": "Əlaqə Qurulub",
+      "INTERESTED": "Maraqlanır",
+      "CONVERTED": "Qeydiyyat",
+      "LOST": "İmtina"
+    },
+    "errors": {
+      "loadFailed": "Müştəri məlumatlarını yükləmək mümkün olmadı",
+      "unexpected": "Gözlənilməz xəta baş verdi"
+    },
+    "loading": "Yüklənir...",
+    "empty": "Heç bir məlumat tapılmadı."
+  },
+  "Students": {
+    "title": "Tələbə Bazası",
+    "subtitle": "Bütün tələbələrin siyahısı, qrupları və ümumi məlumatları.",
+    "newStudent": "+ Yeni Tələbə",
+    "search": "Ad, nömrə və ya e-mail ilə axtarış...",
+    "table": {
+      "name": "Tələbə (Ad Soyad)",
+      "contact": "Əlaqə",
+      "group": "Qrup / İxtisas",
+      "status": "Status",
+      "enrollDate": "Qeydiyyat"
+    }
+  },
+  "Teachers": {
+    "title": "Müəllimlər və İxtisaslar",
+    "subtitle": "Tədris heyətinin siyahısı və ixtisas sahələri.",
+    "newTeacher": "+ Yeni Müəllim",
+    "search": "Müəllim adı və ya ixtisasla axtarış...",
+    "noTeachers": "Müəllim tapılmadı",
+    "table": {
+      "name": "Müəllim (Ad Soyad)",
+      "contact": "Əlaqə",
+      "subject": "İxtisas / Fənn",
+      "status": "Status",
+      "joinDate": "İşə Başlama"
+    },
+    "noSubject": "İxtisas qeyd edilməyib",
+    "activeGroups": "Aktiv qrup",
+    "errors": {
+      "fetch": "Müəllimləri yükləmək mümkün olmadı",
+      "create": "Müəllim əlavə edilərkən xəta baş verdi"
+    },
+    "success": {
+      "created": "Müəllim uğurla əlavə edildi!"
+    }
+  },
+  "Schedule": {
+    "title": "Dərs Cədvəli",
+    "subtitle": "Həftəlik və günlük dərs qrafikini idarə edin.",
+    "newLesson": "+ Yeni Dərs",
+    "today": "Bugün",
+    "week": "Həftə",
+    "month": "Ay",
+    "days": {
+      "mon": "Bazar ertəsi",
+      "tue": "Çərşənbə axşamı",
+      "wed": "Çərşənbə",
+      "thu": "Cümə axşamı",
+      "fri": "Cümə",
+      "sat": "Şənbə",
+      "sun": "Bazar"
+    },
+    "noSchedule": "Cədvəl təyin edilməyib"
+  },
+  "Groups": {
+    "title": "Qruplar",
+    "subtitle": "Qrup və proqramları idarə edin.",
+    "newGroup": "+ Yeni Qrup",
+    "search": "Qrupları axtar...",
+    "table": {
+      "name": "Qrup Adı",
+      "program": "Proqram",
+      "teacher": "Müəllim",
+      "room": "Otaq"
+    }
+  },
+  "Parents": {
+    "title": "Valideynlər",
+    "subtitle": "Valideyn əlaqələrini idarə edin.",
+    "newParent": "+ Yeni Valideyn",
+    "search": "Valideyn axtar...",
+    "table": {
+      "name": "Valideyn (Ad Soyad)",
+      "contact": "Əlaqə",
+      "fin": "FİN",
+      "idCard": "Vəsiqə nömrəsi"
+    }
+  },
+  "Finance": {
+    "title": "Maliyyə və Ödənişlər",
+    "subtitle": "Tələbə ödənişlərini, fakturaları və borcluları izləyin.",
+    "newInvoice": "Yeni Faktura",
+    "monthlyIncome": "Aylıq Gəlir",
+    "totalDebt": "Ümumi Borc (Gözləyən)",
+    "search": "Tələbə adı və ya faktura nömrəsi ilə axtar...",
+    "table": {
+      "invoice": "Faktura",
+      "student": "Tələbə",
+      "amount": "Məbləğ",
+      "paid": "Ödənilib",
+      "debt": "Qalıq Borc",
+      "status": "Status",
+      "deadline": "Son Tarix",
+      "contract": "Müqavilə"
+    },
+    "statuses": {
+      "PAID": "Ödənilib",
+      "PARTIAL": "Qismən",
+      "PENDING": "Gecikir"
+    }
+  },
+  "Contract": {
+    "title": "Elektron Müqavilə və Faktura",
+    "printPdf": "Çap Et / PDF",
+    "desc": "Tədris Mərkəzi İdarəetmə Sistemi",
+    "invoiceNo": "Faktura",
+    "date": "Tarix",
+    "parties": "Tərəflər",
+    "provider": "Xidmət Göstərən",
+    "client": "Tələbə / Valideyn",
+    "contact": "Əlaqə",
+    "details": "Ödəniş Detalları",
+    "service": "Xidmət (Kurs)",
+    "status": "Status",
+    "amount": "Məbləğ",
+    "serviceName": "Akademik Tədris və Kurs Xidməti",
+    "total": "Yekun Məbləğ",
+    "terms": "Müqavilə Şərtləri",
+    "term1": "1. Tərəflər arasında bağlanmış bu müqavilə ödənişin həyata keçirilməsini və tədris xidmətinin verilməsini təsdiq edir.",
+    "term2": "2. Ödənişlər vaxtında (gecikdirilmədən) həyata keçirilməlidir.",
+    "term3": "3. Elektron imza Azərbaycan Respublikası qanunvericiliyinə əsasən hüquqi qüvvəyə minir.",
+    "signatureProvider": "Mərkəz Rəhbərliyi (Möhür/İmza)",
+    "signatureClient": "Tələbə / Valideyn (İmza)",
+    "notSigned": "İmza çəkilməyib",
+    "digitalSignature": "Rəqəmsal İmza (Aşağıdakı lövhəyə imza çəkin)",
+    "clear": "Təmizlə"
+  },
+  "Tasks": {
+    "title": "İşlər və Tapşırıqlar",
+    "subtitle": "Komandadaxili tapşırıqları Kanban üsulu ilə idarə edin.",
+    "newTask": "+ Yeni Tapşırıq",
+    "columns": {
+      "TODO": "Gözləmədə",
+      "IN_PROGRESS": "İcrada",
+      "REVIEW": "Yoxlamada",
+      "DONE": "Tamamlanıb"
+    },
+    "unassigned": "Təyin edilməyib"
+  },
+  "Settings": {
+    "title": "Tənzimləmələr",
+    "subtitle": "Sistem və profil seçimlərinizi idarə edin.",
+    "tabs": {
+      "profile": "Profil",
+      "notifications": "Bildirişlər",
+      "security": "Təhlükəsizlik",
+      "system": "Sistem"
+    },
+    "profile": {
+      "title": "Profil Məlumatları",
+      "name": "Ad və Soyad",
+      "email": "Email",
+      "role": "Vəzifə / Rol"
+    },
+    "notifications": {
+      "title": "Bildiriş Seçimləri",
+      "newLead": "Yeni müştəri əlavə edildikdə mənə bildir",
+      "payments": "Ödəniş gecikmələri barədə gündəlik xülasə",
+      "updates": "Sistem yenilənmələri"
+    },
+    "security": {
+      "title": "Təhlükəsizlik",
+      "oldPass": "Köhnə Şifrə",
+      "newPass": "Yeni Şifrə",
+      "newPassConfirm": "Yeni Şifrə (Təkrar)"
+    },
+    "system": {
+      "title": "Sistem Tənzimləmələri",
+      "theme": "Görünüş Mövzusu",
+      "lang": "Standart Dil",
+      "themes": {
+        "dark": "Qaranlıq (Dark) - Tövsiyə Edilir",
+        "light": "İşıqlı (Light)",
+        "sys": "Sistem"
+      },
+      "langs": {
+        "az": "Azərbaycan",
+        "en": "İngilis",
+        "ru": "Rus"
+      }
+    },
+    "save": "Yadda Saxla",
+    "success": "Tənzimləmələr yadda saxlanıldı!"
+  },
+  "Common": {
+    "active": "Aktiv",
+    "pending": "Gözləmədə",
+    "inactive": "Qeyri-aktiv",
+    "loading": "Yüklənir...",
+    "cancel": "Ləğv et",
+    "save": "Yadda saxla",
+    "saving": "Yadda saxlanılır...",
+    "empty": "Heç bir məlumat tapılmadı.",
+    "actions": "Əməliyyatlar",
+    "notSpecified": "Qeyd edilməyib",
+    "errors": {
+      "unexpected": "Gözlənilməz xəta baş verdi"
+    }
+  },
+  "NotFound": {
+    "title": "Sistem Xətası: Səhifə Tapılmadı",
+    "msg1": "axtardığınız səhifə mövcud deyil.",
+    "msg2": "serverdə heç bir məlumat tapılmadı.",
+    "backHome": "Ana Səhifəyə Qayıt"
+  },
+  "Programs": {
+    "TOEFL": "TOEFL",
+    "IB": "IB (Beynəlxalq Bakalavriat)",
+    "SAT": "SAT",
+    "IELTS": "IELTS",
+    "Duolingo": "Duolingo İngilis dili Testi",
+    "CSCA": "CSCA",
+    "AP_Microeconomics": "AP Mikroiqtisadiyyat",
+    "AP_Calculus": "AP Hesablama (Calculus)",
+    "AP_Business": "AP Biznes",
+    "AP_Macroeconomics": "AP Makroiqtisadiyyat",
+    "AP_Statistics": "AP Statistika",
+    "Private_School": "Özəl Məktəb Hazırlığı",
+    "General_English": "Ümumi İngilis dili",
+    "DIM_Math": "DİM Riyaziyyat",
+    "DIM_English": "İngilis dili DİM",
+    "DIM_Russian": "Rus dili DİM",
+    "DIM_Azerbaijani": "Azərbaycan dili DİM"
+  },
+  "Profile": {
+    "backToStudents": "Tələbələrə Qayıt",
+    "backToTeachers": "Müəllimlərə Qayıt",
+    "backToGroups": "Qruplara Qayıt",
+    "overview": "Ümumi Məlumat",
+    "groups": "Qruplar",
+    "payments": "Ödənişlər",
+    "attendance": "Davamiyyət",
+    "schedule": "Dərs Cədvəli",
+    "subjects": "Fənlər",
+    "students": "Tələbələr",
+    "generalInfo": "Ümumi Məlumat",
+    "contactInfo": "Əlaqə Məlumatları",
+    "academicInfo": "Akademik Məlumat",
+    "fullName": "Tam Adı",
+    "email": "E-poçt",
+    "phone": "Telefon",
+    "fin": "FİN Kod",
+    "idCard": "Şəxsiyyət Vəsiqəsi",
+    "joinDate": "Qeydiyyat Tarixi",
+    "specialty": "İxtisas / Fənn",
+    "room": "Otaq",
+    "program": "Proqram",
+    "teacher": "Müəllim",
+    "capacity": "Tutum",
+    "totalPaid": "Ümumi Ödəniş",
+    "totalDebt": "Qalıq Borc",
+    "attendanceRate": "Davamiyyət Faizi",
+    "enrolledGroups": "Qoşulduğu Qruplar",
+    "activeGroups": "Aktiv Qruplar",
+    "totalStudents": "Cəmi Tələbə",
+    "weeklyHours": "Həftəlik Dərs Saatı",
+    "capacityUsage": "Doluluq Faizi",
+    "avgAttendance": "Orta Davamiyyət",
+    "noGroups": "Heç bir qrup təyin edilməyib",
+    "noPayments": "Ödəniş qeydi tapılmadı",
+    "noAttendance": "Davamiyyət qeydi tapılmadı",
+    "noStudents": "Qrupda tələbə yoxdur",
+    "noSchedule": "Dərs cədvəli təyin edilməyib",
+    "editProfile": "Redaktə et",
+    "deleteProfile": "Sil",
+    "addPayment": "Ödəniş Qəbul Et",
+    "addStudent": "Tələbə Əlavə Et",
+    "printContract": "Müqavilə Çap Et",
+    "present": "İştirak edib",
+    "absent": "Qayıb",
+    "late": "Gecikib",
+    "status": "Status",
+    "date": "Tarix",
+    "amount": "Məbləğ",
+    "notes": "Qeydlər",
+    "topic": "Mövzu",
+    "day": "Gün",
+    "time": "Saat",
+    "duration": "Müddət",
+    "months": "ay",
+    "notFound": "Profil tapılmadı",
+    "loading": "Profil məlumatları yüklənir..."
+  },
+  "Search": {
+    "placeholder": "Tələbə, müəllim, qrup axtarışı...",
+    "title": "Qlobal Axtarış",
+    "students": "Tələbələr",
+    "teachers": "Müəllimlər",
+    "groups": "Qruplar",
+    "searching": "Axtarılır...",
+    "noResults": "\"{query}\" üzrə heç nə tapılmadı",
+    "noResultsShort": "Nəticə tapılmadı",
+    "shortcutHint": "Bağlamaq üçün ESC basın",
+    "viewProfile": "Profilə bax",
+    "clear": "Axtarışı təmizlə",
+    "quickActions": "Sürətli Keçid",
+    "typeToSearch": "Axtarmaq üçün ən azı 2 simvol daxil edin",
+    "recentSearches": "Son axtarışlar",
+    "program": "Proqram",
+    "room": "Otaq",
+    "specialty": "İxtisas",
+    "result": "nəticə",
+    "results": "nəticə"
+  },
+  "Notifications": {
+    "title": "Bildirişlər",
+    "markAllRead": "Hamısını oxunmuş et",
+    "noNotifications": "Yeni bildiriş yoxdur",
+    "noNewNotifications": "Yeni bildiriş yoxdur",
+    "loading": "Yüklənir...",
+    "unread": "oxunmamış",
+    "markRead": "Oxunmuş et"
+  }
+}

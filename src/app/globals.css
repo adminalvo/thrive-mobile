@@ -1,4 +1,4 @@
-:root {
+:root, [data-theme='dark'] {
   --deep-navy: #000b21;
   --ocean-blue: #003f82;
   --aqua-teal: #4ca2b5;
@@ -9,6 +9,21 @@
   --glass-bg: rgba(2, 6, 23, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
   --gradient-primary: linear-gradient(135deg, var(--deep-navy) 0%, var(--ocean-blue) 50%, var(--aqua-teal) 100%);
+  --bg-main: var(--deep-navy);
+}
+
+[data-theme='light'] {
+  --deep-navy: #f8fafc; /* Replace navy background with light gray */
+  --ocean-blue: #005bb5;
+  --aqua-teal: #2f8395;
+  --white: #0f172a; /* Reversing white to dark for text in certain places */
+  --gray-light: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --gradient-primary: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  --bg-main: #f1f5f9;
 }
 
 * {
@@ -20,7 +35,7 @@
 body {
   color: var(--text-primary);
   background: var(--deep-navy);
-  font-family: var(--font-poppins), sans-serif;
+  font-family: var(--font-inter), sans-serif;
   overflow-x: hidden;
   background-image: 
     radial-gradient(circle at 15% 50%, rgba(0, 63, 130, 0.15) 0%, transparent 50%),

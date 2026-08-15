@@ -32,8 +32,26 @@
     "schedule": "Cədvəl",
     "finance": "Maliyyə",
     "tasks": "Tapşırıqlar",
+    "ai": "AI Köməkçi",
+    "aiAssistant": "AI Köməkçi",
     "settings": "Tənzimləmələr",
     "logout": "Çıxış"
+  },
+  "AiPage": {
+    "title": "Thrive AI Köməkçi",
+    "subtitle": "CRM məlumatlarınızı idarə edin, təhlillər aparın və əmrlər verin.",
+    "placeholder": "Nəsə soruşun və ya tapşırıq verin...",
+    "listening": "Dinlənilir...",
+    "send": "Göndər",
+    "clearChat": "Söhbəti təmizlə",
+    "suggestionsTitle": "Təklif olunan suallar və əmrlər:",
+    "suggestion1": "Bu ayın ümumi maliyyə statistikasını göstər",
+    "suggestion2": "Yeni müraciət (Lead) necə əlavə olunur?",
+    "suggestion3": "Gözləyən ödənişlər haqqında məlumat ver",
+    "suggestion4": "Aktiv tələbələrin və qrupların sayı nə qədərdir?",
+    "imageAttached": "Şəkil əlavə edildi",
+    "networkError": "Şəbəkə xətası baş verdi.",
+    "errorOccurred": "Bağışlayın, xəta baş verdi. Zəhmət olmasa bir az sonra təkrar cəhd edin."
   },
   "Dashboard": {
     "welcome": "Xoş Gəldiniz",
@@ -68,9 +86,23 @@
     "statuses": {
       "NEW": "Yeni",
       "CONTACTED": "Əlaqə Qurulub",
-      "INTERESTED": "Maraqlanır",
-      "CONVERTED": "Qeydiyyat",
-      "LOST": "İmtina"
+      "TRIAL": "Sınaq Dərsi",
+      "REGISTERED": "Qeydiyyat",
+      "LOST": "İtirilmiş"
+    },
+    "form": {
+      "nameLabel": "Ad və Soyad",
+      "namePlaceholder": "Məs: Aysel Məmmədova",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "Məs: +994501234567",
+      "sourceLabel": "Mənbə (Haradan gəlib?)",
+      "sources": {
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "call": "Zəng",
+        "referral": "Dost Tövsiyəsi",
+        "other": "Digər"
+      }
     },
     "errors": {
       "loadFailed": "Müştəri məlumatlarını yükləmək mümkün olmadı",
@@ -391,5 +423,34 @@
     "loading": "Yüklənir...",
     "unread": "oxunmamış",
     "markRead": "Oxunmuş et"
+  },
+  "AI": {
+    "title": "Thrive AI Köməkçi",
+    "subtitle": "CRM idarəetməsi, tələbələr, müəllimlər və maliyyə üçün ağıllı süni intellekt köməkçiniz.",
+    "modelBadge": "Gemini 3.6 Flash / GPT-4o",
+    "statusOnline": "Onlayn",
+    "clearChat": "Söhbəti Təmizlə",
+    "clearConfirm": "Söhbət tarixçəsini sıfırlamaq istədiyinizdən əminsiniz?",
+    "inputPlaceholder": "Sualınızı və ya əmrinizi yazın...",
+    "listening": "Dinlənilir... Danışın",
+    "micTooltip": "Səslə daxil etmə",
+    "attachTooltip": "Şəkil əlavə et",
+    "sendTooltip": "Göndər",
+    "removeImage": "Şəkli sil",
+    "quickPromptsTitle": "Sürətli Təkliflər:",
+    "prompts": {
+      "finance": "📊 Maliyyə hesabatı və ümumi borcları göstər",
+      "students": "👥 Son qeydiyyatdan keçmiş tələbələrin siyahısı",
+      "teachers": "👨‍🏫 Tədris mərkəzindəki müəllimləri göstər",
+      "newLead": "➕ Yeni müraciət (Lead) yarat",
+      "schedule": "📅 Bugünkü dərslər və cədvəli yoxla"
+    },
+    "welcomeGreeting": "Salam! Mən Thrive CRM-in ağıllı köməkçisiyəm. Sizə tələbələr, müəllimlər, dərslər və maliyyə hesabatları ilə bağlı necə kömək edə bilərəm?",
+    "errorMessage": "Bağışlayın, xəta baş verdi. Zəhmət olmasa bir az sonra təkrar cəhd edin.",
+    "networkError": "Şəbəkə xətası baş verdi. Serverlə əlaqə qurulmadı.",
+    "speechError": "Səsin tanınması zamanı xəta baş verdi və ya brauzer dəstəkləmir.",
+    "speechNotSupported": "Brauzeriniz səslə daxil etməni dəstəkləmir.",
+    "you": "Siz",
+    "assistant": "Thrive AI"
   }
 }

@@ -110,6 +110,38 @@
   color: #ef4444;
 }
 
+/* Collapsed Sidebar */
+.sidebarCollapsed {
+  width: 80px;
+}
+
+.sidebarCollapsed .logo {
+  justify-content: center;
+}
+
+.sidebarCollapsed .navItem {
+  justify-content: center;
+  padding: 0.8rem;
+}
+
+.desktopCollapseBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.desktopCollapseBtn:hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Main Content */
 .mainContent {
   flex: 1;
@@ -317,6 +349,10 @@
 
   .closeBtn {
     display: block;
+  }
+  
+  .desktopCollapseBtn {
+    display: none;
   }
 
   .searchBar input {

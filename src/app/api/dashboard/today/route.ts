@@ -39,7 +39,7 @@ export async function GET() {
       LIMIT 10
     `;
 
-    const formatted = todayClasses.map(c => ({
+    const formatted = todayClasses.map((c: any) => ({
       time: c.time,
       title: c.title,
       room: c.room,

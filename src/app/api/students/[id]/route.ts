@@ -68,7 +68,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         WHERE p.student_id = ${id} OR p.student_id = ${s.user_id} OR p.student_id = ${s.profile_id}
         ORDER BY p.created_at DESC
       `;
-      payments = paymentRows.map(p => {
+      payments = paymentRows.map((p: any) => {
         const amt = Number(p.amount) || 0;
         const isPaid = (p.status || "").toUpperCase() === "PAID";
         return {
@@ -103,7 +103,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         ORDER BY g.created_at DESC
         LIMIT 3
       `;
-      groups = groupRows.map(g => ({
+      groups = groupRows.map((g: any) => ({
         id: g.id,
         name: g.name,
         program: g.program || "Ümumi Proqram",

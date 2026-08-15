@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../students/page.module.css";
-import { Plus, Search, Filter, MoreHorizontal, Component, Trash2, Edit } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, Component, Trash2, Edit, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -205,7 +205,12 @@ export default function GroupsPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               className={styles.modal}
             >
-              <h2>{t("newGroup")}</h2>
+              <div className={styles.modalHeader}>
+                <h2>{t("newGroup")}</h2>
+                <button type="button" className={styles.closeModalBtn} onClick={() => setShowModal(false)}>
+                  <X size={20} />
+                </button>
+              </div>
               <form onSubmit={handleCreate} className={styles.form}>
                 <div className={styles.formGrid}>
                   <div className={styles.inputGroup}>

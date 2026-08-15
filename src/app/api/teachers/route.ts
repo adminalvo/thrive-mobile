@@ -25,8 +25,9 @@ export async function GET() {
       LEFT JOIN user_profiles p ON t.profile_id = p.id
     `;
 
-    const formatted = teachers.map(t => ({
-      id: t.id,
+    const formatted = teachers.map((t: any) => ({
+      id: t.user_id || t.id, // Return user_id to satisfy auth.users references
+      teacher_table_id: t.id,
       name: `${t.first_name || ""} ${t.last_name || ""}`.trim() || "Bilinmir",
       email: t.email || "",
       phone: t.phone || "",
@@ -76,7 +77,7 @@ export async function POST(req: Request) {
         ? groups
         : (groupId ? [groupId] : (groupIds ? [groupIds] : [])));
 
-    await sql.begin(async (tx) => {
+    await sql.begin(async (tx: any) => {
       await tx`
         INSERT INTO auth.users (id, email, role, aud, encrypted_password)
         VALUES (${userId}, ${emailToUse}, 'teacher', 'authenticated', ${hashedPassword})

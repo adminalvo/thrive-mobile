@@ -14,7 +14,7 @@ export async function GET() {
       ORDER BY p.created_at DESC
     `;
 
-    const formatted = parents.map(p => ({
+    const formatted = parents.map((p: any) => ({
       id: p.id,
       name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || "N/A",
       contact: p.phone || "N/A",
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     const profileId = crypto.randomUUID();
     const parentId = crypto.randomUUID();
 
-    await sql.begin(async (tx) => {
+    await sql.begin(async (tx: any) => {
       const emailToUse = email || `${userId.substring(0,8)}@example.com`;
       
       const existingUser = await tx`SELECT id FROM auth.users WHERE email = ${emailToUse}`;
@@ -51,8 +51,8 @@ export async function POST(req: Request) {
         finalUserId = existingUser[0].id;
       } else {
         await tx`
-          INSERT INTO auth.users (id, email, phone, role, aud, encrypted_password)
-          VALUES (${userId}, ${emailToUse}, ${phone || null}, 'authenticated', 'authenticated', ${hashedPassword})
+          INSERT INTO auth.users (id, email, role, aud, encrypted_password)
+          VALUES (${userId}, ${emailToUse}, 'authenticated', 'authenticated', ${hashedPassword})
         `;
       }
 
@@ -78,6 +78,15 @@ export async function POST(req: Request) {
         VALUES (${finalUserId}, 'parent')
         ON CONFLICT (user_id) DO NOTHING
       `;
+
+      const reqStudentId = body.student_id || body.studentId;
+      if (reqStudentId) {
+        await tx`
+          INSERT INTO student_parents (student_id, parent_id, relation_type)
+          VALUES (${reqStudentId}, ${parentId}, 'Ata/Ana')
+          ON CONFLICT DO NOTHING
+        `;
+      }
     });
 
     return NextResponse.json({ success: true, id: parentId });

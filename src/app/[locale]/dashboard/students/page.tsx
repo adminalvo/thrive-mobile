@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
-import { Plus, Search, Filter, MoreHorizontal, UserCheck, UserX, Trash2 } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, UserCheck, UserX, Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -235,7 +235,12 @@ export default function StudentsPage() {
       {showModal && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <h2>Yeni Tələbə Əlavə Et</h2>
+            <div className={styles.modalHeader}>
+              <h2>Yeni Tələbə Əlavə Et</h2>
+              <button type="button" className={styles.closeModalBtn} onClick={() => setShowModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
             <form onSubmit={createStudent} className={styles.form}>
               <div className={styles.inputGroup}>
                 <label>Ad və Soyad</label>

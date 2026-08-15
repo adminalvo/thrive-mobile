@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from "@/components/ThemeProvider";
+import AiChatbot from "@/components/AiChatbot";
 
-const poppins = Poppins({
-  weight: ['300', '400', '500', '600', '700', '800'],
-  subsets: ["latin"],
-  variable: "--font-poppins",
+const nunito = Nunito({
+  subsets: ["latin", "cyrillic"], // Add cyrillic for Russian support
+  variable: "--font-inter", // Keep variable name same so global.css works without changes
 });
 
 export const metadata: Metadata = {
@@ -35,11 +36,14 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <div className={poppins.variable} style={{ minHeight: "100vh" }}>
-      <NextIntlClientProvider messages={messages}>
-        {children}
-        <Toaster position="top-right" />
-      </NextIntlClientProvider>
+    <div className={nunito.variable} style={{ minHeight: "100vh" }}>
+      <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
+        <NextIntlClientProvider messages={messages}>
+          {children}
+          <Toaster position="top-right" />
+          <AiChatbot />
+        </NextIntlClientProvider>
+      </ThemeProvider>
     </div>
   );
 }

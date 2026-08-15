@@ -17,9 +17,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, phone, email, source, status } = body;
 
+    const validStatus = ["NEW", "CONTACTED", "TRIAL", "REGISTERED", "LOST"].includes(status) ? status : "NEW";
+
     const lead = await sql`
       INSERT INTO leads (name, phone, email, source, status)
-      VALUES (${name}, ${phone}, ${email}, ${source}, ${status})
+      VALUES (${name}, ${phone}, ${email}, ${source || 'Digər'}, ${validStatus})
       RETURNING *
     `;
 

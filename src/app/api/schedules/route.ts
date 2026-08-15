@@ -52,7 +52,7 @@ export async function GET() {
       ORDER BY g.name ASC
     `;
 
-    const formatted = groups.map(g => ({
+    const formatted = groups.map((g: any) => ({
       id: g.id,
       name: g.name,
       room: g.room || "N/A",

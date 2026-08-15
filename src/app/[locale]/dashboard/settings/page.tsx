@@ -4,10 +4,17 @@ import styles from "./page.module.css";
 import { User, Bell, Shield, Globe, Save, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { useTheme } from "next-themes";
+import { useRouter, usePathname } from "@/i18n/routing";
 
 export default function SettingsPage() {
   const t = useTranslations("Settings");
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  
   const [activeTab, setActiveTab] = useState("profile");
   
   const [loading, setLoading] = useState(true);
@@ -241,7 +248,10 @@ export default function SettingsPage() {
               <h2>{t("system.title")}</h2>
               <div className={styles.formGroup}>
                 <label>{t("system.theme")}</label>
-                <select defaultValue="dark">
+                <select 
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                >
                   <option value="dark">{t("system.themes.dark")}</option>
                   <option value="light">{t("system.themes.light")}</option>
                   <option value="system">{t("system.themes.sys")}</option>
@@ -249,7 +259,10 @@ export default function SettingsPage() {
               </div>
               <div className={styles.formGroup}>
                 <label>{t("system.lang")}</label>
-                <select defaultValue="az">
+                <select 
+                  value={locale}
+                  onChange={(e) => router.replace(pathname, { locale: e.target.value })}
+                >
                   <option value="az">{t("system.langs.az")}</option>
                   <option value="en">{t("system.langs.en")}</option>
                   <option value="ru">{t("system.langs.ru")}</option>

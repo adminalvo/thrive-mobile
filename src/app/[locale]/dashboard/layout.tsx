@@ -18,7 +18,8 @@ import {
   Globe,
   Component,
   UserPlus,
-  FileText
+  FileText,
+  Bot
 } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
@@ -26,6 +27,7 @@ import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationsDropdown from "@/components/NotificationsDropdown";
 import GlobalSearch from "@/components/GlobalSearch";
+import Sidebar from "@/components/Sidebar";
 
 export default function DashboardLayout({
   children,
@@ -35,6 +37,7 @@ export default function DashboardLayout({
   params: Promise<{ locale: string }>;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const locale = useLocale();
@@ -50,6 +53,7 @@ export default function DashboardLayout({
     { name: t("schedule"), href: `/dashboard/schedule`, icon: Calendar },
     { name: t("finance"), href: `/dashboard/finance`, icon: CreditCard },
     { name: t("tasks"), href: `/dashboard/tasks`, icon: KanbanSquare },
+    { name: t("ai"), href: "/dashboard/ai", icon: Bot },
   ];
 
   return (
@@ -68,50 +72,12 @@ export default function DashboardLayout({
       </AnimatePresence>
 
       {/* Sidebar */}
-      <aside 
-        className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`}
-      >
-        <div className={styles.sidebarHeader}>
-          <div className={styles.logo}>
-            <LayoutDashboard className={styles.logoAccent} size={24} />
-            <span>Thrive<span className={styles.logoAccent}>CRM</span></span>
-          </div>
-          <button className={styles.closeBtn} onClick={() => setSidebarOpen(false)}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <nav className={styles.sidebarNav}>
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link key={item.name} href={item.href} onClick={() => setSidebarOpen(false)}>
-                <div className={`${styles.navItem} ${isActive ? styles.navActive : ""}`}>
-                  <item.icon size={20} className={isActive ? styles.iconActive : styles.icon} />
-                  <span>{item.name}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className={styles.sidebarFooter}>
-          <Link href={`/dashboard/settings`}>
-            <div className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.navActive : ""}`}>
-              <Settings size={20} className={pathname === '/dashboard/settings' ? styles.iconActive : styles.icon} />
-              <span>{t("settings")}</span>
-            </div>
-          </Link>
-          <div 
-            className={`${styles.navItem} ${styles.logoutItem}`}
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            style={{ cursor: "pointer" }}
-          >
-            <LogOut size={20} className={styles.iconLogout} />
-            <span>{t("logout")}</span>
-          </div>
-        </div>
-      </aside>
+      <Sidebar 
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
 
       {/* Main Content Area */}
       <div className={styles.mainContent}>

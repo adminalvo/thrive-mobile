@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     if (action === "update_profile") {
       const { first_name, last_name, email } = body;
       
-      await sql.begin(async (tx) => {
+      await sql.begin(async (tx: any) => {
         if (email) {
           // Check if email already in use by someone else
           const existing = await tx`SELECT id FROM auth.users WHERE email = ${email.toLowerCase()} AND id != ${userId}`;

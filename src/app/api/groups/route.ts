@@ -12,7 +12,7 @@ export async function GET() {
       ORDER BY g.created_at DESC
     `;
 
-    const formatted = groups.map(g => ({
+    const formatted = groups.map((g: any) => ({
       id: g.id,
       name: g.name,
       program: g.program || "N/A",

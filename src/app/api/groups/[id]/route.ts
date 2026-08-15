@@ -55,7 +55,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         ORDER BY s.created_at DESC
         LIMIT 12
       `;
-      students = studentRows.map((s, idx) => ({
+      students = studentRows.map((s: any, idx: number) => ({
         id: s.id,
         name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Tələbə",
         email: s.email || "",

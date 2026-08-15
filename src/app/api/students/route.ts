@@ -12,7 +12,7 @@ export async function GET() {
       ORDER BY s.created_at DESC
     `;
 
-    const formatted = students.map(s => ({
+    const formatted = students.map((s: any) => ({
       id: s.id,
       name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Bilinmir",
       email: s.email || "",
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     const studentId = crypto.randomUUID();
 
     // Raw SQL Transaction
-    await sql.begin(async (tx) => {
+    await sql.begin(async (tx: any) => {
       // 1. Create auth user using ON CONFLICT DO NOTHING to avoid duplicate email crash
       // Supabase users table uses email as a unique constraint. If it exists, we skip creating the auth user 
       // but we STILL create the CRM profile using the existing user ID, OR we let it fail gracefully.
@@ -60,8 +60,8 @@ export async function POST(req: Request) {
         finalUserId = existingUser[0].id;
       } else {
         await tx`
-          INSERT INTO auth.users (id, email, phone, role, aud, encrypted_password)
-          VALUES (${userId}, ${emailToUse}, ${phone || null}, 'authenticated', 'authenticated', ${hashedPassword})
+          INSERT INTO auth.users (id, email, role, aud, encrypted_password)
+          VALUES (${userId}, ${emailToUse}, 'authenticated', 'authenticated', ${hashedPassword})
         `;
       }
 

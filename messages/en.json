@@ -32,8 +32,26 @@
     "schedule": "Schedule",
     "finance": "Finance",
     "tasks": "Tasks",
+    "ai": "AI Assistant",
+    "aiAssistant": "AI Assistant",
     "settings": "Settings",
     "logout": "Logout"
+  },
+  "AiPage": {
+    "title": "Thrive AI Assistant",
+    "subtitle": "Manage your CRM data, run analytics, and execute commands.",
+    "placeholder": "Ask anything or give a command...",
+    "listening": "Listening...",
+    "send": "Send",
+    "clearChat": "Clear chat",
+    "suggestionsTitle": "Suggested questions and commands:",
+    "suggestion1": "Show overall financial stats for this month",
+    "suggestion2": "How to create a new Lead?",
+    "suggestion3": "Give information on pending payments",
+    "suggestion4": "How many active students and groups are there?",
+    "imageAttached": "Image attached",
+    "networkError": "A network error occurred.",
+    "errorOccurred": "Sorry, an error occurred. Please try again in a moment."
   },
   "Dashboard": {
     "welcome": "Welcome",
@@ -68,9 +86,23 @@
     "statuses": {
       "NEW": "New",
       "CONTACTED": "Contacted",
-      "INTERESTED": "Interested",
-      "CONVERTED": "Converted",
+      "TRIAL": "Trial Lesson",
+      "REGISTERED": "Registered",
       "LOST": "Lost"
+    },
+    "form": {
+      "nameLabel": "Full Name",
+      "namePlaceholder": "e.g., Aysel Mammadova",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "e.g., +994501234567",
+      "sourceLabel": "Source",
+      "sources": {
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "call": "Phone Call",
+        "referral": "Friend Referral",
+        "other": "Other"
+      }
     },
     "errors": {
       "loadFailed": "Failed to load leads",
@@ -391,5 +423,34 @@
     "loading": "Loading...",
     "unread": "unread",
     "markRead": "Mark as read"
+  },
+  "AI": {
+    "title": "Thrive AI Assistant",
+    "subtitle": "Your intelligent AI assistant for CRM management, students, teachers, and finance.",
+    "modelBadge": "Gemini 3.6 Flash / GPT-4o",
+    "statusOnline": "Online",
+    "clearChat": "Clear Chat",
+    "clearConfirm": "Are you sure you want to reset the conversation history?",
+    "inputPlaceholder": "Type your question or command...",
+    "listening": "Listening... Speak now",
+    "micTooltip": "Voice dictation",
+    "attachTooltip": "Attach image",
+    "sendTooltip": "Send",
+    "removeImage": "Remove image",
+    "quickPromptsTitle": "Quick Prompts:",
+    "prompts": {
+      "finance": "📊 Show financial report and total outstanding debt",
+      "students": "👥 List recently registered students",
+      "teachers": "👨‍🏫 Show teaching staff list",
+      "newLead": "➕ Create a new lead",
+      "schedule": "📅 Check today's classes and schedule"
+    },
+    "welcomeGreeting": "Hello! I am Thrive CRM's intelligent assistant. How can I assist you with students, teachers, classes, or financial reports today?",
+    "errorMessage": "Sorry, an error occurred. Please try again in a moment.",
+    "networkError": "A network error occurred. Failed to connect to server.",
+    "speechError": "Speech recognition error or not supported by browser.",
+    "speechNotSupported": "Speech recognition is not supported in your browser.",
+    "you": "You",
+    "assistant": "Thrive AI"
   }
 }

@@ -19,15 +19,16 @@ type Lead = {
 };
 
 const COLUMNS = [
-  { id: "NEW", title: "Yeni", color: "#3b82f6" },
-  { id: "CONTACTED", title: "Əlaqə Quruldu", color: "#f59e0b" },
-  { id: "TRIAL", title: "Sınaq Dərsi", color: "#8b5cf6" },
-  { id: "REGISTERED", title: "Qeydiyyat", color: "#10b981" },
-  { id: "LOST", title: "İtirilmiş", color: "#ef4444" }
+  { id: "NEW", color: "#3b82f6" },
+  { id: "CONTACTED", color: "#f59e0b" },
+  { id: "TRIAL", color: "#8b5cf6" },
+  { id: "REGISTERED", color: "#10b981" },
+  { id: "LOST", color: "#ef4444" }
 ];
 
 export default function LeadsPage() {
   const t = useTranslations("Leads");
+  const c = useTranslations("Common");
   
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +150,7 @@ export default function LeadsPage() {
           >
             <div className={styles.columnHeader}>
               <div className={styles.colIndicator} style={{ backgroundColor: col.color }}></div>
-              <h3>{col.title}</h3>
+              <h3>{t(`statuses.${col.id}`)}</h3>
               <span className={styles.count}>
                 {leads.filter(l => l.status === col.id && matchesSearch(l)).length}
               </span>
@@ -195,26 +196,26 @@ export default function LeadsPage() {
             <h2>{t("addLeadTitle")}</h2>
             <form onSubmit={createLead} className={styles.form}>
               <div className={styles.inputGroup}>
-                <label>Ad və Soyad</label>
-                <input required type="text" value={newLead.name} onChange={e => setNewLead({...newLead, name: e.target.value})} placeholder="Məs: Aysel Məmmədova" />
+                <label>{t("form.nameLabel")}</label>
+                <input required type="text" value={newLead.name} onChange={e => setNewLead({...newLead, name: e.target.value})} placeholder={t("form.namePlaceholder")} />
               </div>
               <div className={styles.inputGroup}>
-                <label>Telefon</label>
-                <input required type="text" value={newLead.phone} onChange={e => setNewLead({...newLead, phone: e.target.value})} placeholder="Məs: +994501234567" />
+                <label>{t("form.phoneLabel")}</label>
+                <input required type="text" value={newLead.phone} onChange={e => setNewLead({...newLead, phone: e.target.value})} placeholder={t("form.phonePlaceholder")} />
               </div>
               <div className={styles.inputGroup}>
-                <label>Mənbə (Haradan gəlib?)</label>
+                <label>{t("form.sourceLabel")}</label>
                 <select value={newLead.source} onChange={e => setNewLead({...newLead, source: e.target.value})}>
-                  <option value="Instagram">Instagram</option>
-                  <option value="Facebook">Facebook</option>
-                  <option value="Zəng">Zəng</option>
-                  <option value="Dost Tövsiyəsi">Dost Tövsiyəsi</option>
-                  <option value="Digər">Digər</option>
+                  <option value="Instagram">{t("form.sources.instagram")}</option>
+                  <option value="Facebook">{t("form.sources.facebook")}</option>
+                  <option value="Zəng">{t("form.sources.call")}</option>
+                  <option value="Dost Tövsiyəsi">{t("form.sources.referral")}</option>
+                  <option value="Digər">{t("form.sources.other")}</option>
                 </select>
               </div>
               <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>Ləğv et</button>
-                <button type="submit" className={styles.saveBtn}>Yadda Saxla</button>
+                <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>{c("cancel")}</button>
+                <button type="submit" className={styles.saveBtn}>{c("save")}</button>
               </div>
             </form>
           </div>

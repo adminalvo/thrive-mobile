@@ -12,7 +12,7 @@ export async function GET() {
       LIMIT 5
     `;
 
-    const formatted = recentStudents.map(s => ({
+    const formatted = recentStudents.map((s: any) => ({
       id: s.id,
       name: `${s.first_name || ""} ${s.last_name || ""}`.trim(),
       email: s.email || "",

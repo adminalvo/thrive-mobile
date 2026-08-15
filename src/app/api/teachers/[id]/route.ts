@@ -53,7 +53,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       `;
 
       if (groupRows.length > 0) {
-        groups = groupRows.map(g => ({
+        groups = groupRows.map((g: any) => ({
           id: g.id,
           name: g.name,
           program: g.program || t.specialization || "General English",
@@ -94,7 +94,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         ORDER BY s.created_at DESC
         LIMIT 10
       `;
-      students = studentRows.map((s, idx) => ({
+      students = studentRows.map((s: any, idx: number) => ({
         id: s.id,
         name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Tələbə",
         email: s.email || "",

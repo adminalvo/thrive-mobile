@@ -5,7 +5,6 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { Toaster } from 'react-hot-toast';
-import "../globals.css";
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700', '800'],
@@ -36,13 +35,11 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
-      <body className={poppins.variable}>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster position="top-right" />
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <div className={poppins.variable} style={{ minHeight: "100vh" }}>
+      <NextIntlClientProvider messages={messages}>
+        {children}
+        <Toaster position="top-right" />
+      </NextIntlClientProvider>
+    </div>
   );
 }

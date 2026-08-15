@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import NotificationsDropdown from "@/components/NotificationsDropdown";
 import GlobalSearch from "@/components/GlobalSearch";
 import Sidebar from "@/components/Sidebar";
+import AiChatbot from "@/components/AiChatbot";
 
 export default function DashboardLayout({
   children,
@@ -121,6 +122,7 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
+      <AiChatbot />
     </div>
   );
 }

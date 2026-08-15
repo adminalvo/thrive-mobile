@@ -6,7 +6,6 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from "@/components/ThemeProvider";
-import AiChatbot from "@/components/AiChatbot";
 
 const nunito = Nunito({
   subsets: ["latin", "cyrillic"], // Add cyrillic for Russian support
@@ -41,7 +40,6 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
           <Toaster position="top-right" />
-          <AiChatbot />
         </NextIntlClientProvider>
       </ThemeProvider>
     </div>

@@ -379,3 +379,46 @@
     z-index: 90;
   }
 }
+
+.coursesWidget {
+  margin: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.coursesHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--aqua-teal, #4ca2b5);
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.coursesList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+}
+
+.courseItem {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+  cursor: default;
+}
+
+.courseItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}

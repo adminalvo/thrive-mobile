@@ -33,8 +33,23 @@ export async function GET() {
         CREATE TABLE IF NOT EXISTS students (
           id UUID PRIMARY KEY,
           profile_id UUID,
+          program VARCHAR(255),
+          monthly_payment NUMERIC(10,2),
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
+      `;
+
+      // Safely alter existing table to add columns if they don't exist
+      await tx`
+        DO $$ 
+        BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='program') THEN
+                ALTER TABLE students ADD COLUMN program VARCHAR(255);
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='monthly_payment') THEN
+                ALTER TABLE students ADD COLUMN monthly_payment NUMERIC(10,2);
+            END IF;
+        END $$;
       `;
 
       // 4. teachers

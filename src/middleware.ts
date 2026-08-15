@@ -6,6 +6,19 @@ import { routing } from './i18n/routing';
 const intlMiddleware = createMiddleware(routing);
 
 export default async function middleware(req: NextRequest) {
+  const isUnlockRoute = req.nextUrl.pathname.includes('/unlock');
+  const isApiRoute = req.nextUrl.pathname.startsWith('/api');
+  
+  // Global Passcode Protection
+  if (!isUnlockRoute && !isApiRoute) {
+    const unlocked = req.cookies.get('site_unlocked')?.value;
+    if (unlocked !== 'true') {
+      const url = req.nextUrl.clone();
+      url.pathname = '/unlock';
+      return NextResponse.redirect(url);
+    }
+  }
+
   const isProtectedRoute = req.nextUrl.pathname.includes('/dashboard');
 
   if (isProtectedRoute) {
@@ -13,9 +26,6 @@ export default async function middleware(req: NextRequest) {
     
     if (!token) {
       const url = req.nextUrl.clone();
-      // Ensure we redirect to the localized login page, e.g., /az/login
-      // Wait, intlMiddleware will handle `/login` -> `/az/login` if we just redirect to `/login`?
-      // Yes, if we redirect to `/login`, the next request will be caught by middleware and rewritten to `/az/login`.
       url.pathname = '/login';
       url.searchParams.set('callbackUrl', req.nextUrl.pathname);
       return NextResponse.redirect(url);

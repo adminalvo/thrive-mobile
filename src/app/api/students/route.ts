@@ -32,7 +32,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { name, phone, email, fin, password } = data;
+    const { name, phone, email, fin, password, program, monthly_payment } = data;
     
     const hashedPassword = password ? await bcrypt.hash(password, 10) : await bcrypt.hash("123456", 10);
     
@@ -80,8 +80,8 @@ export async function POST(req: Request) {
 
       // 3. Create student record
       await tx`
-        INSERT INTO students (id, profile_id)
-        VALUES (${studentId}, ${finalProfileId})
+        INSERT INTO students (id, profile_id, program, monthly_payment)
+        VALUES (${studentId}, ${finalProfileId}, ${program || null}, ${monthly_payment || null})
       `;
       
       // 4. Optionally create user_roles record

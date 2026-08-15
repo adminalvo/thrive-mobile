@@ -12,19 +12,6 @@
   --bg-main: var(--deep-navy);
 }
 
-[data-theme='light'] {
-  --deep-navy: #f8fafc; /* Replace navy background with light gray */
-  --ocean-blue: #005bb5;
-  --aqua-teal: #2f8395;
-  --white: #0f172a; /* Reversing white to dark for text in certain places */
-  --gray-light: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(0, 0, 0, 0.1);
-  --gradient-primary: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  --bg-main: #f1f5f9;
-}
 
 * {
   box-sizing: border-box;

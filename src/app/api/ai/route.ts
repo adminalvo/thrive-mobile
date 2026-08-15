@@ -76,7 +76,9 @@ const tools = [
           phone: { type: "string", description: "Tələbənin telefon nömrəsi" },
           fin: { type: "string", description: "FİN kod" },
           grade: { type: "string", description: "Sinif və ya dərəcə" },
-          parent_phone: { type: "string", description: "Valideyn telefon nömrəsi" }
+          parent_phone: { type: "string", description: "Valideyn telefon nömrəsi" },
+          program: { type: "string", description: "Seçilmiş proqram (məsələn, IELTS, General English)" },
+          monthly_payment: { type: "number", description: "Aylıq ödəniş məbləği (məsələn, 150)" }
         },
         required: ["first_name", "last_name"]
       }
@@ -135,10 +137,49 @@ const tools = [
         required: ["query"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "verify_credentials",
+      description: "Sistem işçisinin email və şifrəsini yoxla və onun yetkisini (rolunu) gətir",
+      parameters: {
+        type: "object",
+        properties: {
+          email: { type: "string", description: "İstifadəçinin email ünvanı" },
+          password: { type: "string", description: "İstifadəçinin şifrəsi" }
+        },
+        required: ["email", "password"]
+      }
+    }
   }
 ];
 
 // Tool Executors
+async function verifyCredentials(args: any) {
+  try {
+    const { email, password } = args;
+    if (!email || !password) return { success: false, error: "Email və şifrə tələb olunur." };
+
+    const users = await sql`SELECT id, role, encrypted_password FROM auth.users WHERE email = ${email} LIMIT 1`;
+    if (users.length === 0) return { success: false, error: "Hesab tapılmadı." };
+
+    const user = users[0];
+    const isMatch = await bcrypt.compare(password, user.encrypted_password);
+    
+    if (!isMatch) return { success: false, error: "Şifrə yanlışdır." };
+
+    return { 
+      success: true, 
+      message: "Giriş təsdiqləndi.", 
+      role: user.role,
+      permissions: user.role === 'admin' ? 'Tam yetki' : 'Məhdud yetki'
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 async function executeSql(args: any) {
   try {
     const result = await sql.unsafe(args.query);
@@ -260,8 +301,8 @@ async function createStudent(args: any) {
       `;
 
       await tx`
-        INSERT INTO students (id, profile_id)
-        VALUES (${studentId}, ${profileId})
+        INSERT INTO students (id, profile_id, program, monthly_payment)
+        VALUES (${studentId}, ${profileId}, ${args.program || null}, ${args.monthly_payment || null})
       `;
 
       await tx`
@@ -377,7 +418,7 @@ export async function POST(req: Request) {
 
     const systemMessage = {
       role: "system",
-      content: "Sən Thrive CRM-in ağıllı və rəsmi köməkçisisən və HacTag şirkəti tərəfindən hazırlanmış dil modelisən. Sən istifadəçinin yazdığı dilə uyğun olaraq Azərbaycan, Rus və ya İngilis dillərində səlis və mehriban cavab verirsən. Söhbət əsnasında istifadəçiyə sistemdə edə biləcəyin xidmətləri (yeni müəllim/tələbə/qrup yaratmaq, maliyyə statistikası, məlumatları çəkmək və s.) təklif et. Sən funksiyalardan istifadə edərək sistemdən məlumat ala, verilənlər bazasında sql sorğuları yaza və məlumat yarada bilərsən. Şəkillər göndərildikdə onların məzmununu analiz edə bilərsən."
+      content: "Sən Thrive CRM-in ağıllı və rəsmi köməkçisi ThrAIve-sən və HacTag şirkəti tərəfindən hazırlanmış dil modelisən. Sən istifadəçinin yazdığı dilə uyğun olaraq Azərbaycan, Rus və ya İngilis dillərində səlis və mehriban cavab verirsən. Söhbət əsnasında istifadəçiyə sistemdə edə biləcəyin xidmətləri (yeni müəllim/tələbə/qrup yaratmaq, maliyyə statistikası, məlumatları çəkmək və s.) təklif et. ƏN VACİB QAYDA: Sistem işçilərinin Aİ-dan sui-istifadə etməməsi üçün sən hər hansı bir əməliyyat (məlumat çəkmək, yaratmaq, SQL icra etmək) etməmişdən əvvəl istifadəçidən hesabının email ünvanını və ardınca şifrəsini soruşmalısan. 'verify_credentials' funksiyası ilə məlumatların doğruluğunu və rolunu (admin, teacher və s.) yoxladıqdan sonra yalnız onun yetkisinə uyğun əməliyyatlara icazə ver. Təsdiq olmadan heç bir SQL və ya baza əməliyyatı etmə. Şəkillər göndərildikdə onların məzmununu analiz edə bilərsən."
     };
 
     const finalMessages = [systemMessage, ...messages];
@@ -438,6 +479,8 @@ export async function POST(req: Request) {
             result = await getStudents();
           } else if (fnName === "execute_sql") {
             result = await executeSql(args);
+          } else if (fnName === "verify_credentials") {
+            result = await verifyCredentials(args);
           }
 
           finalMessages.push({

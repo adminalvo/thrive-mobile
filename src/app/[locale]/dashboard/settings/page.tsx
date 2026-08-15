@@ -246,17 +246,7 @@ export default function SettingsPage() {
           {activeTab === "system" && (
             <div className={styles.panel}>
               <h2>{t("system.title")}</h2>
-              <div className={styles.formGroup}>
-                <label>{t("system.theme")}</label>
-                <select 
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value)}
-                >
-                  <option value="dark">{t("system.themes.dark")}</option>
-                  <option value="light">{t("system.themes.light")}</option>
-                  <option value="system">{t("system.themes.sys")}</option>
-                </select>
-              </div>
+
               <div className={styles.formGroup}>
                 <label>{t("system.lang")}</label>
                 <select 

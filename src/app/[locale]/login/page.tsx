@@ -5,11 +5,9 @@ import styles from "./page.module.css";
 import { LogIn, Mail, Lock, ArrowLeft, LayoutDashboard } from "lucide-react";
 import { Link, useRouter } from "@/i18n/routing";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
 import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
-  const t = useTranslations("Auth");
   const router = useRouter();
   
   const [email, setEmail] = useState("");
@@ -46,7 +44,7 @@ export default function LoginPage() {
       <div className={styles.topBar}>
         <Link href="/" className={styles.backLink}>
           <ArrowLeft size={18} />
-          {t("backHome")}
+          Back to Home
         </Link>
       </div>
 
@@ -60,17 +58,17 @@ export default function LoginPage() {
         <div className={styles.loginHeader}>
           <LayoutDashboard className={styles.logoAccent} size={36} />
           <h1 className={styles.title}>Thrive<span className={styles.logoAccent}>CRM</span></h1>
-          <p className={styles.subtitle}>{t("title")}</p>
+          <p className={styles.subtitle}>Sign in to your account</p>
         </div>
 
         <form onSubmit={handleLogin} className={styles.form}>
           <div className={styles.inputGroup}>
-            <label>{t("emailLabel")}</label>
+            <label>Email Address</label>
             <div className={styles.inputWrapper}>
               <Mail className={styles.inputIcon} size={20} />
               <input 
                 type="email" 
-                placeholder={t("emailPlaceholder")}
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required 
@@ -79,12 +77,12 @@ export default function LoginPage() {
           </div>
 
           <div className={styles.inputGroup}>
-            <label>{t("passwordLabel")}</label>
+            <label>Password</label>
             <div className={styles.inputWrapper}>
               <Lock className={styles.inputIcon} size={20} />
               <input 
                 type="password" 
-                placeholder={t("passwordPlaceholder")}
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required 
@@ -96,12 +94,12 @@ export default function LoginPage() {
 
           <button type="submit" className={styles.submitBtn} disabled={loading}>
             <LogIn size={20} />
-            {loading ? t("loading") : t("loginBtn")}
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
         
         <div className={styles.footer}>
-          <p>{t("forgotPassword")} <span className={styles.link}>{t("contactAdmin")}</span></p>
+          <p>Forgot password? <span className={styles.link}>Contact Administrator</span></p>
         </div>
       </motion.div>
     </main>

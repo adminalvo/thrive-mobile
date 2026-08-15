@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Bot, User, Loader2, Mic, Paperclip, Image as ImageIcon } from "lucide-react";
+import { MessageSquare, X, Send, Bot, User, Loader2, Mic, Paperclip, Image as ImageIcon, Sparkles } from "lucide-react";
 import { usePathname } from "@/i18n/routing";
 
 export interface MessageContentText {
@@ -211,29 +211,42 @@ export default function AiChatbot() {
           width: "60px",
           height: "60px",
           borderRadius: "30px",
-          background: "var(--aqua-teal)",
+          background: "linear-gradient(135deg, var(--aqua-teal), #2b6cb0)",
           color: "white",
           border: "none",
-          boxShadow: "0 10px 25px rgba(76, 162, 181, 0.4)",
+          boxShadow: "0 10px 25px rgba(76, 162, 181, 0.4), 0 0 15px rgba(76, 162, 181, 0.6)",
           cursor: "pointer",
           display: isOpen ? "none" : "flex",
           alignItems: "center",
           justifyContent: "center",
           zIndex: 9999,
-          transition: "transform 0.2s"
+          transition: "transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
         }}
-        onMouseOver={e => e.currentTarget.style.transform = "scale(1.1)"}
-        onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
+        onMouseOver={e => e.currentTarget.style.transform = "scale(1.15) rotate(5deg)"}
+        onMouseOut={e => e.currentTarget.style.transform = "scale(1) rotate(0deg)"}
       >
-        <MessageSquare size={28} />
+        <motion.div
+          animate={{ 
+            scale: [1, 1.2, 1],
+            rotate: [0, 10, -10, 0] 
+          }}
+          transition={{ 
+            duration: 2.5, 
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+        >
+          <Sparkles size={28} />
+        </motion.div>
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            initial={{ opacity: 0, y: 30, scale: 0.8, rotateX: 15 }}
+            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+            exit={{ opacity: 0, y: 30, scale: 0.8, rotateX: 15 }}
+            transition={{ type: "spring", stiffness: 280, damping: 22 }}
             style={{
               position: "fixed",
               bottom: "2rem",
@@ -262,7 +275,7 @@ export default function AiChatbot() {
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <Bot size={20} color="var(--aqua-teal)" />
-                <span style={{ fontWeight: 600, color: "white", fontSize: "0.95rem" }}>Thrive AI Köməkçi</span>
+                <span style={{ fontWeight: 600, color: "white", fontSize: "0.95rem" }}>ThrAIve Assistant</span>
               </div>
               <button 
                 onClick={() => setIsOpen(false)}

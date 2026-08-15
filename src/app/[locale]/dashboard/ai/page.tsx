@@ -229,20 +229,12 @@ export default function AiDashboardPage() {
   return (
     <div className={styles.container}>
       {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerInfo}>
-          <div className={styles.botAvatar}>
-            <Bot size={24} />
-          </div>
-          <div className={styles.titleGroup}>
-            <h1 className={styles.title}>
-              {t("title")}
-              <span className={styles.statusBadge}>
-                <span className={styles.statusDot} />
-                Online
-              </span>
-            </h1>
-            <p className={styles.subtitle}>{t("subtitle")}</p>
+      <header className={styles.header}>
+        <div className={styles.headerLeft}>
+          <Bot size={28} className={styles.headerIcon} />
+          <div>
+            <h1 className={styles.headerTitle}>ThrAIve</h1>
+            <p className={styles.headerSubtitle}>Sizin şəxsi süni intellekt köməkçiniz</p>
           </div>
         </div>
 
@@ -257,7 +249,7 @@ export default function AiDashboardPage() {
             <span>{t("clearChat")}</span>
           </button>
         )}
-      </div>
+      </header>
 
       {/* Chat Area */}
       <div className={styles.chatArea}>

@@ -35,7 +35,7 @@
 body {
   color: var(--text-primary);
   background: var(--deep-navy);
-  font-family: var(--font-inter), sans-serif;
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
   overflow-x: hidden;
   background-image: 
     radial-gradient(circle at 15% 50%, rgba(0, 63, 130, 0.15) 0%, transparent 50%),

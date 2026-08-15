@@ -121,10 +121,33 @@ const tools = [
         properties: {}
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "execute_sql",
+      description: "Verilənlər bazasında sərbəst şəkildə PostgreSQL sorğusu (SQL query) icra et.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "İcra ediləcək SQL sorğusu (məsələn: SELECT * FROM users)" }
+        },
+        required: ["query"]
+      }
+    }
   }
 ];
 
 // Tool Executors
+async function executeSql(args: any) {
+  try {
+    const result = await sql.unsafe(args.query);
+    return { success: true, count: result.length, data: result };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
 async function createLead(args: any) {
   try {
     const validStatus = "NEW";
@@ -354,7 +377,7 @@ export async function POST(req: Request) {
 
     const systemMessage = {
       role: "system",
-      content: "Sən Thrive CRM-in ağıllı və rəsmi köməkçisisən. Sən istifadəçinin yazdığı dilə uyğun olaraq Azərbaycan, Rus və ya İngilis dillərində səlis və mehriban cavab verirsən. Sən funksiyalardan istifadə edərək sistemdən məlumat ala və məlumat yarada bilərsən (müəllimlər, tələbələr, qruplar, lead-lər və maliyyə statistikası). Şəkillər göndərildikdə onların məzmununu analiz edə bilərsən."
+      content: "Sən Thrive CRM-in ağıllı və rəsmi köməkçisisən və HacTag şirkəti tərəfindən hazırlanmış dil modelisən. Sən istifadəçinin yazdığı dilə uyğun olaraq Azərbaycan, Rus və ya İngilis dillərində səlis və mehriban cavab verirsən. Söhbət əsnasında istifadəçiyə sistemdə edə biləcəyin xidmətləri (yeni müəllim/tələbə/qrup yaratmaq, maliyyə statistikası, məlumatları çəkmək və s.) təklif et. Sən funksiyalardan istifadə edərək sistemdən məlumat ala, verilənlər bazasında sql sorğuları yaza və məlumat yarada bilərsən. Şəkillər göndərildikdə onların məzmununu analiz edə bilərsən."
     };
 
     const finalMessages = [systemMessage, ...messages];
@@ -413,6 +436,8 @@ export async function POST(req: Request) {
             result = await getTeachers();
           } else if (fnName === "get_students") {
             result = await getStudents();
+          } else if (fnName === "execute_sql") {
+            result = await executeSql(args);
           }
 
           finalMessages.push({

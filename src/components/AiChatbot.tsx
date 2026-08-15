@@ -89,7 +89,7 @@ export default function AiChatbot() {
       const recognition = new SpeechRecognitionClass();
       recognition.lang = "az-AZ";
       recognition.interimResults = true;
-      recognition.continuous = false;
+      recognition.continuous = true;
 
       recognition.onstart = () => {
         setIsRecording(true);

@@ -80,8 +80,8 @@ export async function POST(req: Request) {
 
       // 3. Create student record
       await tx`
-        INSERT INTO students (id, profile_id, program, monthly_payment)
-        VALUES (${studentId}, ${finalProfileId}, ${program || null}, ${monthly_payment || null})
+        INSERT INTO students (id, profile_id)
+        VALUES (${studentId}, ${finalProfileId})
       `;
       
       // 4. Optionally create user_roles record

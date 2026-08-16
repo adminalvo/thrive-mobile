@@ -55,27 +55,28 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       // ignore
     }
 
-    // 3. Fetch student payments
+    // 3. Fetch student invoices/payments
     let payments: any[] = [];
     try {
       const paymentRows = await sql`
         SELECT 
-          p.id,
-          p.amount,
-          p.status,
-          p.created_at
-        FROM payments p
-        WHERE p.student_id = ${id} OR p.student_id = ${s.user_id} OR p.student_id = ${s.profile_id}
-        ORDER BY p.created_at DESC
+          i.id,
+          i.amount,
+          i.status,
+          i.created_at,
+          COALESCE((SELECT SUM(amount) FROM payments p WHERE p.invoice_id = i.id), 0) as paid_amount
+        FROM invoices i
+        WHERE i.student_id = ${id} OR i.student_id = ${s.user_id} OR i.student_id = ${s.profile_id}
+        ORDER BY i.created_at DESC
       `;
       payments = paymentRows.map((p: any) => {
         const amt = Number(p.amount) || 0;
-        const isPaid = (p.status || "").toUpperCase() === "PAID";
+        const paidAmt = Number(p.paid_amount) || 0;
         return {
           id: p.id,
           amount: amt,
-          paidAmount: isPaid ? amt : 0,
-          status: isPaid ? "PAID" : "PENDING",
+          paidAmount: paidAmt,
+          status: p.status || (paidAmt >= amt && amt > 0 ? "PAID" : "PENDING"),
           date: p.created_at || new Date().toISOString(),
           dueDate: p.created_at || new Date().toISOString()
         };

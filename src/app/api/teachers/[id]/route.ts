@@ -174,7 +174,41 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const { id } = await params;
     if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
-    await sql`DELETE FROM teachers WHERE id = ${id}`;
+    // The frontend might pass user_id or teacher_table_id.
+    // We should find the associated teacher and user_id.
+    const teacherRows = await sql`
+      SELECT t.id as teacher_id, p.user_id, p.id as profile_id
+      FROM teachers t
+      LEFT JOIN user_profiles p ON t.profile_id = p.id
+      WHERE t.id = ${id} OR p.user_id = ${id}
+    `;
+
+    if (teacherRows.length === 0) {
+      return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+    }
+
+    const { teacher_id, user_id, profile_id } = teacherRows[0];
+
+    await sql.begin(async (tx: any) => {
+      // 1. Delete from teachers table
+      await tx`DELETE FROM teachers WHERE id = ${teacher_id}`;
+      
+      // 2. We can also remove their groups assignment
+      await tx`UPDATE groups SET teacher_id = NULL WHERE teacher_id = ${user_id} OR teacher_id = ${teacher_id}`;
+
+      // 3. Delete from user_roles
+      if (user_id) {
+        await tx`DELETE FROM user_roles WHERE user_id = ${user_id} AND role = 'teacher'`;
+        
+        // 4. Optionally delete the user entirely if they are only a teacher
+        // (Assuming if they have no other roles, we can safely delete them from auth.users)
+        const roles = await tx`SELECT role FROM user_roles WHERE user_id = ${user_id}`;
+        if (roles.length === 0) {
+          await tx`DELETE FROM user_profiles WHERE id = ${profile_id}`;
+          await tx`DELETE FROM auth.users WHERE id = ${user_id}`;
+        }
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

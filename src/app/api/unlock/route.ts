@@ -6,7 +6,8 @@ export async function POST(req: Request) {
     const { passcode } = await req.json();
 
     if (passcode === "9FA874") {
-      cookies().set("site_unlocked", "true", {
+      const cookieStore = await cookies();
+      cookieStore.set("site_unlocked", "true", {
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",

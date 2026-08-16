@@ -145,12 +145,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     // 6. Stats calculation
-    const totalPaid = payments
-      .filter(p => p.status === "PAID")
-      .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-    const totalDebt = payments
-      .filter(p => p.status === "PENDING")
-      .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const totalPaid = payments.reduce((sum, p) => sum + (Number(p.paidAmount) || 0), 0);
+    const totalDebt = payments.reduce((sum, p) => sum + Math.max(0, (Number(p.amount) || 0) - (Number(p.paidAmount) || 0)), 0);
 
     const stats = {
       totalPaid,

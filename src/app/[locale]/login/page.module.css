@@ -1,13 +1,12 @@
 .main {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
   background-color: #030712;
-  padding: 2rem;
+  padding: 0;
 }
 
 /* Background Elements */
@@ -42,6 +41,58 @@
   100% { transform: translate(60px, 80px) scale(1.15) rotate(15deg); }
 }
 
+.layoutWrapper {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  z-index: 10;
+}
+
+.leftPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  background: linear-gradient(135deg, rgba(3, 7, 18, 0.8) 0%, rgba(15, 23, 42, 0.2) 100%);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.brandContent {
+  max-width: 500px;
+  text-align: left;
+}
+
+.hugeLogo {
+  color: var(--aqua-teal);
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 0 20px rgba(76, 162, 181, 0.6));
+}
+
+.hugeTitle {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+.brandSubtitle {
+  font-size: 1.2rem;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+.rightPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
 .loginContainer {
   width: 100%;
   max-width: 440px;
@@ -71,14 +122,11 @@
   gap: 0.8rem;
 }
 
-.title {
-  font-size: 2.2rem;
-  font-weight: 800;
+.formTitle {
+  font-size: 2rem;
+  font-weight: 700;
   color: var(--white);
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .logoAccent {
@@ -216,15 +264,23 @@
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
+  .layoutWrapper {
+    flex-direction: column;
+  }
+  
+  .leftPanel {
+    display: none;
+  }
+  
+  .rightPanel {
+    padding: 1.5rem;
+  }
+
   .loginContainer {
     padding: 2.5rem 2rem;
     max-width: 90%;
     border-radius: 20px;
-  }
-  
-  .title {
-    font-size: 1.8rem;
   }
 }
 

@@ -40,60 +40,73 @@ export default function LoginPage() {
       <div className={styles.orb1}></div>
       <div className={styles.orb2}></div>
 
-      {/* Login Container */}
-      <motion.div 
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className={styles.loginContainer}
-      >
-        <div className={styles.loginHeader}>
-          <LayoutDashboard className={styles.logoAccent} size={36} />
-          <h1 className={styles.title}>Thrive<span className={styles.logoAccent}>CRM</span></h1>
-          <p className={styles.subtitle}>Sign in to your account</p>
-        </div>
-
-        <form onSubmit={handleLogin} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label>Email Address</label>
-            <div className={styles.inputWrapper}>
-              <Mail className={styles.inputIcon} size={20} />
-              <input 
-                type="email" 
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required 
-              />
-            </div>
+      <div className={styles.layoutWrapper}>
+        {/* Left Side: Branding */}
+        <motion.div 
+          className={styles.leftPanel}
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
+          <div className={styles.brandContent}>
+            <LayoutDashboard className={styles.hugeLogo} size={64} />
+            <h1 className={styles.hugeTitle}>Thrive<span className={styles.logoAccent}>CRM</span></h1>
+            <p className={styles.brandSubtitle}>Empowering the future of education with intelligent management.</p>
           </div>
+        </motion.div>
 
-          <div className={styles.inputGroup}>
-            <label>Password</label>
-            <div className={styles.inputWrapper}>
-              <Lock className={styles.inputIcon} size={20} />
-              <input 
-                type="password" 
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required 
-              />
+        {/* Right Side: Login Form */}
+        <div className={styles.rightPanel}>
+          <motion.div 
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+            className={styles.loginContainer}
+          >
+            <div className={styles.loginHeader}>
+              <h2 className={styles.formTitle}>Welcome Back</h2>
+              <p className={styles.subtitle}>Sign in to your account</p>
             </div>
-          </div>
-          
-          {error && <div className={styles.errorText}>{error}</div>}
 
-          <button type="submit" className={styles.submitBtn} disabled={loading}>
-            <LogIn size={20} />
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-        
-        <div className={styles.footer}>
-          <p>Forgot password? <span className={styles.link}>Contact Administrator</span></p>
+            <form onSubmit={handleLogin} className={styles.form}>
+              <div className={styles.inputGroup}>
+                <label>Email Address</label>
+                <div className={styles.inputWrapper}>
+                  <Mail className={styles.inputIcon} size={20} />
+                  <input 
+                    type="email" 
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required 
+                  />
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label>Password</label>
+                <div className={styles.inputWrapper}>
+                  <Lock className={styles.inputIcon} size={20} />
+                  <input 
+                    type="password" 
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required 
+                  />
+                </div>
+              </div>
+              
+              {error && <div className={styles.errorText}>{error}</div>}
+
+              <button type="submit" className={styles.submitBtn} disabled={loading}>
+                <LogIn size={20} />
+                {loading ? "Signing in..." : "Sign In"}
+              </button>
+            </form>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
     </main>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import styles from "../students/page.module.css";
+import styles from "./page.module.css";
 import { Plus, Search, Filter, MoreHorizontal, Library, Trash2, Edit, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";

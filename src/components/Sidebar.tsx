@@ -40,13 +40,6 @@ export default function Sidebar({
   const t = useTranslations("Sidebar");
   const locale = useLocale();
 
-  const courses = {
-    az: ["Ümumi İngilis dili", "IELTS Hazırlıq", "SAT Hazırlıq", "Məktəbəqədər"],
-    en: ["General English", "IELTS Preparation", "SAT Preparation", "Preschool"],
-    ru: ["Общий английский", "Подготовка к IELTS", "Подготовка к SAT", "Дошкольное"]
-  };
-  const activeCourses = courses[locale as keyof typeof courses] || courses.en;
-
   const navItems = [
     { name: t("dashboard"), href: `/dashboard`, icon: LayoutDashboard },
     { name: t("leads"), href: `/dashboard/leads`, icon: Target },
@@ -91,20 +84,6 @@ export default function Sidebar({
           );
         })}
       </nav>
-
-      {!isCollapsed && (
-        <div className={styles.coursesWidget}>
-          <div className={styles.coursesHeader}>
-            <GraduationCap size={16} />
-            <span>Thrive Education</span>
-          </div>
-          <ul className={styles.coursesList}>
-            {activeCourses.map((course, idx) => (
-              <li key={idx} className={styles.courseItem}>{course}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <div className={styles.sidebarFooter}>
         <Link href={`/dashboard/settings`}>

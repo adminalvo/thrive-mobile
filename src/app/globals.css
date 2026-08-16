@@ -38,3 +38,10 @@ a {
 button {
   font-family: inherit;
 }
+
+/* Fix for select options having white text on white background in dark theme */
+select option {
+  background-color: var(--background-dark);
+  color: var(--white);
+}
+

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
 import sql from "@/lib/db";
 import bcrypt from "bcrypt";
+import { sendEmail } from "@/lib/email";
 
 const geminiClient = new OpenAI({
   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
@@ -152,6 +153,22 @@ const tools = [
         required: ["email", "password"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "send_email",
+      description: "Müştəriyə, tələbəyə və ya işçiyə email göndər.",
+      parameters: {
+        type: "object",
+        properties: {
+          to: { type: "string", description: "Qəbul edənin email ünvanı" },
+          subject: { type: "string", description: "Məktubun mövzusu" },
+          html: { type: "string", description: "Məktubun mətni (HTML formatında ola bilər)" }
+        },
+        required: ["to", "subject", "html"]
+      }
+    }
   }
 ];
 
@@ -173,7 +190,7 @@ async function verifyCredentials(args: any) {
       success: true, 
       message: "Giriş təsdiqləndi.", 
       role: user.role,
-      permissions: user.role === 'admin' ? 'Tam yetki' : 'Məhdud yetki'
+      permissions: user.role === 'super_admin' ? 'Tam yetki (bütün əməliyyatlar)' : 'Sales, parents, student, teacher, leads and tasks, programs adding yetkiləri'
     };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -481,6 +498,8 @@ export async function POST(req: Request) {
             result = await executeSql(args);
           } else if (fnName === "verify_credentials") {
             result = await verifyCredentials(args);
+          } else if (fnName === "send_email") {
+            result = await sendEmail(args);
           }
 
           finalMessages.push({

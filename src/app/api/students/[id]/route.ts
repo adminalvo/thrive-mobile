@@ -16,6 +16,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       SELECT 
         s.id,
         s.created_at,
+        s.status,
+        s.program,
+        s.monthly_payment,
+        s.duration_months,
+        s.total_price,
         p.id as profile_id,
         p.first_name,
         p.last_name,
@@ -167,8 +172,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         phone: s.phone || "",
         fin: finCode || "Qeyd edilməyib",
         idCard: idCardNumber || "Qeyd edilməyib",
-        status: "ACTIVE",
-        joinDate: s.created_at || new Date().toISOString()
+        status: s.status || "ACTIVE",
+        joinDate: s.created_at || new Date().toISOString(),
+        program: s.program || "",
+        monthlyPayment: s.monthly_payment || 0,
+        durationMonths: s.duration_months || 0,
+        totalPrice: s.total_price || 0
       },
       groups,
       payments,

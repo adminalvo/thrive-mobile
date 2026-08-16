@@ -255,11 +255,11 @@ export default function StudentDetailPage({
           <button 
             className={styles.actionBtnSecondary} 
             onClick={() => setSelectedInvoice({
-              id: payments[0]?.id || "INV-001",
-              amount: payments[0]?.amount || 250,
+              id: payments[0]?.id || student.id || "INV-001",
+              amount: student.totalPrice || payments[0]?.amount || 0,
               status: payments[0]?.status || "PAID",
               createdAt: student.joinDate,
-              student: { name: student.name, phone: student.phone }
+              student: student // Pass the entire student object which contains program, idCard, fin, monthlyPayment, durationMonths
             })}
           >
             <Printer size={16} /> {t("printContract")}

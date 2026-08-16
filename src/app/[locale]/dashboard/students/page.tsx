@@ -14,7 +14,10 @@ export default function StudentsPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [newStudent, setNewStudent] = useState({ name: "", phone: "", email: "", fin: "", password: "" });
+  const [newStudent, setNewStudent] = useState({ 
+    name: "", phone: "", email: "", fin: "", idCard: "", password: "",
+    program: "", monthlyPayment: "", durationMonths: ""
+  });
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -257,6 +260,24 @@ export default function StudentsPage() {
               <div className={styles.inputGroup}>
                 <label>FIN Kod (İstəyə bağlı)</label>
                 <input type="text" value={newStudent.fin} onChange={e => setNewStudent({...newStudent, fin: e.target.value})} placeholder="Məs: 5G8Y2P1" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Şəxsiyyət Vəsiqəsi Seriyası (Ş/V)</label>
+                <input type="text" value={newStudent.idCard} onChange={e => setNewStudent({...newStudent, idCard: e.target.value})} placeholder="Məs: AZE1234567" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Tədris Proqramı</label>
+                <input type="text" value={newStudent.program} onChange={e => setNewStudent({...newStudent, program: e.target.value})} placeholder="Məs: General English" />
+              </div>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <div className={styles.inputGroup} style={{ flex: 1 }}>
+                  <label>Aylıq Ödəniş (₼)</label>
+                  <input type="number" value={newStudent.monthlyPayment} onChange={e => setNewStudent({...newStudent, monthlyPayment: e.target.value})} placeholder="Məs: 150" />
+                </div>
+                <div className={styles.inputGroup} style={{ flex: 1 }}>
+                  <label>Müddət (Ay)</label>
+                  <input type="number" value={newStudent.durationMonths} onChange={e => setNewStudent({...newStudent, durationMonths: e.target.value})} placeholder="Məs: 6" />
+                </div>
               </div>
               <div className={styles.inputGroup}>
                 <label>Şifrə (Giriş üçün)</label>

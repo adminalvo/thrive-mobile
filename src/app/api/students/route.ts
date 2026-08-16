@@ -33,7 +33,11 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { name, phone, email, fin, password, program, monthly_payment } = data;
+    const { name, phone, email, fin, idCard, password, program, monthlyPayment, durationMonths } = data;
+    
+    const parsedPayment = Number(monthlyPayment) || 0;
+    const parsedDuration = Number(durationMonths) || 1;
+    const totalPrice = parsedPayment * parsedDuration;
     
     const hashedPassword = password ? await bcrypt.hash(password, 10) : await bcrypt.hash("123456", 10);
     
@@ -81,9 +85,20 @@ export async function POST(req: Request) {
 
       // 3. Create student record
       await tx`
-        INSERT INTO students (id, profile_id)
-        VALUES (${studentId}, ${finalProfileId})
+        INSERT INTO students (id, profile_id, program, monthly_payment, duration_months, total_price)
+        VALUES (${studentId}, ${finalProfileId}, ${program || null}, ${parsedPayment}, ${parsedDuration}, ${totalPrice})
       `;
+      
+      // If FIN or idCard is provided, try to insert/update a dummy parents record 
+      // or we can just put it directly to parents table.
+      // Assuming a generic parent record for this profile:
+      if (fin || idCard) {
+        await tx`
+          INSERT INTO parents (id, profile_id, user_id, fin_code, id_card_number)
+          VALUES (${crypto.randomUUID()}, ${finalProfileId}, ${finalUserId}, ${fin || null}, ${idCard || null})
+          ON CONFLICT DO NOTHING
+        `;
+      }
       
       // 4. Optionally create user_roles record
       await tx`

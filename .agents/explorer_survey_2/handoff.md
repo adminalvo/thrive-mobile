@@ -1,136 +1,61 @@
-# Handoff Report: Core Management Modules Survey (Tasks, Finance, Schedule)
+# Handoff Report: Dedicated AI Dashboard Page & Sidebar Route Survey
+
+**Agent:** `explorer_survey_2`  
+**Milestone:** Survey  
+**Working Directory:** `c:/Users/mexty/OneDrive/Desktop/thrive-crm/.agents/explorer_survey_2`
+
+---
 
 ## 1. Observation
-
-### 1.1 Tasks Module
-- **File**: `src/app/[locale]/dashboard/tasks/page.tsx:83`
-  - Direct Observation: `<button className={styles.addBtn} onClick={() => toast.success("Yeni tapşırıq yaradılması tezliklə!")}>`
-  - There is no modal or form implemented to create a task.
-- **File**: `src/app/[locale]/dashboard/tasks/page.tsx:122`
-  - Direct Observation: `<button className={styles.moreBtn}><MoreVertical size={16} /></button>`
-  - The more options button has no `onClick` handler, no dropdown menu, and no Edit or Delete task functionality.
-- **File**: `src/app/[locale]/dashboard/tasks/page.tsx:130-137`
-  - Direct Observation:
-    ```tsx
-    <span>{task.assignee?.name || "Təyin edilməyib"}</span>
-    {task.deadline && (<span>{new Date(task.deadline).toLocaleDateString()}</span>)}
-    ```
-    In `kanban_tasks` table, the column name is `due_date`, not `deadline`. `assignee` is stored as a string or null, so `task.assignee?.name` is `undefined`.
-- **File**: `src/app/api/tasks/[id]/route.ts:11-16`
-  - Direct Observation:
-    ```typescript
-    const task = await sql`
-      UPDATE kanban_tasks
-      SET title = ${body.title}, description = ${body.description || null}, status = ${body.status}, priority = ${body.priority}, due_date = ${body.due_date || null}, assignee = ${body.assignee || null}
-      WHERE id = ${id}
-      RETURNING *
-    `;
-    ```
-    Frontend `handleDrop` sends `{ status: newStatus }` without `title` or `priority`, which causes `body.title` to be `undefined` and can fail or corrupt data on status change.
-
-### 1.2 Finance Module
-- **File**: `src/app/api/finance/route.ts:15-21`
-  - Direct Observation:
-    ```typescript
-    const formatted = payments.map(p => ({
-      id: p.id,
-      studentName: p.first_name ? `${p.first_name} ${p.last_name}` : "N/A",
-      amount: p.amount,
-      status: p.status,
-      date: p.created_at
-    }));
-    ```
-- **File**: `src/app/[locale]/dashboard/finance/page.tsx:38-42, 64, 108, 121, 133`
-  - Direct Observation:
-    ```tsx
-    // calculateTotalDebt:
-    invoices.filter(i => i.status !== "PAID").reduce((total, i) => total + (i.amount - i.paidAmount), 0)
-    // Monthly income:
-    invoices.reduce((t, i) => t + i.paidAmount, 0)
-    // Student name:
-    {inv.student.user?.name}
-    // Due date:
-    {new Date(inv.dueDate).toLocaleDateString()}
-    ```
-    Because `GET /api/finance` returns `{ id, studentName, amount, status, date }` instead of `{ id, student, amount, paidAmount, status, dueDate }`, the stats evaluate to `NaN ₼`, student names are blank, and dates evaluate to `Invalid Date`.
-- **File**: `src/app/[locale]/dashboard/finance/page.tsx:51-53`
-  - Direct Observation: `<button className={styles.addBtn}><CreditCard size={18} /> {t("newInvoice")}</button>` has no `onClick` handler. There is no invoice creation modal or payment processing modal.
-- **File**: `src/app/api/finance/route.ts`
-  - Direct Observation: Only `GET` is exported. `POST`, `PUT`, `PATCH`, and `DELETE` endpoints do not exist.
-
-### 1.3 Schedule Module
-- **File**: `src/app/api/schedules/route.ts:13-23`
-  - Direct Observation:
-    ```typescript
-    const formatted = groups.map(g => ({
-      id: g.id,
-      name: g.name,
-      language: "AZ",
-      maxCapacity: 15,
-      _count: { students: 0 },
-      program: { name: g.program_name || "Proqram seçilməyib" },
-      schedules: []
-    }));
-    ```
-    The endpoint hardcodes `schedules: []` and does not query any schedule table.
-- **File**: `src/app/[locale]/dashboard/schedule/page.tsx:50-52, 103-113`
-  - Direct Observation:
-    ```tsx
-    <button className={styles.addBtn} onClick={() => setShowModal(true)}>
-      <Plus size={18} /> Yeni Qrup
-    </button>
-    ...
-    <h2>Yeni Qrup (Tezliklə)</h2>
-    <p>Proqramların (Program) və Cədvəllərin formalaşdırılması üzərində işlənir.</p>
-    ```
-    The modal is a static placeholder without any form inputs to add weekly schedules or assign schedules to groups.
+- **Sidebar Implementation Location**:
+  - `src/app/[locale]/dashboard/layout.tsx:44-54`: Navigation items are declared inline via `navItems` array consisting of 9 items (`dashboard`, `leads`, `students`, `groups`, `parents`, `teachers`, `schedule`, `finance`, `tasks`).
+  - `src/app/[locale]/dashboard/layout.tsx:88-100`: Navigation mapped into `<Link key={item.name} href={item.href} onClick={() => setSidebarOpen(false)}>`.
+  - `src/app/[locale]/dashboard/layout.tsx:102-118`: Settings (`/dashboard/settings`) and Logout (`signOut`) reside in `.sidebarFooter`.
+  - `src/components/Sidebar.tsx` does not currently exist as a separate file; all sidebar UI and logic are integrated within `layout.tsx`.
+- **Active State & Navigation Mechanics**:
+  - `src/app/[locale]/dashboard/layout.tsx:23`: `import { Link, usePathname, useRouter } from "@/i18n/routing";`
+  - `src/app/[locale]/dashboard/layout.tsx:90`: `const isActive = pathname === item.href;`
+  - Active styling uses CSS module classes `styles.navActive` and `styles.iconActive` (`layout.module.css:79-83, 94-97`).
+- **Translations (`next-intl`)**:
+  - `messages/az.json:25-37`, `messages/en.json:25-37`, `messages/ru.json:25-37`: `Sidebar` namespace has identical keys across all 3 files. `aiAssistant` key does not yet exist.
+- **Icons (`lucide-react`)**:
+  - `Bot` icon from `lucide-react` is used in `src/components/AiChatbot.tsx:5, 112, 157, 180` and is available for sidebar and dashboard page consumption.
+- **Layout & Design Tokens**:
+  - `src/app/globals.css:1-13`: Design tokens include `--glass-bg`, `--glass-border`, `--aqua-teal`, `--deep-navy`, `--ocean-blue`, `--text-primary`, `--text-secondary`.
+  - `src/app/[locale]/dashboard/layout.module.css:1-382`: Desktop sidebar is 260px with collapsible 80px mode; tablet/mobile (<=1024px) utilizes an off-canvas drawer (`.sidebarOpen`) with `z-index: 100` and backdrop overlay (`.overlay`) with `z-index: 90`.
 
 ---
 
 ## 2. Logic Chain
-
-1. **Tasks Failure Chain**:
-   - Observation 1.1 shows clicking the "+ New Task" button only triggers a toast, and card action menu has no handlers.
-   - Observation 1.1 shows `PUT /api/tasks/[id]` requires all fields (`title`, `priority`), but `handleDrop` only sends `{ status }`.
-   - Therefore, task creation is impossible from the UI, task editing/deletion is impossible from the UI, and drag-and-drop status update fails or destroys required fields due to missing `COALESCE` or partial update support.
-
-2. **Finance Failure Chain**:
-   - Observation 1.2 shows the API returns properties `studentName`, `amount`, `status`, `date`.
-   - Observation 1.2 shows the UI attempts arithmetic and access on `i.paidAmount`, `i.student.user.name`, and `i.dueDate`.
-   - Arithmetic on `undefined` produces `NaN`, causing stats cards on the finance dashboard to display `NaN ₼`.
-   - Observation 1.2 shows the "+ New Invoice" button has no click handler and the API lacks `POST` / payment processing endpoints.
-   - Therefore, the Finance module currently renders broken stats and has zero create or payment processing capability.
-
-3. **Schedule Failure Chain**:
-   - Observation 1.3 shows `GET /api/schedules` returns an empty array for `schedules: []`.
-   - Observation 1.3 shows the "+ Yeni Qrup" button opens a static placeholder modal saying "Tezliklə".
-   - There is no API route (`POST /api/schedules`) to persist schedule entries (`day_of_week`, `start_time`, `end_time`, `room`, `group_id`).
-   - Therefore, groups can never display schedules, and users have no UI or API to add schedules to groups.
+1. **Sidebar Navigation Placement**:
+   - `ORIGINAL_REQUEST.md` specifies adding a new menu item for "AI Köməkçi" (AI Assistant) below the existing menu items with the `Bot` icon and route `/dashboard/ai`.
+   - By appending `{ name: t("aiAssistant"), href: "/dashboard/ai", icon: Bot }` to the end of `navItems` in `layout.tsx` (and exporting/creating `src/components/Sidebar.tsx` if standalone modularity is required), the AI assistant will be rendered immediately below `tasks` (`/dashboard/tasks`) in the navigation menu.
+2. **Translation Synchronization**:
+   - Because `next-intl` requires key parity across all locales (`az.json`, `en.json`, `ru.json`), adding `"aiAssistant"` to `"Sidebar"` namespace across all 3 files ensures zero hydration or missing key errors.
+3. **Dedicated Page Integration (`/dashboard/ai`)**:
+   - Page will live at `src/app/[locale]/dashboard/ai/page.tsx` with styles in `src/app/[locale]/dashboard/ai/page.module.css`.
+   - It will render inside `DashboardLayout`'s `<main className={styles.pageContent}>`, providing consistent header, language switching, search, and responsive drawer behavior.
 
 ---
 
 ## 3. Caveats
-- Database connection relies on Supabase PostgreSQL via `src/lib/db.ts` (`postgres.js`).
-- If `group_schedules` or `schedules` table does not already have existing rows in PostgreSQL, the table definition should be created or ensured (`CREATE TABLE IF NOT EXISTS group_schedules (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), group_id UUID REFERENCES groups(id) ON DELETE CASCADE, day_of_week INT, start_time TEXT, end_time TEXT, room TEXT, teacher_id UUID, created_at TIMESTAMPTZ DEFAULT NOW())`).
-- Status casing convention: Ensure consistent upper-case status values (`'PAID'`, `'PENDING'`, `'PARTIAL'` vs `'TODO'`, `'IN_PROGRESS'`, `'REVIEW'`, `'DONE'`).
+- `ORIGINAL_REQUEST.md` specifically mentions updating `src/components/Sidebar.tsx`. Since the existing sidebar is embedded in `layout.tsx`, both creating a dedicated `src/components/Sidebar.tsx` (or refactoring/exporting) and updating `src/app/[locale]/dashboard/layout.tsx` should be done so that neither convention nor existing test suites are broken.
+- SpeechRecognition browser support: Native `window.SpeechRecognition` / `window.webkitSpeechRecognition` is supported in Chromium browsers and Safari, but fallback error handling should be in place if unavailable or permission is denied.
 
 ---
 
 ## 4. Conclusion
-Requirement 2 requires full-stack implementation across three modules:
-1. **Tasks**: Implement Task creation modal, edit/delete modal, fix `task.due_date` & `task.assignee` rendering, and update `PUT/PATCH /api/tasks/[id]` with partial field support (`COALESCE`).
-2. **Finance**: Align `GET /api/finance` response payload (`paidAmount`, `student`, `dueDate`), implement `CreateInvoiceModal`, implement `ProcessPaymentModal`, and add `POST /api/finance` & `PATCH /api/finance/[id]` (or `POST /api/payments`).
-3. **Schedule**: Replace the hardcoded `schedules: []` in `GET /api/schedules` with a database query joining `group_schedules`, implement `AddScheduleModal` on the Schedule page, and implement `POST /api/schedules` & `DELETE /api/schedules/[id]`.
+The path for adding `/dashboard/ai` and the AI sidebar item is straightforward and fully compatible with the existing architecture:
+1. Update `src/app/[locale]/dashboard/layout.tsx` (and provide `src/components/Sidebar.tsx`) to include the `Bot` icon and `/dashboard/ai` route.
+2. Add `"aiAssistant"` key to `"Sidebar"` in `messages/az.json`, `messages/en.json`, `messages/ru.json`.
+3. Create `src/app/[locale]/dashboard/ai/page.tsx` and `page.module.css` leveraging glassmorphic design tokens (`--glass-bg`, `--aqua-teal`), full-height responsive layout, voice/image input, and `/api/ai` communication.
 
 ---
 
 ## 5. Verification Method
-1. **TypeScript & Build Check**:
-   - Run `npx tsc --noEmit`
-   - Run `npm run build`
-2. **API Verification**:
-   - `POST /api/tasks` with `{ title: "Test Task", status: "TODO", priority: "HIGH" }` -> verify 200 OK and valid JSON returned.
-   - `PUT /api/tasks/<id>` with `{ status: "DONE" }` -> verify status is updated without clearing title or priority.
-   - `GET /api/finance` -> verify response includes `paidAmount`, `dueDate`, and `student` object, and finance page stats do not show `NaN`.
-   - `POST /api/finance` (or `/api/invoices`) -> verify invoice creation.
-   - `GET /api/schedules` & `POST /api/schedules` with `{ group_id, day_of_week: 1, start_time: "10:00", end_time: "11:30", room: "101" }` -> verify schedule is saved and returned under the group's `schedules` array.
+1. Inspect `src/app/[locale]/dashboard/layout.tsx` and `src/components/Sidebar.tsx` for `Bot` import and `/dashboard/ai` entry.
+2. Inspect `messages/az.json`, `messages/en.json`, and `messages/ru.json` for `"aiAssistant"` under `"Sidebar"`.
+3. Run project build / typecheck:
+   `npm run build` or `npx tsc --noEmit`
+4. Run e2e test suite:
+   `npx tsx tests/e2e/run_all.ts`

@@ -1,17 +1,16 @@
-## 2026-08-14T13:27:39Z
-You are Survey Explorer 1 (Dynamic Profiles & Relational Data).
-Working directory: c:\Users\mexty\OneDrive\Desktop\thrive-crm\.agents\explorer_survey_1
-Original Request: c:\Users\mexty\OneDrive\Desktop\thrive-crm\.agents\ORIGINAL_REQUEST.md
+## 2026-08-15T21:38:23Z
 
-Mission:
-Investigate Requirement 1: Dynamic Profile Pages (`/dashboard/students/[id]`, `/dashboard/teachers/[id]`, `/dashboard/groups/[id]`) and their relational backend data layer (`postgres.js`).
+You are an Explorer for the AI Dashboard Page implementation project.
+Your working directory is: `c:/Users/mexty/OneDrive/Desktop/thrive-crm/.agents/explorer_survey_1`
+You MUST read `c:/Users/mexty/OneDrive/Desktop/thrive-crm/.agents/ORIGINAL_REQUEST.md` before starting work.
 
-Tasks:
-1. Read `c:\Users\mexty\OneDrive\Desktop\thrive-crm\.agents\ORIGINAL_REQUEST.md`.
-2. Inspect directory structure and routing under `src/app/` (or equivalent) for student, teacher, and group pages. Note how `next-intl` localization is set up (e.g., `[locale]` prefix, params handling in Next.js 14/15/latest).
-3. Investigate the database setup: database connection (`postgres.js`), table schemas/migrations/queries, and how relations are mapped (e.g. students -> payments, attendance, groups; teachers -> groups, schedules, subjects; groups -> students, teachers, schedules, attendance).
-4. Investigate existing API routes or patterns (e.g. `GET /api/students/[id]`, `GET /api/teachers/[id]`, `GET /api/groups/[id]`) and determine exact SQL queries needed to fetch complete relational data.
-5. Identify all UI components, tabs, cards, tables needed for each profile page to display complete relationships.
-6. Check for potential next-intl issues, params unwrapping (async params in Next.js 15), and missing translation keys.
-7. Write your detailed technical findings and architecture to `c:\Users\mexty\OneDrive\Desktop\thrive-crm\.agents\explorer_survey_1\analysis.md` and a summary in `c:\Users\mexty\OneDrive\Desktop\thrive-crm\.agents\explorer_survey_1\handoff.md`.
-8. When complete, send a message back to orchestrator.
+Your task:
+1. Examine `src/components/AiChatbot.tsx` in detail.
+2. Document all its features, state management, event handlers:
+   - Voice input implementation (SpeechRecognition / webkitSpeechRecognition, recording state, mic pulsate / red indicator).
+   - Image input handling (file reader, Base64 conversion, preview with 'X', OpenAI Vision payload format `{ type: "text", text }, { type: "image_url", image_url: { url } }`, clearing attachment state, rendering sent images).
+   - Text input, sending to `/api/ai`, handling streaming or standard JSON response, error handling.
+   - Message structure / types, message history state, clear chat functionality, quick prompts or initial welcome state.
+   - Auto-scroll / scroll-to-bottom behavior.
+3. Write a comprehensive report to `c:/Users/mexty/OneDrive/Desktop/thrive-crm/.agents/explorer_survey_1/survey_report.md` and a handoff report at `c:/Users/mexty/OneDrive/Desktop/thrive-crm/.agents/explorer_survey_1/handoff.md`.
+4. Send a message to your parent when done referencing your reports.

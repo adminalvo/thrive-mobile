@@ -14,3 +14,25 @@ export async function GET() {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { name } = body;
+
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+
+    const [newProgram] = await sql`
+      INSERT INTO programs (name)
+      VALUES (${name})
+      RETURNING *
+    `;
+
+    return NextResponse.json(newProgram, { status: 201 });
+  } catch (error) {
+    console.error("Programs API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

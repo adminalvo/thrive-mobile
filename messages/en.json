@@ -35,7 +35,8 @@
     "ai": "AI Assistant",
     "aiAssistant": "AI Assistant",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "programs": "Programs"
   },
   "AiPage": {
     "title": "Thrive AI Assistant",
@@ -317,23 +318,15 @@
     "backHome": "Back to Home"
   },
   "Programs": {
-    "TOEFL": "TOEFL",
-    "IB": "IB (International Baccalaureate)",
-    "SAT": "SAT",
-    "IELTS": "IELTS",
-    "Duolingo": "Duolingo English Test",
-    "CSCA": "CSCA",
-    "AP_Microeconomics": "AP Microeconomics",
-    "AP_Calculus": "AP Calculus",
-    "AP_Business": "AP Business",
-    "AP_Macroeconomics": "AP Macroeconomics",
-    "AP_Statistics": "AP Statistics",
-    "Private_School": "Private School Tutoring",
-    "General_English": "General English",
-    "DIM_Math": "DIM Mathematics",
-    "DIM_English": "DIM English",
-    "DIM_Russian": "DIM Russian",
-    "DIM_Azerbaijani": "DIM Azerbaijani"
+    "title": "Programs",
+    "subtitle": "All educational programs and courses in the system",
+    "emptyState": "No programs found",
+    "addProgram": "Add New Program",
+    "programName": "Program Name",
+    "programNamePlaceholder": "E.g.: SAT Preparation",
+    "deleteConfirm": "Are you sure you want to delete this program?",
+    "successAdd": "Program added successfully!",
+    "successDelete": "Program deleted"
   },
   "Profile": {
     "backToStudents": "Back to Students",

@@ -35,7 +35,8 @@
     "ai": "AI Помощник",
     "aiAssistant": "AI Помощник",
     "settings": "Настройки",
-    "logout": "Выйти"
+    "logout": "Выйти",
+    "programs": "Программы"
   },
   "AiPage": {
     "title": "Thrive AI Помощник",
@@ -317,23 +318,15 @@
     "backHome": "Вернуться на Главную"
   },
   "Programs": {
-    "TOEFL": "TOEFL",
-    "IB": "IB (Международный бакалавриат)",
-    "SAT": "SAT",
-    "IELTS": "IELTS",
-    "Duolingo": "Duolingo English Test",
-    "CSCA": "CSCA",
-    "AP_Microeconomics": "AP Микроэкономика",
-    "AP_Calculus": "AP Высшая математика (Calculus)",
-    "AP_Business": "AP Бизнес",
-    "AP_Macroeconomics": "AP Макроэкономика",
-    "AP_Statistics": "AP Статистика",
-    "Private_School": "Подготовка для частных школ",
-    "General_English": "Общий Английский",
-    "DIM_Math": "DİM Математика",
-    "DIM_English": "DİM Английский язык",
-    "DIM_Russian": "DİM Русский язык",
-    "DIM_Azerbaijani": "DİM Азербайджанский язык"
+    "title": "Программы",
+    "subtitle": "Все учебные программы и курсы в системе",
+    "emptyState": "Программы не найдены",
+    "addProgram": "Добавить новую программу",
+    "programName": "Название программы",
+    "programNamePlaceholder": "Напр.: Подготовка к SAT",
+    "deleteConfirm": "Вы уверены, что хотите удалить эту программу?",
+    "successAdd": "Программа успешно добавлена!",
+    "successDelete": "Программа удалена"
   },
   "Profile": {
     "backToStudents": "Назад к студентам",

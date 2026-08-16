@@ -15,7 +15,8 @@ import {
   Component,
   UserPlus,
   Bot,
-  GraduationCap
+  GraduationCap,
+  Library
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
@@ -50,6 +51,7 @@ export default function Sidebar({
     { name: t("dashboard"), href: `/dashboard`, icon: LayoutDashboard },
     { name: t("leads"), href: `/dashboard/leads`, icon: Target },
     { name: t("students"), href: "/dashboard/students", icon: Users },
+    { name: t("programs"), href: "/dashboard/programs", icon: Library },
     { name: t("groups"), href: "/dashboard/groups", icon: Component },
     { name: t("parents"), href: "/dashboard/parents", icon: UserPlus },
     { name: t("teachers"), href: "/dashboard/teachers", icon: BookOpen },

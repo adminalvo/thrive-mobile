@@ -35,7 +35,8 @@
     "ai": "AI Köməkçi",
     "aiAssistant": "AI Köməkçi",
     "settings": "Tənzimləmələr",
-    "logout": "Çıxış"
+    "logout": "Çıxış",
+    "programs": "Kurslar"
   },
   "AiPage": {
     "title": "Thrive AI Köməkçi",
@@ -196,6 +197,7 @@
     "monthlyIncome": "Aylıq Gəlir",
     "totalDebt": "Ümumi Borc (Gözləyən)",
     "search": "Tələbə adı və ya faktura nömrəsi ilə axtar...",
+    "desc3": "Hesabatlarınızı ixrac etmək üçün 'İxrac' bölməsindən istifadə edin.",
     "table": {
       "invoice": "Faktura",
       "student": "Tələbə",
@@ -317,23 +319,15 @@
     "backHome": "Ana Səhifəyə Qayıt"
   },
   "Programs": {
-    "TOEFL": "TOEFL",
-    "IB": "IB (Beynəlxalq Bakalavriat)",
-    "SAT": "SAT",
-    "IELTS": "IELTS",
-    "Duolingo": "Duolingo İngilis dili Testi",
-    "CSCA": "CSCA",
-    "AP_Microeconomics": "AP Mikroiqtisadiyyat",
-    "AP_Calculus": "AP Hesablama (Calculus)",
-    "AP_Business": "AP Biznes",
-    "AP_Macroeconomics": "AP Makroiqtisadiyyat",
-    "AP_Statistics": "AP Statistika",
-    "Private_School": "Özəl Məktəb Hazırlığı",
-    "General_English": "Ümumi İngilis dili",
-    "DIM_Math": "DİM Riyaziyyat",
-    "DIM_English": "İngilis dili DİM",
-    "DIM_Russian": "Rus dili DİM",
-    "DIM_Azerbaijani": "Azərbaycan dili DİM"
+    "title": "Kurslar",
+    "subtitle": "Sistemdəki bütün tədris proqramları və kurslar",
+    "emptyState": "Heç bir kurs tapılmadı",
+    "addProgram": "Yeni Kurs Əlavə Et",
+    "programName": "Kursun adı",
+    "programNamePlaceholder": "Məs: SAT Hazırlıq",
+    "deleteConfirm": "Bu kursu silmək istədiyinizə əminsiniz?",
+    "successAdd": "Kurs uğurla əlavə edildi!",
+    "successDelete": "Kurs silindi"
   },
   "Profile": {
     "backToStudents": "Tələbələrə Qayıt",

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import bcrypt from "bcrypt";
+import { logAction } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -92,6 +93,7 @@ export async function POST(req: Request) {
       `;
     });
 
+    await logAction("CREATE_STUDENT", { studentId, name: `${firstName} ${lastName}`.trim(), email });
     return NextResponse.json({ success: true, id: studentId });
 
   } catch (error: any) {

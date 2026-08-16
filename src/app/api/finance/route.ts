@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { logAction } from "@/lib/logger";
 
 
 export async function GET() {
@@ -109,6 +110,7 @@ export async function POST(req: Request) {
       }
     });
 
+    await logAction("CREATE_INVOICE", { invoiceId, studentId: targetUserId, amount, paid_amount });
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     console.error("Finance POST error:", error);

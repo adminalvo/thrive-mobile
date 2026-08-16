@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { logAction } from "@/lib/logger";
 
 
 export async function GET() {
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
       RETURNING *
     `;
 
+    await logAction("CREATE_TASK", { taskId: task[0].id, title: task[0].title, status: task[0].status });
     return NextResponse.json(task[0], { status: 201 });
   } catch (error) {
     console.error("Tasks POST error:", error);

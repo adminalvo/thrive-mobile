@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { logAction } from "@/lib/logger";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -193,6 +194,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
     await sql`DELETE FROM students WHERE id = ${id}`;
 
+    await logAction("DELETE_STUDENT", { studentId: id });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete Student Error:", error);
@@ -236,6 +238,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       }
     }
 
+    await logAction("UPDATE_STUDENT", { studentId: id, updates: data });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Update Student Error:", error);

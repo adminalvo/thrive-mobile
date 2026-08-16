@@ -6,6 +6,7 @@ import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2 } from "luci
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
+import { supabase } from "@/lib/supabaseClient";
 
 interface KanbanTask {
   id: string;
@@ -76,6 +77,27 @@ export default function TasksPage() {
 
   useEffect(() => {
     fetchTasks();
+  }, []);
+
+  useEffect(() => {
+    // Supabase Realtime subscription
+    const channel = supabase
+      .channel('kanban-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'kanban_tasks' },
+        (payload) => {
+          console.log('Realtime update:', payload);
+          // Refetch everything or update state optimistically
+          // The safest and easiest to keep order_index in sync is to refetch
+          fetchTasks();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Close card options dropdown when clicking outside

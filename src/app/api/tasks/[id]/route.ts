@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { logAction } from "@/lib/logger";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -39,6 +40,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       RETURNING *
     `;
 
+    await logAction("UPDATE_TASK", { taskId: id, title, status });
     return NextResponse.json(updated[0]);
   } catch (error) {
     console.error("Task PUT error:", error);
@@ -62,6 +64,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
+    await logAction("DELETE_TASK", { taskId: id });
     return NextResponse.json({ success: true, id });
   } catch (error) {
     console.error("Task DELETE error:", error);

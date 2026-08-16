@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import styles from "./page.module.css";
-import { LogIn, Mail, Lock, ArrowLeft, LayoutDashboard } from "lucide-react";
-import { Link, useRouter } from "@/i18n/routing";
+import { LogIn, Mail, Lock, LayoutDashboard } from "lucide-react";
+import { useRouter } from "@/i18n/routing";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 
@@ -39,14 +39,6 @@ export default function LoginPage() {
       {/* Background Orbs */}
       <div className={styles.orb1}></div>
       <div className={styles.orb2}></div>
-
-      {/* Back Button */}
-      <div className={styles.topBar}>
-        <Link href="/" className={styles.backLink}>
-          <ArrowLeft size={18} />
-          Back to Home
-        </Link>
-      </div>
 
       {/* Login Container */}
       <motion.div 

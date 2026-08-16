@@ -326,7 +326,21 @@
     "programNamePlaceholder": "E.g.: SAT Preparation",
     "deleteConfirm": "Are you sure you want to delete this program?",
     "successAdd": "Program added successfully!",
-    "successDelete": "Program deleted"
+    "successDelete": "Program deleted",
+    "search": "Search course...",
+    "filter": "Filter",
+    "add": "Add New",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "actions": "Actions",
+    "name": "Name",
+    "successEdit": "Program successfully updated!",
+    "error": "An error occurred",
+    "editProgram": "Edit Program"
   },
   "Profile": {
     "backToStudents": "Back to Students",

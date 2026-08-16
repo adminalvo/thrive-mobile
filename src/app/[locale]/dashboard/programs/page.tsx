@@ -8,7 +8,6 @@ import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 
 export default function ProgramsPage() {
-  const c = useTranslations("Common");
   const tp = useTranslations("Programs");
   
   const [programs, setPrograms] = useState<any[]>([]);
@@ -16,7 +15,8 @@ export default function ProgramsPage() {
   const [search, setSearch] = useState("");
   
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ name: "" });
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({ id: "", name: "" });
   const [submitting, setSubmitting] = useState(false);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -39,25 +39,42 @@ export default function ProgramsPage() {
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const openAddModal = () => {
+    setEditMode(false);
+    setFormData({ id: "", name: "" });
+    setShowModal(true);
+  };
+
+  const openEditModal = (prog: any) => {
+    setEditMode(true);
+    setFormData({ id: prog.id, name: prog.name });
+    setShowModal(true);
+    setActiveMenu(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch("/api/programs", {
-        method: "POST",
+      const url = editMode ? `/api/programs/${formData.id}` : "/api/programs";
+      const method = editMode ? "PUT" : "POST";
+      
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ name: formData.name })
       });
+      
       if (res.ok) {
-        toast.success(tp("successAdd"));
+        toast.success(editMode ? tp("successEdit") : tp("successAdd"));
         setShowModal(false);
-        setFormData({ name: "" });
+        setFormData({ id: "", name: "" });
         fetchPrograms();
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tp("error"));
       }
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error(tp("error"));
     } finally {
       setSubmitting(false);
     }
@@ -66,16 +83,15 @@ export default function ProgramsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm(tp("deleteConfirm"))) return;
     try {
-      // NOTE: the DELETE endpoint for /api/programs/[id] might need to be created if not exists
       const res = await fetch(`/api/programs/${id}`, { method: "DELETE" });
       if (res.ok) {
         toast.success(tp("successDelete"));
         fetchPrograms();
       } else {
-        toast.error("Silinmədi");
+        toast.error(tp("error"));
       }
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error(tp("error"));
     }
     setActiveMenu(null);
   };
@@ -95,9 +111,9 @@ export default function ProgramsPage() {
           </div>
         </div>
         
-        <button className={styles.addBtn} onClick={() => setShowModal(true)}>
+        <button className={styles.addBtn} onClick={openAddModal}>
           <Plus size={18} />
-          {c("add")}
+          {tp("add")}
         </button>
       </header>
 
@@ -106,14 +122,14 @@ export default function ProgramsPage() {
           <Search size={18} className={styles.searchIcon} />
           <input 
             type="text" 
-            placeholder={c("search")} 
+            placeholder={tp("search")} 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <button className={styles.filterBtn}>
           <Filter size={18} />
-          {c("filter")}
+          {tp("filter")}
         </button>
       </div>
 
@@ -121,14 +137,14 @@ export default function ProgramsPage() {
         {loading ? (
           <div className={styles.loadingWrapper}>
             <div className={styles.spinner}></div>
-            <p>{c("loading")}</p>
+            <p>{tp("loading")}</p>
           </div>
         ) : (
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Adı</th>
-                <th style={{ width: "100px", textAlign: "right" }}>Əməliyyatlar</th>
+                <th>{tp("name")}</th>
+                <th style={{ width: "150px", textAlign: "right" }}>{tp("actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -142,7 +158,7 @@ export default function ProgramsPage() {
                   >
                     <td>
                       <div className={styles.userCell}>
-                        <div className={styles.avatar} style={{ background: "rgba(16, 185, 129, 0.1)", color: "#10b981" }}>
+                        <div className={styles.avatar} style={{ background: "rgba(76, 162, 181, 0.1)", color: "var(--aqua-teal)" }}>
                           <Library size={16} />
                         </div>
                         <div>
@@ -166,11 +182,11 @@ export default function ProgramsPage() {
                             exit={{ opacity: 0, scale: 0.95 }}
                             className={styles.dropdownMenu}
                           >
-                            <button className={styles.dropdownItem} onClick={() => alert("Redaktə (TBD)")}>
-                              <Edit size={16} /> Redaktə
+                            <button className={styles.dropdownItem} onClick={() => openEditModal(prog)}>
+                              <Edit size={16} /> {tp("edit")}
                             </button>
                             <button className={`${styles.dropdownItem} ${styles.dangerItem}`} onClick={() => handleDelete(prog.id)}>
-                              <Trash2 size={16} /> Sil
+                              <Trash2 size={16} /> {tp("delete")}
                             </button>
                           </motion.div>
                         )}
@@ -191,7 +207,7 @@ export default function ProgramsPage() {
         )}
       </div>
 
-      {/* Add Modal */}
+      {/* Add / Edit Modal */}
       <AnimatePresence>
         {showModal && (
           <div className={styles.modalOverlay}>
@@ -202,13 +218,13 @@ export default function ProgramsPage() {
               className={styles.modal}
             >
               <div className={styles.modalHeader}>
-                <h2>{tp("addProgram")}</h2>
+                <h2>{editMode ? tp("editProgram") : tp("addProgram")}</h2>
                 <button className={styles.closeModal} onClick={() => setShowModal(false)}>
                   <X size={20} />
                 </button>
               </div>
               
-              <form onSubmit={handleCreate} className={styles.modalForm}>
+              <form onSubmit={handleSubmit} className={styles.modalForm}>
                 <div className={styles.formGroup}>
                   <label>{tp("programName")}</label>
                   <input 
@@ -222,10 +238,10 @@ export default function ProgramsPage() {
                 
                 <div className={styles.modalActions}>
                   <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>
-                    {c("cancel")}
+                    {tp("cancel")}
                   </button>
                   <button type="submit" className={styles.saveBtn} disabled={submitting}>
-                    {submitting ? c("saving") : c("save")}
+                    {submitting ? tp("saving") : tp("save")}
                   </button>
                 </div>
               </form>

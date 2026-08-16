@@ -327,7 +327,21 @@
     "programNamePlaceholder": "Məs: SAT Hazırlıq",
     "deleteConfirm": "Bu kursu silmək istədiyinizə əminsiniz?",
     "successAdd": "Kurs uğurla əlavə edildi!",
-    "successDelete": "Kurs silindi"
+    "successDelete": "Kurs silindi",
+    "search": "Kurs axtar...",
+    "filter": "Filtr",
+    "add": "Yeni Əlavə Et",
+    "edit": "Redaktə et",
+    "delete": "Sil",
+    "cancel": "Ləğv et",
+    "save": "Yadda saxla",
+    "saving": "Yadda saxlanılır...",
+    "loading": "Yüklənir...",
+    "actions": "Əməliyyatlar",
+    "name": "Adı",
+    "successEdit": "Kurs uğurla yeniləndi!",
+    "error": "Xəta baş verdi",
+    "editProgram": "Kursu Redaktə Et"
   },
   "Profile": {
     "backToStudents": "Tələbələrə Qayıt",

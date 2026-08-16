@@ -84,7 +84,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       console.error("Fetch student payments error:", e);
     }
 
-    // 4. Fetch groups associated with student or available groups
+    // 4. Fetch groups associated with student
     let groups: any[] = [];
     try {
       const groupRows = await sql`
@@ -95,13 +95,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
           g.created_at,
           pr.name as program,
           COALESCE(tp.first_name || ' ' || tp.last_name, u.email, 'Müəllim təyin edilməyib') as teacher
-        FROM groups g
+        FROM group_students gs
+        JOIN groups g ON gs.group_id = g.id
         LEFT JOIN programs pr ON g.program_id = pr.id
         LEFT JOIN auth.users u ON g.teacher_id = u.id
         LEFT JOIN teachers t ON g.teacher_id = t.id
         LEFT JOIN user_profiles tp ON t.profile_id = tp.id
+        WHERE gs.student_id = ${id} OR gs.student_id = ${s.user_id} OR gs.student_id = ${s.profile_id}
         ORDER BY g.created_at DESC
-        LIMIT 3
       `;
       groups = groupRows.map((g: any) => ({
         id: g.id,
@@ -115,30 +116,31 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       console.error("Fetch student groups error:", e);
     }
 
-    // 5. Attendance records
-    const attendance = [
-      {
-        id: "att-1",
-        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        groupName: groups[0]?.name || "Əsas Qrup",
-        status: "PRESENT",
-        notes: "Fəal iştirak"
-      },
-      {
-        id: "att-2",
-        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        groupName: groups[0]?.name || "Əsas Qrup",
-        status: "PRESENT",
-        notes: "Dərsdə olub"
-      },
-      {
-        id: "att-3",
-        date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        groupName: groups[0]?.name || "Əsas Qrup",
-        status: "PRESENT",
-        notes: "Dərsdə olub"
-      }
-    ];
+    // 5. Fetch actual attendance records
+    let attendance: any[] = [];
+    try {
+      const attRows = await sql`
+        SELECT 
+          a.id,
+          a.date,
+          g.name as group_name,
+          a.status,
+          a.notes
+        FROM attendance a
+        LEFT JOIN groups g ON a.group_id = g.id
+        WHERE a.student_id = ${id} OR a.student_id = ${s.user_id} OR a.student_id = ${s.profile_id}
+        ORDER BY a.date DESC
+      `;
+      attendance = attRows.map((a: any) => ({
+        id: a.id,
+        date: a.date ? new Date(a.date).toISOString().split('T')[0] : "",
+        groupName: a.group_name || "Bilinmir",
+        status: (a.status || "").toUpperCase() === "PRESENT" ? "PRESENT" : ((a.status || "").toUpperCase() === "LATE" ? "LATE" : "ABSENT"),
+        notes: a.notes || ""
+      }));
+    } catch (e) {
+      console.error("Fetch attendance error:", e);
+    }
 
     // 6. Stats calculation
     const totalPaid = payments
@@ -219,6 +221,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             phone = COALESCE(${data.phone || null}, phone),
             email = COALESCE(${data.email || null}, email)
           WHERE id = ${profileId}
+        `;
+      }
+      
+      if (data.fin || data.idCard) {
+        await sql`
+          UPDATE parents
+          SET 
+            fin_code = COALESCE(${data.fin || null}, fin_code),
+            id_card_number = COALESCE(${data.idCard || null}, id_card_number)
+          WHERE profile_id = ${profileId}
         `;
       }
     }

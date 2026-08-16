@@ -162,6 +162,7 @@ export default function StudentDetailPage({
         body: JSON.stringify({
           student_id: id,
           amount: parseFloat(paymentForm.amount),
+          paid_amount: paymentForm.status === "PAID" ? parseFloat(paymentForm.amount) : 0,
           status: paymentForm.status
         })
       });

@@ -94,8 +94,8 @@ export async function POST(req: Request) {
       // Assuming a generic parent record for this profile:
       if (fin || idCard) {
         await tx`
-          INSERT INTO parents (id, profile_id, user_id, fin_code, id_card_number)
-          VALUES (${crypto.randomUUID()}, ${finalProfileId}, ${finalUserId}, ${fin || null}, ${idCard || null})
+          INSERT INTO parents (id, profile_id, fin_code, id_card_number)
+          VALUES (${crypto.randomUUID()}, ${finalProfileId}, ${fin || null}, ${idCard || null})
           ON CONFLICT DO NOTHING
         `;
       }

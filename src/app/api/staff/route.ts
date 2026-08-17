@@ -28,7 +28,10 @@ export async function GET() {
       isActive: s.is_active !== false
     }));
 
-    return NextResponse.json(formatted);
+    // Deduplicate by id in case of multiple roles/profiles
+    const uniqueStaff = Array.from(new Map(formatted.map((s: any) => [s.id, s])).values());
+
+    return NextResponse.json(uniqueStaff);
   } catch (error) {
     console.error("Staff fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch staff" }, { status: 500 });

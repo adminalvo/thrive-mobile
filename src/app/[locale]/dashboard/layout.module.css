@@ -76,6 +76,32 @@
   color: var(--white);
 }
 
+.navItemContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.dragHandle {
+  cursor: grab;
+  color: var(--text-secondary);
+  opacity: 0.3;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.2s;
+}
+.dragHandle:hover {
+  opacity: 1;
+}
+.dragHandle:active {
+  cursor: grabbing;
+}
+.navItemContainer:hover .dragHandle {
+  opacity: 0.8;
+}
+
+/* Page Layout */
 .navActive {
   background: rgba(76, 162, 181, 0.1);
   color: var(--white);

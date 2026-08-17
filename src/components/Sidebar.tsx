@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { 
   LayoutDashboard, 
   Users, 
@@ -17,7 +18,8 @@ import {
   Bot,
   GraduationCap,
   Library,
-  ShieldAlert
+  ShieldAlert,
+  GripVertical
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
@@ -25,11 +27,73 @@ import { signOut, useSession } from "next-auth/react";
 import styles from "@/app/[locale]/dashboard/layout.module.css";
 import GlobalSearch from "./GlobalSearch";
 
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
+}
+
+const ALL_NAV_ITEMS = [
+  { id: "dashboard", href: `/dashboard`, icon: LayoutDashboard },
+  { id: "leads", href: `/dashboard/leads`, icon: Target },
+  { id: "students", href: "/dashboard/students", icon: Users },
+  { id: "programs", href: "/dashboard/programs", icon: Library },
+  { id: "universities", href: "/dashboard/universities", icon: GraduationCap },
+  { id: "groups", href: "/dashboard/groups", icon: Component },
+  { id: "parents", href: "/dashboard/parents", icon: UserPlus },
+  { id: "teachers", href: "/dashboard/teachers", icon: BookOpen },
+  { id: "schedule", href: `/dashboard/schedule`, icon: Calendar },
+  { id: "finance", href: `/dashboard/finance`, icon: CreditCard },
+  { id: "tasks", href: `/dashboard/tasks`, icon: KanbanSquare },
+  { id: "ai", href: "/dashboard/ai", icon: Bot },
+];
+
+function SortableNavItem({ item, isActive, isCollapsed, name, onNavClick }: any) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className={`${styles.navItemContainer} ${isActive ? styles.navActiveContainer : ""}`} >
+      <div {...attributes} {...listeners} className={styles.dragHandle} title="Sürüşdür">
+        <GripVertical size={16} />
+      </div>
+      <Link href={item.href} onClick={onNavClick} style={{flex: 1}}>
+        <div className={`${styles.navItem} ${isActive ? styles.navActive : ""}`} title={isCollapsed ? name : undefined} style={{paddingLeft: '0.2rem'}}>
+          <item.icon size={20} className={isActive ? styles.iconActive : styles.icon} />
+          {!isCollapsed && <span>{name}</span>}
+        </div>
+      </Link>
+    </div>
+  );
 }
 
 export default function Sidebar({
@@ -45,22 +109,53 @@ export default function Sidebar({
   const userRole = session?.user?.role || "staff";
   const isSuperAdmin = userRole === "super_admin";
 
-  const allNavItems = [
-    { name: t("dashboard"), href: `/dashboard`, icon: LayoutDashboard },
-    { name: t("leads"), href: `/dashboard/leads`, icon: Target },
-    { name: t("students"), href: "/dashboard/students", icon: Users },
-    { name: t("programs"), href: "/dashboard/programs", icon: Library },
-    { name: t("universities") || "Universities", href: "/dashboard/universities", icon: GraduationCap },
-    { name: t("groups"), href: "/dashboard/groups", icon: Component },
-    { name: t("parents"), href: "/dashboard/parents", icon: UserPlus },
-    { name: t("teachers"), href: "/dashboard/teachers", icon: BookOpen },
-    { name: t("schedule"), href: `/dashboard/schedule`, icon: Calendar },
-    { name: t("finance"), href: `/dashboard/finance`, icon: CreditCard },
-    { name: t("tasks"), href: `/dashboard/tasks`, icon: KanbanSquare },
-    { name: t("ai"), href: "/dashboard/ai", icon: Bot },
-  ];
+  const [orderedItems, setOrderedItems] = useState(ALL_NAV_ITEMS);
+  const [mounted, setMounted] = useState(false);
 
-  const navItems = allNavItems.filter(item => {
+  useEffect(() => {
+    setMounted(true);
+    const savedOrder = localStorage.getItem(`sidebarOrder_${userRole}`);
+    if (savedOrder) {
+      try {
+        const parsedIds = JSON.parse(savedOrder);
+        const newOrder = [];
+        // Reconstruct order based on saved IDs
+        for (const id of parsedIds) {
+          const found = ALL_NAV_ITEMS.find(i => i.id === id);
+          if (found) newOrder.push(found);
+        }
+        // Add any new items that weren't in the saved order
+        for (const item of ALL_NAV_ITEMS) {
+          if (!newOrder.find(i => i.id === item.id)) {
+            newOrder.push(item);
+          }
+        }
+        setOrderedItems(newOrder);
+      } catch (e) {
+        setOrderedItems(ALL_NAV_ITEMS);
+      }
+    }
+  }, [userRole]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setOrderedItems((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over?.id);
+        const newArray = arrayMove(items, oldIndex, newIndex);
+        localStorage.setItem(`sidebarOrder_${userRole}`, JSON.stringify(newArray.map(i => i.id)));
+        return newArray;
+      });
+    }
+  };
+
+  const allowedNavItems = orderedItems.filter(item => {
     if (userRole === "super_admin") return true;
 
     if (userRole === "teacher") {
@@ -74,7 +169,6 @@ export default function Sidebar({
     }
 
     if (userRole === "staff" || userRole === "admin") {
-      // Allow dashboard base, schedule, AI by default for staff unless strict logic applies
       if (["/dashboard", "/dashboard/schedule", "/dashboard/ai", "/dashboard/programs", "/dashboard/universities", "/dashboard/leads"].includes(item.href)) {
         return true;
       }
@@ -95,7 +189,6 @@ export default function Sidebar({
         return !!permissions[modKey].view;
       }
       
-      // Default fallback if permissions are empty
       if (item.href.includes('/finance')) return false;
       return true;
     }
@@ -125,17 +218,26 @@ export default function Sidebar({
       </div>
 
       <nav className={styles.sidebarNav}>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link key={item.name} href={item.href} onClick={() => setSidebarOpen(false)}>
-              <div className={`${styles.navItem} ${isActive ? styles.navActive : ""}`} title={isCollapsed ? item.name : undefined}>
-                <item.icon size={20} className={isActive ? styles.iconActive : styles.icon} />
-                {!isCollapsed && <span>{item.name}</span>}
-              </div>
-            </Link>
-          );
-        })}
+        {mounted && (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={allowedNavItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+              {allowedNavItems.map((item) => {
+                const isActive = pathname === item.href;
+                const name = t(item.id) || item.id;
+                return (
+                  <SortableNavItem 
+                    key={item.id} 
+                    item={item} 
+                    isActive={isActive} 
+                    isCollapsed={isCollapsed} 
+                    name={name} 
+                    onNavClick={() => setSidebarOpen(false)} 
+                  />
+                );
+              })}
+            </SortableContext>
+          </DndContext>
+        )}
       </nav>
 
       <div className={styles.sidebarFooter}>

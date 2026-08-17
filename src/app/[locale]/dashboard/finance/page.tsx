@@ -51,12 +51,13 @@ export default function FinancePage() {
   const permissions = (session?.user as any)?.permissions?.finance || {};
   const canCreate = userRole === "super_admin" || userRole === "admin" || permissions.create;
   
-  const [activeTab, setActiveTab] = useState<"income" | "expenses" | "overview">("overview");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [students, setStudents] = useState<StudentOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  
+  const [searchIncome, setSearchIncome] = useState("");
+  const [searchExpense, setSearchExpense] = useState("");
 
   // Modals state
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -115,18 +116,14 @@ export default function FinancePage() {
   const calculateTotalExpenses = () => expenses.reduce((t, e) => t + (Number(e.amount) || 0), 0);
   
   const chartData = useMemo(() => {
-    // Generate last 6 months data for demo
     const months = ["Yan", "Fev", "Mar", "Apr", "May", "İyn", "İyl", "Avq", "Sen", "Okt", "Noy", "Dek"];
     const curMonth = new Date().getMonth();
     const data = [];
     
-    // Group real data if available, otherwise fallback to demo pattern
     for (let i = 5; i >= 0; i--) {
       let m = curMonth - i;
       if (m < 0) m += 12;
       
-      // Calculate from real arrays (simplification: just splitting totals or using random for demo)
-      // In real scenario, filter invoices and expenses by month
       data.push({
         name: months[m],
         Gəlir: Math.floor(Math.random() * 2000) + 1000,
@@ -137,25 +134,25 @@ export default function FinancePage() {
   }, [invoices, expenses]);
 
   const filteredInvoices = useMemo(() => {
-    if (!searchTerm.trim()) return invoices;
-    const term = searchTerm.toLowerCase().trim();
+    if (!searchIncome.trim()) return invoices;
+    const term = searchIncome.toLowerCase().trim();
     return invoices.filter(inv => {
       const name = (inv.studentName || "").toLowerCase();
       return name.includes(term) || (inv.id || "").includes(term) || String(inv.amount).includes(term);
     });
-  }, [invoices, searchTerm]);
+  }, [invoices, searchIncome]);
 
   const filteredExpenses = useMemo(() => {
-    if (!searchTerm.trim()) return expenses;
-    const term = searchTerm.toLowerCase().trim();
+    if (!searchExpense.trim()) return expenses;
+    const term = searchExpense.toLowerCase().trim();
     return expenses.filter(exp => 
       (exp.category || "").toLowerCase().includes(term) || 
       (exp.description || "").toLowerCase().includes(term) ||
       String(exp.amount).includes(term)
     );
-  }, [expenses, searchTerm]);
+  }, [expenses, searchExpense]);
 
-  // Invoice Handlers
+  // Handlers
   const handleCreateInvoiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.studentId) return toast.error("Tələbə seçin");
@@ -217,7 +214,6 @@ export default function FinancePage() {
     } catch (e) {}
   };
 
-  // Expense Handlers
   const handleAddExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -243,9 +239,9 @@ export default function FinancePage() {
   };
 
   const getStatusLabel = (status: string) => {
-    if (status === "PAID") return "Ödənilib";
+    if (status === "PAID") return t("modal.statusPaid") || "Ödənilib";
     if (status === "PARTIAL") return "Qismən";
-    return "Gecikir";
+    return t("modal.statusPending") || "Gözləyir";
   };
 
   const getStatusClass = (status: string) => {
@@ -264,218 +260,212 @@ export default function FinancePage() {
         </div>
       </div>
 
-      <div className={styles.tabs}>
-        <button className={`${styles.tabBtn} ${activeTab === 'overview' ? styles.activeTab : ''}`} onClick={() => setActiveTab('overview')}>
-          <TrendingUp size={18}/> Ümumi İcmal
-        </button>
-        <button className={`${styles.tabBtn} ${activeTab === 'income' ? styles.activeTab : ''}`} onClick={() => setActiveTab('income')}>
-          <ArrowDownRight size={18}/> Gəlirlər
-        </button>
-        <button className={`${styles.tabBtn} ${activeTab === 'expenses' ? styles.activeTab : ''}`} onClick={() => setActiveTab('expenses')}>
-          <ArrowUpRight size={18}/> Xərclər
-        </button>
-      </div>
-
-      {activeTab === 'overview' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.overviewTab}>
-          <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <div className={styles.statIcon} style={{ background: "rgba(16, 185, 129, 0.1)", color: "#10b981" }}>
-                <ArrowDownRight size={24} />
-              </div>
-              <div>
-                <h3>Ümumi Gəlir</h3>
-                <p className={styles.amount}>{calculateTotalIncome().toLocaleString()} ₼</p>
-              </div>
+      {/* OVERVIEW SECTION */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.overviewTab}>
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <div className={styles.statIcon} style={{ background: "rgba(16, 185, 129, 0.1)", color: "#10b981" }}>
+              <ArrowDownRight size={24} />
             </div>
-            
-            <div className={styles.statCard}>
-              <div className={styles.statIcon} style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444" }}>
-                <ArrowUpRight size={24} />
-              </div>
-              <div>
-                <h3>Ümumi Xərc</h3>
-                <p className={styles.amountError}>{calculateTotalExpenses().toLocaleString()} ₼</p>
-              </div>
+            <div>
+              <h3>Ümumi Gəlir</h3>
+              <p className={styles.amount}>{calculateTotalIncome().toLocaleString()} ₼</p>
             </div>
-
-            <div className={styles.statCard}>
-              <div className={styles.statIcon} style={{ background: "rgba(245, 158, 11, 0.1)", color: "#f59e0b" }}>
-                <AlertCircle size={24} />
-              </div>
-              <div>
-                <h3>Gözlənilən (Borclar)</h3>
-                <p className={styles.amountWarning}>{calculateTotalDebt().toLocaleString()} ₼</p>
-              </div>
+          </div>
+          
+          <div className={styles.statCard}>
+            <div className={styles.statIcon} style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444" }}>
+              <ArrowUpRight size={24} />
+            </div>
+            <div>
+              <h3>Ümumi Xərc</h3>
+              <p className={styles.amountError}>{calculateTotalExpenses().toLocaleString()} ₼</p>
             </div>
           </div>
 
-          <div className={styles.chartContainer}>
-            <h3>Son 6 Ayın Statistikası</h3>
-            <div className={styles.chartWrapper}>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
-                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
-                  <Area type="monotone" dataKey="Gəlir" stroke="#10b981" fillOpacity={1} fill="url(#colorIncome)" />
-                  <Area type="monotone" dataKey="Xərc" stroke="#ef4444" fillOpacity={1} fill="url(#colorExpense)" />
-                </AreaChart>
-              </ResponsiveContainer>
+          <div className={styles.statCard}>
+            <div className={styles.statIcon} style={{ background: "rgba(245, 158, 11, 0.1)", color: "#f59e0b" }}>
+              <AlertCircle size={24} />
+            </div>
+            <div>
+              <h3>Gözlənilən (Borclar)</h3>
+              <p className={styles.amountWarning}>{calculateTotalDebt().toLocaleString()} ₼</p>
             </div>
           </div>
-        </motion.div>
-      )}
+        </div>
 
-      {activeTab === 'income' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent}>
-          <div className={styles.toolbar}>
-            <div className={styles.searchBox}>
-              <Search size={18} className={styles.icon} />
-              <input 
-                type="text" 
-                placeholder={t("searchPlaceholder") || "Axtarış..."}
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-            </div>
-            {canCreate && (
-              <button className={styles.addBtn} onClick={() => {
-                setCreateForm({
-                  studentId: students[0]?.id || "", amount: "", paidAmount: "0",
-                  dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-                  paymentMethod: "CASH", status: "PENDING"
-                });
-                setShowCreateModal(true);
-              }}>
-                <Plus size={18} /> {t("newInvoice")}
-              </button>
-            )}
+        <div className={styles.chartContainer} style={{ marginBottom: '2rem' }}>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--white)', fontWeight: 600 }}>Son 6 Ayın Statistikası</h3>
+          <div className={styles.chartWrapper}>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }} />
+                <Area type="monotone" dataKey="Gəlir" stroke="#10b981" fillOpacity={1} fill="url(#colorIncome)" />
+                <Area type="monotone" dataKey="Xərc" stroke="#ef4444" fillOpacity={1} fill="url(#colorExpense)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
+        </div>
+      </motion.div>
 
-          <div className={styles.tableContainer}>
-            {loading ? <div className={styles.loading}>{c("loading")}</div> : (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>{t("student")}</th>
-                    <th>{t("amount")}</th>
-                    <th>{t("paidAmount")}</th>
-                    <th>Borc</th>
-                    <th>{t("dueDate")}</th>
-                    <th>{t("status")}</th>
-                    <th style={{ textAlign: 'right' }}>Əməliyyat</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredInvoices.map(inv => {
-                    const debt = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paidAmount) || 0));
-                    return (
-                      <tr key={inv.id}>
-                        <td className={styles.invoiceId}>#{inv.id.substring(0,6).toUpperCase()}</td>
-                        <td>
-                          <div className={styles.studentInfo}>
-                            <span className={styles.studentName}>{inv.studentName}</span>
-                          </div>
-                        </td>
-                        <td className={styles.boldAmount}>{inv.amount} ₼</td>
-                        <td className={styles.paidAmount}>{inv.paidAmount} ₼</td>
-                        <td className={debt > 0 ? styles.debtAmount : ""}>{debt} ₼</td>
-                        <td className={styles.date}>{new Date(inv.dueDate).toLocaleDateString("az-AZ")}</td>
-                        <td>
-                          <span className={`${styles.statusBadge} ${getStatusClass(inv.status)}`}>
-                            {getStatusLabel(inv.status)}
-                          </span>
-                        </td>
-                        <td className={styles.actionsCell}>
-                          <div className={styles.actions}>
-                            <button className={styles.iconBtn} onClick={() => setSelectedInvoice(inv)} title="Fakturaya bax">
-                              <FileText size={16} />
-                            </button>
-                            {canCreate && inv.status !== 'PAID' && (
-                              <button className={styles.payBtn} onClick={() => openPaymentModal(inv)} title="Ödəniş qəbul et">
-                                <DollarSign size={16} />
-                              </button>
-                            )}
-                            {canCreate && (
-                              <button className={`${styles.iconBtn} ${styles.dangerIcon}`} onClick={() => handleDeletePayment(inv.id)} title="Sil">
-                                <Trash2 size={16} />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
+      {/* INCOME SECTION */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent} style={{ marginBottom: '2rem' }}>
+        <h2 style={{ color: 'var(--white)', fontSize: '1.4rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <ArrowDownRight size={22} color="#10b981" /> Gəlirlər
+        </h2>
+        <div className={styles.toolbar}>
+          <div className={styles.searchBox}>
+            <Search size={18} className={styles.icon} />
+            <input 
+              type="text" 
+              placeholder={t("searchPlaceholder") || "Axtarış..."}
+              value={searchIncome}
+              onChange={e => setSearchIncome(e.target.value)}
+            />
           </div>
-        </motion.div>
-      )}
+          {canCreate && (
+            <button className={styles.addBtn} onClick={() => {
+              setCreateForm({
+                studentId: students[0]?.id || "", amount: "", paidAmount: "0",
+                dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                paymentMethod: "CASH", status: "PENDING"
+              });
+              setShowCreateModal(true);
+            }}>
+              <Plus size={18} /> {t("modal.newInvoice")}
+            </button>
+          )}
+        </div>
 
-      {activeTab === 'expenses' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent}>
-          <div className={styles.toolbar}>
-            <div className={styles.searchBox}>
-              <Search size={18} className={styles.icon} />
-              <input 
-                type="text" 
-                placeholder="Xərclərdə axtarış..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-            </div>
-            {canCreate && (
-              <button className={styles.addBtn} onClick={() => setShowExpenseModal(true)}>
-                <Plus size={18} /> Yeni Xərc
-              </button>
-            )}
-          </div>
-
-          <div className={styles.tableContainer}>
-            {loading ? <div className={styles.loading}>{c("loading")}</div> : (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Tarix</th>
-                    <th>Kateqoriya</th>
-                    <th>Təsvir</th>
-                    <th>Məbləğ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredExpenses.map(exp => (
-                    <tr key={exp.id}>
-                      <td className={styles.date}>{new Date(exp.date).toLocaleDateString("az-AZ")}</td>
+        <div className={styles.tableContainer}>
+          {loading ? <div className={styles.loading}>{c("loading")}</div> : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>{t("modal.student") || "Tələbə"}</th>
+                  <th>{t("modal.amount") || "Məbləğ"}</th>
+                  <th>Ödənilib</th>
+                  <th>Borc</th>
+                  <th>{t("modal.dueDate") || "Tarix"}</th>
+                  <th>{t("modal.status") || "Status"}</th>
+                  <th style={{ textAlign: 'right' }}>Əməliyyat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInvoices.map(inv => {
+                  const debt = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paidAmount) || 0));
+                  return (
+                    <tr key={inv.id}>
+                      <td className={styles.invoiceId}>#{inv.id.substring(0,6).toUpperCase()}</td>
                       <td>
-                        <span className={styles.expenseCategory}>{exp.category}</span>
+                        <div className={styles.studentInfo}>
+                          <span className={styles.studentName}>{inv.studentName}</span>
+                        </div>
                       </td>
-                      <td style={{ color: "var(--gray-300)" }}>{exp.description || "-"}</td>
-                      <td className={styles.amountError}>{exp.amount} ₼</td>
+                      <td className={styles.boldAmount}>{inv.amount} ₼</td>
+                      <td className={styles.paidAmount}>{inv.paidAmount} ₼</td>
+                      <td className={debt > 0 ? styles.debtAmount : ""}>{debt} ₼</td>
+                      <td className={styles.date}>{new Date(inv.dueDate).toLocaleDateString("az-AZ")}</td>
+                      <td>
+                        <span className={`${styles.statusBadge} ${getStatusClass(inv.status)}`}>
+                          {getStatusLabel(inv.status)}
+                        </span>
+                      </td>
+                      <td className={styles.actionsCell}>
+                        <div className={styles.actions}>
+                          <button className={styles.iconBtn} onClick={() => setSelectedInvoice(inv)} title="Fakturaya bax">
+                            <FileText size={16} />
+                          </button>
+                          {canCreate && inv.status !== 'PAID' && (
+                            <button className={styles.payBtn} onClick={() => {
+                              setPaymentModalInvoice(inv);
+                              setPaymentForm({ amount: String(Math.max(0, Number(inv.amount) - Number(inv.paidAmount))), paymentMethod: "CASH", lessonTime: "" });
+                            }} title="Ödəniş qəbul et">
+                              <DollarSign size={16} />
+                            </button>
+                          )}
+                          {canCreate && (
+                            <button className={`${styles.iconBtn} ${styles.dangerIcon}`} onClick={() => handleDeletePayment(inv.id)} title="Sil">
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
-                  ))}
-                  {filteredExpenses.length === 0 && (
-                    <tr><td colSpan={4} className={styles.emptyState}>Tapılmadı</td></tr>
-                  )}
-                </tbody>
-              </table>
-            )}
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </motion.div>
+
+      {/* EXPENSES SECTION */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent}>
+        <h2 style={{ color: 'var(--white)', fontSize: '1.4rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <ArrowUpRight size={22} color="#ef4444" /> Xərclər
+        </h2>
+        <div className={styles.toolbar}>
+          <div className={styles.searchBox}>
+            <Search size={18} className={styles.icon} />
+            <input 
+              type="text" 
+              placeholder="Xərclərdə axtarış..."
+              value={searchExpense}
+              onChange={e => setSearchExpense(e.target.value)}
+            />
           </div>
-        </motion.div>
-      )}
+          {canCreate && (
+            <button className={styles.addBtn} onClick={() => setShowExpenseModal(true)}>
+              <Plus size={18} /> {t("modal.newExpense") || "Yeni Xərc"}
+            </button>
+          )}
+        </div>
+
+        <div className={styles.tableContainer}>
+          {loading ? <div className={styles.loading}>{c("loading")}</div> : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Tarix</th>
+                  <th>{t("modal.category") || "Kateqoriya"}</th>
+                  <th>{t("modal.description") || "Təsvir"}</th>
+                  <th>{t("modal.amount") || "Məbləğ"}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredExpenses.map(exp => (
+                  <tr key={exp.id}>
+                    <td className={styles.date}>{new Date(exp.date).toLocaleDateString("az-AZ")}</td>
+                    <td>
+                      <span className={styles.expenseCategory}>{exp.category}</span>
+                    </td>
+                    <td style={{ color: "var(--gray-300)" }}>{exp.description || "-"}</td>
+                    <td className={styles.amountError}>{exp.amount} ₼</td>
+                  </tr>
+                ))}
+                {filteredExpenses.length === 0 && (
+                  <tr><td colSpan={4} className={styles.emptyState}>Tapılmadı</td></tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </motion.div>
 
       {/* Invoice Detail Modal */}
       {selectedInvoice && (
@@ -513,7 +503,7 @@ export default function FinancePage() {
                   </select>
                 </div>
                 <div className={styles.modalActions}>
-                  <button type="button" className={styles.cancelBtn} onClick={() => setPaymentModalInvoice(null)}>{c("cancel")}</button>
+                  <button type="button" className={styles.cancelBtn} onClick={() => setPaymentModalInvoice(null)}>{t("modal.cancel") || c("cancel")}</button>
                   <button type="submit" className={styles.submitBtn}>Təsdiqlə</button>
                 </div>
               </form>
@@ -533,7 +523,7 @@ export default function FinancePage() {
               </div>
               <form onSubmit={handleCreateInvoiceSubmit} className={styles.modalForm}>
                 <div className={styles.formGroup}>
-                  <label>Tələbə</label>
+                  <label>{t("modal.student") || "Tələbə"}</label>
                   <select required value={createForm.studentId} onChange={e => setCreateForm({...createForm, studentId: e.target.value})} className={styles.select}>
                     <option value="">Seçin...</option>
                     {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -548,12 +538,12 @@ export default function FinancePage() {
                   <input type="number" min="0" step="0.01" value={createForm.paidAmount} onChange={e => setCreateForm({...createForm, paidAmount: e.target.value})} className={styles.input} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Son Ödəniş Tarixi</label>
+                  <label>{t("modal.dueDate") || "Son Ödəniş Tarixi"}</label>
                   <input type="date" required value={createForm.dueDate} onChange={e => setCreateForm({...createForm, dueDate: e.target.value})} className={styles.input} />
                 </div>
                 <div className={styles.modalActions}>
-                  <button type="button" className={styles.cancelBtn} onClick={() => setShowCreateModal(false)}>{c("cancel")}</button>
-                  <button type="submit" className={styles.submitBtn}>{t("modal.create")}</button>
+                  <button type="button" className={styles.cancelBtn} onClick={() => setShowCreateModal(false)}>{t("modal.cancel") || c("cancel")}</button>
+                  <button type="submit" className={styles.submitBtn}>{t("modal.create") || "Yarat"}</button>
                 </div>
               </form>
             </motion.div>
@@ -567,12 +557,12 @@ export default function FinancePage() {
           <div className={styles.modalOverlay} onClick={() => setShowExpenseModal(false)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className={styles.modal} onClick={e => e.stopPropagation()}>
               <div className={styles.modalHeader}>
-                <h2>Yeni Xərc Əlavə Et</h2>
+                <h2>{t("modal.newExpense") || "Yeni Xərc Əlavə Et"}</h2>
                 <button className={styles.closeBtn} onClick={() => setShowExpenseModal(false)}><X size={20}/></button>
               </div>
               <form onSubmit={handleAddExpenseSubmit} className={styles.modalForm}>
                 <div className={styles.formGroup}>
-                  <label>Kateqoriya</label>
+                  <label>{t("modal.category") || "Kateqoriya"}</label>
                   <select required value={expenseForm.category} onChange={e => setExpenseForm({...expenseForm, category: e.target.value})} className={styles.select}>
                     <option value="Maaşlar">Maaşlar</option>
                     <option value="Ofis xərcləri">Ofis xərcləri</option>
@@ -590,11 +580,11 @@ export default function FinancePage() {
                   <input type="date" required value={expenseForm.date} onChange={e => setExpenseForm({...expenseForm, date: e.target.value})} className={styles.input} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Təsvir (İstəyə bağlı)</label>
+                  <label>{t("modal.description") || "Təsvir (İstəyə bağlı)"}</label>
                   <textarea value={expenseForm.description} onChange={e => setExpenseForm({...expenseForm, description: e.target.value})} className={styles.input} rows={3} />
                 </div>
                 <div className={styles.modalActions}>
-                  <button type="button" className={styles.cancelBtn} onClick={() => setShowExpenseModal(false)}>{c("cancel")}</button>
+                  <button type="button" className={styles.cancelBtn} onClick={() => setShowExpenseModal(false)}>{t("modal.cancel") || c("cancel")}</button>
                   <button type="submit" className={styles.submitBtn}>Təsdiqlə</button>
                 </div>
               </form>

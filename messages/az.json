@@ -281,7 +281,10 @@
       "statusFailed": "Uğursuz",
       "description": "Açıqlama",
       "cancel": "Ləğv et",
-      "save": "Yarat"
+      "save": "Yarat",
+      "create": "Yarat",
+      "newExpense": "Yeni Xərc",
+      "category": "Kateqoriya"
     },
     "title": "Maliyyə və Ödənişlər",
     "subtitle": "Tələbə ödənişlərini, fakturaları və borcluları izləyin.",

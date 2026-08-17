@@ -41,6 +41,7 @@ export default function LeadsPage() {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [viewingLead, setViewingLead] = useState<Lead | null>(null);
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -216,6 +217,8 @@ export default function LeadsPage() {
                     className={styles.card}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    onClick={() => setViewingLead(lead)}
+                    style={{ cursor: "pointer" }}
                   >
                     <div className={styles.cardHeader}>
                       <span className={styles.sourceBadge}>{lead.source || "Digər"}</span>
@@ -323,6 +326,55 @@ export default function LeadsPage() {
           </div>
         </div>
       )}
+
+      {/* View Lead Modal */}
+      {viewingLead && (
+        <div className={styles.modalOverlay} onClick={() => setViewingLead(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Detallı Baxış</h2>
+              <button className={styles.closeBtn} onClick={() => setViewingLead(null)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.form}>
+              <div style={{ marginBottom: "1rem" }}>
+                <strong>Ad/Soyad:</strong> <br />
+                <span style={{ color: "var(--text-primary)", fontSize: "1.1rem" }}>{viewingLead.name}</span>
+              </div>
+              <div className={styles.rowInputs} style={{ marginBottom: "1rem" }}>
+                <div>
+                  <strong>Telefon:</strong> <br />
+                  <span style={{ color: "var(--text-primary)" }}>{viewingLead.phone}</span>
+                </div>
+                <div>
+                  <strong>Email:</strong> <br />
+                  <span style={{ color: "var(--text-primary)" }}>{viewingLead.email || "-"}</span>
+                </div>
+              </div>
+              <div className={styles.rowInputs} style={{ marginBottom: "1rem" }}>
+                <div>
+                  <strong>Status:</strong> <br />
+                  <span style={{ color: "var(--text-primary)" }}>{t(`statuses.${viewingLead.status}`)}</span>
+                </div>
+                <div>
+                  <strong>Mənbə (Source):</strong> <br />
+                  <span style={{ color: "var(--text-primary)" }}>{viewingLead.source || "-"}</span>
+                </div>
+              </div>
+              <div style={{ marginBottom: "1rem" }}>
+                <strong>Qeydlər:</strong> <br />
+                <span style={{ color: "var(--text-primary)" }}>{viewingLead.notes || "-"}</span>
+              </div>
+              <div>
+                <strong>Növbəti əlaqə:</strong> <br />
+                <span style={{ color: "var(--text-primary)" }}>{viewingLead.nextFollowUp ? new Date(viewingLead.nextFollowUp).toLocaleDateString() : "-"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

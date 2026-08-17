@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import styles from "./staff.module.css";
 import { useTranslations } from "next-intl";
-import { ShieldAlert, CheckCircle, XCircle, KeyRound, Search, Plus } from "lucide-react";
+import { ShieldAlert, CheckCircle, XCircle, KeyRound, Search, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
@@ -178,6 +178,22 @@ export default function StaffPage() {
     }
   };
 
+  const deleteStaff = async (id: string) => {
+    if (!confirm("Bu işçini silmək istədiyinizə əminsiniz?")) return;
+    try {
+      const res = await fetch(`/api/staff/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Uğurla silindi");
+        setStaff(prev => prev.filter(s => s.id !== id));
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Silinmə xətası");
+      }
+    } catch (e) {
+      toast.error("Şəbəkə xətası");
+    }
+  };
+
   const filteredStaff = staff.filter(s => 
     s.name.toLowerCase().includes(search.toLowerCase()) || 
     s.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -250,8 +266,20 @@ export default function StaffPage() {
                       </button>
                     </td>
                     <td className={styles.actionsCell}>
-                      <button className={styles.iconBtn} onClick={() => openPermissions(member)} title={t("permissions")}>
-                        <KeyRound size={18} />
+                      <button 
+                        className={styles.iconBtn} 
+                        onClick={() => openPermissions(member)}
+                        title={t("permissions")}
+                      >
+                        <KeyRound size={16} />
+                      </button>
+                      <button 
+                        className={`${styles.iconBtn}`} 
+                        onClick={() => deleteStaff(member.id)}
+                        title="Sil"
+                        style={{ color: "#ef4444", background: "rgba(239,68,68,0.1)", marginLeft: "0.5rem" }}
+                      >
+                        <Trash2 size={16} />
                       </button>
                     </td>
                   </tr>

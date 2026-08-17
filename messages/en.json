@@ -281,7 +281,10 @@
       "statusFailed": "Failed",
       "description": "Description",
       "cancel": "Cancel",
-      "save": "Create"
+      "save": "Create",
+      "create": "Create",
+      "newExpense": "New Expense",
+      "category": "Category"
     },
     "title": "Finance & Payments",
     "subtitle": "Track student payments, invoices, and debtors.",

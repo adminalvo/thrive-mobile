@@ -50,6 +50,7 @@ export default function TasksPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTask, setEditingTask] = useState<KanbanTask | null>(null);
+  const [viewingTask, setViewingTask] = useState<KanbanTask | null>(null);
   const [activeMenuTaskId, setActiveMenuTaskId] = useState<string | null>(null);
 
   // Form states
@@ -349,6 +350,8 @@ export default function TasksPage() {
                         className={styles.card}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
+                        onClick={() => setViewingTask(task)}
+                        style={{ cursor: "pointer" }}
                       >
                         <div className={styles.cardHeader}>
                           <div
@@ -626,6 +629,51 @@ export default function TasksPage() {
           </div>
         </div>
       )}
+
+      {/* View Task Modal */}
+      {viewingTask && (
+        <div className={styles.modalOverlay} onClick={() => setViewingTask(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Detallı Baxış</h2>
+              <button className={styles.closeModalBtn} onClick={() => setViewingTask(null)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.form}>
+              <div style={{ marginBottom: "1rem" }}>
+                <strong>Başlıq:</strong> <br />
+                <span style={{ color: "var(--white)", fontSize: "1.1rem" }}>{viewingTask.title}</span>
+              </div>
+              <div style={{ marginBottom: "1rem" }}>
+                <strong>Təsvir:</strong> <br />
+                <span style={{ color: "var(--white)" }}>{viewingTask.description || "-"}</span>
+              </div>
+              <div className={styles.rowInputs} style={{ marginBottom: "1rem" }}>
+                <div>
+                  <strong>Status:</strong> <br />
+                  <span style={{ color: "var(--white)" }}>{t(`columns.${viewingTask.status}`)}</span>
+                </div>
+                <div>
+                  <strong>Prioritet:</strong> <br />
+                  <span style={{ color: getPriorityColor(viewingTask.priority) }}>{viewingTask.priority}</span>
+                </div>
+              </div>
+              <div className={styles.rowInputs}>
+                <div>
+                  <strong>İcraçı:</strong> <br />
+                  <span style={{ color: "var(--white)" }}>{formatAssignee(viewingTask.assignee)}</span>
+                </div>
+                <div>
+                  <strong>Tarix:</strong> <br />
+                  <span style={{ color: "var(--white)" }}>{getDueDateDisplay(viewingTask) || "-"}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

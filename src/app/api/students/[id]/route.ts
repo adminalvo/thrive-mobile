@@ -40,28 +40,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const s = studentRows[0];
     const fullName = `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Bilinmir";
 
-    // 2. Fetch FIN code / ID card from parents if exists
-    let finCode = "";
-    let idCardNumber = "";
-    let parentName = "";
-    let parentPhone = "";
+    // 2. Fetch linked parents from student_parents
+    let parentsList: any[] = [];
     try {
-      if (s.profile_id) {
-        const parentRows = await sql`
-          SELECT fin_code, id_card_number, full_name, phone 
-          FROM parents 
-          WHERE profile_id = ${s.profile_id}
-          LIMIT 1
-        `;
-        if (parentRows.length > 0) {
-          finCode = parentRows[0].fin_code || "";
-          idCardNumber = parentRows[0].id_card_number || "";
-          parentName = parentRows[0].full_name || "";
-          parentPhone = parentRows[0].phone || "";
-        }
-      }
-    } catch {
-      // ignore
+      const parentRows = await sql`
+        SELECT p.id, p.full_name as name, p.phone, p.email, p.fin_code as fin, p.id_card_number as idCard
+        FROM parents p
+        JOIN student_parents sp ON p.id = sp.parent_id
+        WHERE sp.student_id = ${id}
+      `;
+      parentsList = parentRows;
+    } catch (e) {
+      console.error("Fetch student parents error:", e);
     }
 
     // 3. Fetch student invoices/payments
@@ -157,15 +147,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const totalDebt = payments.reduce((sum, p) => sum + Math.max(0, (Number(p.amount) || 0) - (Number(p.paidAmount) || 0)), 0);
 
     const stats = {
-      totalPaid,
-      totalDebt,
-      attendanceRate: attendance.length > 0
-        ? `${Math.round((attendance.filter(a => a.status === "PRESENT").length / attendance.length) * 100)}%`
-        : "100%",
-      enrolledGroupsCount: groups.length
-    };
+    const totalDue = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const presentCount = attendance.filter(a => a.status === "PRESENT").length;
+    const totalAttendance = attendance.length;
 
-    const response = {
+    // 7. Combine all
+    return NextResponse.json({
       student: {
         id: s.id,
         firstName: s.first_name || "",
@@ -173,24 +160,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         name: fullName,
         email: s.email || "",
         phone: s.phone || "",
-        fin: finCode || "Qeyd edilməyib",
-        idCard: idCardNumber || "Qeyd edilməyib",
-        status: "ACTIVE",
+        fin: s.fin_code || "",
+        idCard: s.id_card_number || "",
+        status: s.status || "Aktiv",
         joinDate: s.created_at || new Date().toISOString(),
         program: s.program || "",
         monthlyPayment: s.monthly_payment || 0,
         durationMonths: s.duration_months || 0,
-        totalPrice: s.total_price || 0,
-        parentName,
-        parentPhone
+        totalPrice: s.total_price || 0
       },
+      parents: parentsList,
       groups,
       payments,
       attendance,
-      stats
-    };
-
-    return NextResponse.json(response);
+      stats: {
+        totalPaid,
+        totalDebt: Math.max(0, totalDue - totalPaid),
+        attendanceRate: (totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : 100) + "%",
+        enrolledGroupsCount: groups.length
+      }
+    });
   } catch (error: any) {
     console.error("Get Student Profile Error:", error);
     return NextResponse.json({ error: error.message || "Failed to fetch student profile" }, { status: 500 });

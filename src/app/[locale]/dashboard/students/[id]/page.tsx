@@ -96,7 +96,7 @@ export default function StudentDetailPage({
 
   const [data, setData] = useState<StudentProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "groups" | "payments" | "attendance">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "groups" | "payments" | "attendance" | "parents">("overview");
 
   // Modals state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -116,6 +116,12 @@ export default function StudentDetailPage({
     amount: "250",
     status: "PAID"
   });
+
+  // Parents pairing state
+  const [showParentModal, setShowParentModal] = useState(false);
+  const [availableParents, setAvailableParents] = useState<any[]>([]);
+  const [selectedParentId, setSelectedParentId] = useState("");
+  const [linkingParent, setLinkingParent] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -206,6 +212,59 @@ export default function StudentDetailPage({
     }
   };
 
+  const handleFetchParents = async () => {
+    try {
+      const res = await fetch("/api/parents");
+      const list = await res.json();
+      setAvailableParents(list);
+    } catch {
+      toast.error("Valideynləri yükləmək mümkün olmadı");
+    }
+  };
+
+  const handleLinkParent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedParentId) return;
+    setLinkingParent(true);
+    try {
+      const res = await fetch(`/api/students/${id}/parents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parent_id: selectedParentId })
+      });
+      if (res.ok) {
+        toast.success("Valideyn əlavə edildi");
+        setShowParentModal(false);
+        fetchProfile();
+      } else {
+        toast.error("Xəta baş verdi");
+      }
+    } catch {
+      toast.error("Xəta baş verdi");
+    } finally {
+      setLinkingParent(false);
+    }
+  };
+
+  const handleUnlinkParent = async (parentId: string) => {
+    if (!confirm("Bu valideyni silmək istədiyinizə əminsiniz?")) return;
+    try {
+      const res = await fetch(`/api/students/${id}/parents`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parent_id: parentId })
+      });
+      if (res.ok) {
+        toast.success("Valideyn silindi");
+        fetchProfile();
+      } else {
+        toast.error("Silinmədi");
+      }
+    } catch {
+      toast.error("Xəta baş verdi");
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -225,7 +284,7 @@ export default function StudentDetailPage({
     );
   }
 
-  const { student, groups, payments, attendance, stats } = data;
+  const { student, groups, payments, attendance, stats, parents } = data as any;
 
   return (
     <div className={styles.container}>
@@ -355,6 +414,12 @@ export default function StudentDetailPage({
           <BookOpen size={16} /> {t("overview")}
         </button>
         <button 
+          className={`${styles.tabBtn} ${activeTab === "parents" ? styles.tabActive : ""}`}
+          onClick={() => setActiveTab("parents")}
+        >
+          <Users size={16} /> Valideynlər ({parents?.length || 0})
+        </button>
+        <button 
           className={`${styles.tabBtn} ${activeTab === "groups" ? styles.tabActive : ""}`}
           onClick={() => setActiveTab("groups")}
         >
@@ -411,6 +476,55 @@ export default function StudentDetailPage({
                 <span className={styles.infoValue}>{new Date(student.joinDate).toLocaleDateString()}</span>
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {activeTab === "parents" && (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.card}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 className={styles.cardTitle} style={{ margin: 0 }}>
+                <Users size={18} /> Valideynlər
+              </h3>
+              <button 
+                className={styles.actionBtnPrimary} 
+                onClick={() => {
+                  setShowParentModal(true);
+                  handleFetchParents();
+                }}
+              >
+                <Plus size={16} /> Əlavə et
+              </button>
+            </div>
+            
+            {(!parents || parents.length === 0) ? (
+              <p className={styles.emptyState}>Təyin edilmiş valideyn yoxdur</p>
+            ) : (
+              <div className={styles.infoGrid}>
+                {parents.map((p: any) => (
+                  <div key={p.id} style={{ background: "rgba(var(--glass-color), 0.05)", padding: "1.5rem", borderRadius: "12px", border: "1px solid rgba(var(--glass-color), 0.1)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "1.1rem" }}>{p.name}</h4>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Phone size={14} /> {p.phone || "Qeyd edilməyib"}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Mail size={14} /> {p.email || "Qeyd edilməyib"}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><FileText size={14} /> FIN: {p.fin || "Qeyd edilməyib"}</span>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => handleUnlinkParent(p.id)}
+                      style={{ background: "transparent", border: "none", color: "var(--danger-color)", cursor: "pointer", padding: "0.5rem", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", transition: "0.2s" }}
+                      title="Əlaqəni kəs"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -674,6 +788,49 @@ export default function StudentDetailPage({
           onClose={() => setSelectedInvoice(null)} 
         />
       )}
+
+      {/* Link Parent Modal */}
+      <AnimatePresence>
+        {showParentModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowParentModal(false)}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={styles.modal} 
+              onClick={e => e.stopPropagation()}
+            >
+              <h2>Valideyn Əlaqələndir</h2>
+              <form onSubmit={handleLinkParent} className={styles.form}>
+                <div className={styles.inputGroup}>
+                  <label>Mövcud Valideynlər</label>
+                  <select 
+                    value={selectedParentId} 
+                    onChange={e => setSelectedParentId(e.target.value)} 
+                    required
+                    style={{ width: "100%", padding: "0.8rem", borderRadius: "8px", background: "var(--bg-color)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
+                  >
+                    <option value="">Seçin</option>
+                    {availableParents.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.fin || p.contact})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className={styles.modalActions}>
+                  <button type="button" className={styles.cancelBtn} onClick={() => setShowParentModal(false)}>Ləğv et</button>
+                  <button type="submit" className={styles.saveBtn} disabled={linkingParent}>
+                    {linkingParent ? "Gözləyin..." : "Əlaqələndir"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

@@ -295,7 +295,7 @@ export default function TasksPage() {
     const raw = task.due_date || task.dueDate || task.deadline;
     if (!raw) return null;
     try {
-      return new Date(raw).toLocaleDateString();
+      return raw ? new Date(raw).toLocaleDateString() : "-";
     } catch {
       return null;
     }

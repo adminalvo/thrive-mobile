@@ -185,7 +185,7 @@ export default function StudentsPage() {
                     <td>
                       <Link href={`/dashboard/students/${student.id}`} style={{ textDecoration: "none" }}>
                         <div className={styles.studentInfo}>
-                          <div className={styles.avatar}>{displayName.substring(0,2).toUpperCase()}</div>
+                          <div className={styles.avatar}>{displayName ? String(displayName).substring(0,2).toUpperCase() : "U"}</div>
                           <div>
                             <div className={styles.name} style={{ color: "var(--white)", transition: "color 0.2s" }}>
                               {displayName}

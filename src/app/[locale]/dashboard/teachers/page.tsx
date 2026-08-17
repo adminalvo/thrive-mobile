@@ -148,7 +148,7 @@ export default function TeachersPage() {
                 <div className={styles.cardHeader}>
                   <Link href={`/dashboard/teachers/${teacher.id}`} style={{ textDecoration: "none" }}>
                     <div className={styles.avatar}>
-                      {displayName.substring(0, 2).toUpperCase()}
+                      {displayName ? String(displayName).substring(0, 2).toUpperCase() : "U"}
                     </div>
                   </Link>
                   <div className={styles.inlineActions}>

@@ -247,7 +247,7 @@ export default function LeadsPage() {
                     <div className={styles.cardInfo}>
                       <span className={styles.infoRow}><Phone size={14} /> {lead.phone}</span>
                       {lead.nextFollowUp && (
-                        <span className={styles.infoRow}><Calendar size={14} /> {new Date(lead.nextFollowUp).toLocaleDateString()}</span>
+                        <span className={styles.infoRow}><Calendar size={14} /> {lead?.nextFollowUp ? new Date(lead.nextFollowUp).toLocaleDateString() : "Təyin edilməyib"}</span>
                       )}
                     </div>
                   </motion.div>

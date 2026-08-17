@@ -10,13 +10,26 @@ export default async function middleware(req: NextRequest) {
   const isApiRoute = req.nextUrl.pathname.startsWith('/api');
   
   // Global Passcode Protection
-  if (!isUnlockRoute && !isApiRoute) {
+  if (!isUnlockRoute && !req.nextUrl.pathname.startsWith('/api/unlock')) {
     const unlocked = req.cookies.get('site_unlocked')?.value;
     if (unlocked !== 'true') {
+      if (isApiRoute) {
+        return NextResponse.json({ error: "Site Locked" }, { status: 403 });
+      }
       const url = req.nextUrl.clone();
       url.pathname = '/unlock';
       return NextResponse.redirect(url);
     }
+  }
+
+  // API Route Protection
+  if (isApiRoute && !req.nextUrl.pathname.startsWith('/api/auth') && !req.nextUrl.pathname.startsWith('/api/unlock')) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // We can also let the individual API routes handle role-specific checks
+    return NextResponse.next();
   }
 
   const isProtectedRoute = req.nextUrl.pathname.includes('/dashboard');
@@ -49,5 +62,5 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
+  matcher: ['/((?!_next|_vercel|.*\\..*).*)']
 };

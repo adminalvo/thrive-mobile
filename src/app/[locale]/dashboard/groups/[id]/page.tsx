@@ -410,7 +410,7 @@ export default function GroupDetailPage({
               </div>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>{t("joinDate")}</span>
-                <span className={styles.infoValue}>{new Date(group.createdAt).toLocaleDateString()}</span>
+                <span className={styles.infoValue}>{group?.createdAt ? new Date(group.createdAt).toLocaleDateString() : "-"}</span>
               </div>
             </div>
           </motion.div>

@@ -186,7 +186,7 @@ export default function TeacherDetailPage({
       >
         <div className={styles.profileInfo}>
           <div className={styles.avatar}>
-            {teacher.name.substring(0, 2).toUpperCase()}
+            {teacher?.name ? String(teacher.name).substring(0, 2).toUpperCase() : "U"}
           </div>
           <div className={styles.details}>
             <h1>{teacher.name}</h1>
@@ -199,7 +199,7 @@ export default function TeacherDetailPage({
                 <CheckCircle size={14} /> {teacher.status === "ACTIVE" ? c("active") : c("inactive")}
               </span>
               <span className={styles.idBadge}>
-                {t("joinDate")}: {new Date(teacher.joinDate).toLocaleDateString()}
+                {t("joinDate")}: {teacher?.joinDate ? new Date(teacher.joinDate).toLocaleDateString() : "-"}
               </span>
             </div>
           </div>
@@ -321,7 +321,7 @@ export default function TeacherDetailPage({
               </div>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>{t("joinDate")}</span>
-                <span className={styles.infoValue}>{new Date(teacher.joinDate).toLocaleDateString()}</span>
+                <span className={styles.infoValue}>{teacher?.joinDate ? new Date(teacher.joinDate).toLocaleDateString() : "-"}</span>
               </div>
             </div>
           </motion.div>

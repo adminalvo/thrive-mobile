@@ -110,7 +110,7 @@ export default function DashboardLayout({
             </button>
             <div className={styles.profile} onClick={() => setSettingsOpen(true)} style={{ cursor: 'pointer' }}>
               <div className={styles.avatar}>
-                <span>{session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : "U"}</span>
+                <span>{session?.user?.name ? String(session.user.name).substring(0, 2).toUpperCase() : "U"}</span>
               </div>
               <div className={styles.profileInfo}>
                 <span className={styles.profileName}>{session?.user?.name || "User"}</span>

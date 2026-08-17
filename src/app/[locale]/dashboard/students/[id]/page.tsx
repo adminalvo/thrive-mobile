@@ -380,17 +380,17 @@ export default function StudentDetailPage({
       >
         <div className={styles.profileInfo}>
           <div className={styles.avatar}>
-            {student.name.substring(0, 2).toUpperCase()}
+            {student?.name ? String(student.name).substring(0, 2).toUpperCase() : "U"}
           </div>
           <div className={styles.details}>
             <h1>{student.name}</h1>
             <div className={styles.metaRow}>
-              <span className={styles.idBadge}>ID: {student.id.substring(0, 8)}</span>
+              <span className={styles.idBadge}>ID: {student?.id ? String(student.id).substring(0, 8) : ""}</span>
               <span className={student.status === "ACTIVE" ? styles.statusActive : styles.statusInactive}>
                 <CheckCircle size={14} /> {student.status === "ACTIVE" ? c("active") : c("inactive")}
               </span>
               <span className={styles.idBadge}>
-                {t("joinDate")}: {new Date(student.joinDate).toLocaleDateString()}
+                {t("joinDate")}: {student?.joinDate ? new Date(student.joinDate).toLocaleDateString() : "-"}
               </span>
             </div>
           </div>
@@ -552,7 +552,7 @@ export default function StudentDetailPage({
               </div>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>{t("joinDate")}</span>
-                <span className={styles.infoValue}>{new Date(student.joinDate).toLocaleDateString()}</span>
+                <span className={styles.infoValue}>{student?.joinDate ? new Date(student.joinDate).toLocaleDateString() : "-"}</span>
               </div>
             </div>
           </motion.div>
@@ -703,14 +703,14 @@ export default function StudentDetailPage({
                   <tbody>
                     {payments.map(p => (
                       <tr key={p.id}>
-                        <td>#{p.id.substring(0, 8).toUpperCase()}</td>
+                        <td>#{p?.id ? String(p.id).substring(0, 8).toUpperCase() : ""}</td>
                         <td style={{ fontWeight: 600 }}>{p.amount} ₼</td>
                         <td>
                           <span className={`${styles.badge} ${p.status === "PAID" ? styles.badgePaid : styles.badgePending}`}>
                             {p.status === "PAID" ? c("active") : c("pending")}
                           </span>
                         </td>
-                        <td>{new Date(p.date).toLocaleDateString()}</td>
+                        <td>{p?.date ? new Date(p.date).toLocaleDateString() : "-"}</td>
                         <td>
                           <div style={{ display: "flex", gap: "0.5rem" }}>
                             <button 

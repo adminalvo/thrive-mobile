@@ -36,7 +36,8 @@
     "aiAssistant": "AI Помощник",
     "settings": "Настройки",
     "logout": "Выйти",
-    "programs": "Программы"
+    "programs": "Программы",
+    "universities": "Университеты"
   },
   "AiPage": {
     "title": "Thrive AI Помощник",
@@ -69,7 +70,8 @@
       "group": "Группа",
       "date": "Дата",
       "status": "Статус"
-    }
+    },
+    "myStudents": "Мои Студенты"
   },
   "Leads": {
     "title": "Лиды (Leads)",

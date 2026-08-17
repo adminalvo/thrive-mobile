@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, User, Lock, Globe, Mail, LogOut } from "lucide-react";
+import { X, User, Lock, Globe, Mail, LogOut, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./SettingsSlideover.module.css";
 import { useTranslations } from "next-intl";
@@ -73,6 +73,12 @@ export default function SettingsSlideover({ isOpen, onClose, user, locale }: Set
               >
                 <Globe size={16} /> Dil
               </button>
+              <button 
+                className={`${styles.tab} ${activeTab === "about" ? styles.activeTab : ""}`}
+                onClick={() => setActiveTab("about")}
+              >
+                <Info size={16} /> Haqqında
+              </button>
             </div>
 
             <div className={styles.content}>
@@ -117,6 +123,29 @@ export default function SettingsSlideover({ isOpen, onClose, user, locale }: Set
                     >
                       Русский
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "about" && (
+                <div className={styles.section} style={{ lineHeight: "1.6", color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                  <div style={{ marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "1rem" }}>
+                    <div style={{ background: "var(--aqua-teal)", width: "40px", height: "40px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ color: "var(--bg-dark)", fontWeight: "bold", fontSize: "1.2rem" }}>T</span>
+                    </div>
+                    <div>
+                      <h3 style={{ color: "var(--text-primary)", margin: 0, fontSize: "1.1rem" }}>Thrive CRM</h3>
+                      <span style={{ fontSize: "0.8rem", color: "var(--aqua-teal)" }}>v1.0.0</span>
+                    </div>
+                  </div>
+                  <p style={{ marginBottom: "1rem" }}>
+                    <strong>Thrive CRM</strong>, Thrive Education Center tərəfindən hazırlanmış CRM sistemidir. Sistem daxilində qeydiyyat edilmiş hər kəs müəyyənləşdirilmiş funksiyaları istifadə edə, ödənişlərini izləyə və s. əhatəli funksiyaları istifadə edə bilər.
+                  </p>
+                  <p style={{ marginBottom: "1rem" }}>
+                    Əlavə olaraq AI ilə gücləndirilmiş bu sistem <strong>HacTag</strong> tərəfindən dizayn edilmişdir.
+                  </p>
+                  <div style={{ marginTop: "2rem", paddingTop: "1rem", borderTop: "1px solid var(--border-color)", textAlign: "center", fontSize: "0.85rem" }}>
+                    &copy; 2026 Thrive Education Center. Bütün hüquqlar qorunur.
                   </div>
                 </div>
               )}

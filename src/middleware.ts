@@ -33,13 +33,10 @@ export default async function middleware(req: NextRequest) {
 
     const role = token.role as string;
     
-    // 1. Students and parents cannot access CRM dashboard
-    if (role === 'student' || role === 'parent') {
-      const url = req.nextUrl.clone();
-      url.pathname = '/unlock'; // Or another suitable access denied page
-      return NextResponse.redirect(url);
-    }
-
+    // 1. Students and parents access restricted areas? No, they have their own dashboards
+    // We handle their restrictions inside the dashboard/page.tsx or specific route segments.
+    // They are allowed to access /dashboard base route.
+    
     // 2. Staff cannot access finance or settings
     if (role === 'staff' && (req.nextUrl.pathname.includes('/finance') || req.nextUrl.pathname.includes('/settings'))) {
       const url = req.nextUrl.clone();

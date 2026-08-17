@@ -22,6 +22,7 @@ import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import { signOut, useSession } from "next-auth/react";
 import styles from "@/app/[locale]/dashboard/layout.module.css";
+import GlobalSearch from "./GlobalSearch";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -91,6 +92,10 @@ export default function Sidebar({
         <button className={styles.closeBtn} onClick={() => setSidebarOpen(false)}>
           <X size={20} />
         </button>
+      </div>
+
+      <div style={{ padding: "0 1rem", marginBottom: "1rem" }}>
+        <GlobalSearch />
       </div>
 
       <nav className={styles.sidebarNav}>

@@ -36,7 +36,8 @@
     "aiAssistant": "AI Assistant",
     "settings": "Settings",
     "logout": "Logout",
-    "programs": "Programs"
+    "programs": "Programs",
+    "universities": "Universities"
   },
   "AiPage": {
     "title": "Thrive AI Assistant",
@@ -69,7 +70,8 @@
       "group": "Group",
       "date": "Date",
       "status": "Status"
-    }
+    },
+    "myStudents": "My Students"
   },
   "Leads": {
     "title": "Leads",

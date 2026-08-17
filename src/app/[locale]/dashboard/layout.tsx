@@ -91,22 +91,12 @@ export default function DashboardLayout({
             <button className={styles.menuBtn} onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
             </button>
-            <GlobalSearch />
+            <h2 style={{ marginLeft: "1rem", fontSize: "1.2rem", fontWeight: "600", color: "var(--text-primary)" }}>
+              {t("dashboard") || "Thrive CRM"}
+            </h2>
           </div>
 
           <div className={styles.headerRight}>
-            <div className={styles.langSwitcher}>
-              <Globe size={18} className={styles.langIcon} />
-              <select 
-                value={locale} 
-                onChange={(e) => router.replace(pathname, { locale: e.target.value })}
-                className={styles.langSelect}
-              >
-                <option value="az">AZ</option>
-                <option value="en">EN</option>
-                <option value="ru">RU</option>
-              </select>
-            </div>
             <NotificationsDropdown />
             <button 
               className={styles.settingsBtn} 

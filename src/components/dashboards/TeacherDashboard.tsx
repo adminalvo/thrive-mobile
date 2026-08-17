@@ -45,8 +45,8 @@ export default function TeacherDashboard() {
   };
 
   const stats = [
-    { title: "Mənim Tələbələrim", value: students.length, icon: Users, color: "var(--aqua-teal)" },
-    { title: "Bugünkü Dərslər", value: todayClasses.length, icon: Calendar, color: "var(--ocean-blue)" }
+    { title: t("myStudents") || "Mənim Tələbələrim", value: students.length, icon: Users, color: "var(--aqua-teal)" },
+    { title: t("todayClasses"), value: todayClasses.length, icon: Calendar, color: "var(--ocean-blue)" }
   ];
 
   return (
@@ -90,7 +90,7 @@ export default function TeacherDashboard() {
           className={styles.tableCard}
         >
           <div className={styles.cardHeader}>
-            <h3>Mənim Tələbələrim</h3>
+            <h3>{t("myStudents") || "Mənim Tələbələrim"}</h3>
           </div>
           <div className={styles.tableResponsive}>
             <table className={styles.table}>

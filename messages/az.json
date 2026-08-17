@@ -36,7 +36,8 @@
     "aiAssistant": "AI Köməkçi",
     "settings": "Tənzimləmələr",
     "logout": "Çıxış",
-    "programs": "Kurslar"
+    "programs": "Kurslar",
+    "universities": "Universitetlər"
   },
   "AiPage": {
     "title": "Thrive AI Köməkçi",
@@ -69,7 +70,8 @@
       "group": "Qrup",
       "date": "Tarix",
       "status": "Status"
-    }
+    },
+    "myStudents": "Mənim Tələbələrim"
   },
   "Leads": {
     "title": "Liderlər (Leads)",

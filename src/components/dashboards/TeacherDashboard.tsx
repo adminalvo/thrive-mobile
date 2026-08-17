@@ -53,9 +53,9 @@ export default function TeacherDashboard() {
     try {
       const res = await fetch(`/api/teacher/assignments/submissions`);
       const data = await res.json();
-      setAssignmentSubmissions(data || []);
-    } catch(e) {
-      console.error(e);
+      setAssignmentSubmissions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -687,7 +687,7 @@ export default function TeacherDashboard() {
                     </div>
                     <div style={{ marginBottom: "1rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
                       Tələbə: <span style={{ color: "var(--text-primary)" }}>{sub.first_name} {sub.last_name}</span> <br/>
-                      Tarix: {new Date(sub.submitted_at).toLocaleDateString("az-AZ", { hour: '2-digit', minute:'2-digit'})}
+                      Tarix: {sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString("az-AZ", { hour: '2-digit', minute:'2-digit'}) : "-"}
                     </div>
                     <div style={{ background: "rgba(0,0,0,0.2)", padding: "1rem", borderRadius: "6px", marginBottom: "1rem", fontSize: "0.9rem", color: "#ddd" }}>
                       {sub.content}

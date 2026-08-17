@@ -192,7 +192,7 @@ export default function StudentDashboard() {
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                       <span style={{ fontSize: "0.85rem", color: "var(--aqua-teal)", fontWeight: "600" }}>{n.group}</span>
                       <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                        {new Date(n.date).toLocaleDateString("az-AZ")}
+                        {n.date ? new Date(n.date).toLocaleDateString("az-AZ") : "-"}
                       </span>
                     </div>
                     <p style={{ margin: "0 0 0.75rem 0", color: "var(--text-primary)", fontSize: "0.95rem", lineHeight: "1.5" }}>{n.content}</p>
@@ -258,7 +258,7 @@ export default function StudentDashboard() {
                   <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(var(--glass-color), 0.02)", padding: "1rem", borderRadius: "10px" }}>
                     <div>
                       <h4 style={{ margin: "0 0 0.25rem 0", color: "var(--text-primary)", fontSize: "0.95rem" }}>{a.group}</h4>
-                      <span style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>{new Date(a.date).toLocaleDateString("az-AZ")}</span>
+                      <span style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>{a.date ? new Date(a.date).toLocaleDateString("az-AZ") : "-"}</span>
                     </div>
                     <div>
                       {a.status === "PRESENT" && <span style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981", padding: "0.3rem 0.8rem", borderRadius: "20px", fontSize: "0.8rem", fontWeight: "600" }}>İştirak edib</span>}

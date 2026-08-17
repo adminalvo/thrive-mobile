@@ -289,7 +289,7 @@ export default function TasksPage() {
         </div>
         <button className={styles.addBtn} onClick={openCreateModal}>
           <Plus size={18} /> {t("newTask")}
-        </button>}
+        </button>
       </div>
 
       <div className={styles.kanbanBoard}>

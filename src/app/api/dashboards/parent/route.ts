@@ -28,6 +28,7 @@ export async function GET() {
     let payments = [];
     let attendance = [];
     let exams = [];
+    let assignments = [];
     let notes = [];
 
     if (parentId) {
@@ -91,6 +92,21 @@ export async function GET() {
           WHERE r.student_id IN ${sql(studentIds)}
           ORDER BY e.date DESC
           LIMIT 10
+        `;
+
+        // Get assignments for these children
+        assignments = await sql`
+          SELECT a.id, a.title, a.due_date, a.max_score, g.name as group_name, up.first_name as student_name, s.id as student_id,
+                 sub.status, sub.score
+          FROM assignments a
+          JOIN groups g ON a.group_id = g.id
+          JOIN student_groups sg ON g.id = sg.group_id
+          JOIN students s ON sg.student_id = s.id
+          LEFT JOIN user_profiles up ON s.profile_id = up.id
+          LEFT JOIN assignment_submissions sub ON a.id = sub.assignment_id AND sub.student_id = s.id
+          WHERE s.id IN ${sql(studentIds)}
+          ORDER BY a.due_date ASC
+          LIMIT 15
         `;
 
         // Get non-private notes for these children
@@ -160,6 +176,17 @@ export async function GET() {
         studentName: n.student_name || "Tələbə",
         studentId: n.student_id,
         teacher: n.teacher_email || "Müəllim"
+      })),
+      assignments: assignments.map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        dueDate: a.due_date ? new Date(a.due_date).toLocaleDateString("az-AZ") : "Tarix yoxdur",
+        group: a.group_name,
+        studentName: a.student_name || "Tələbə",
+        studentId: a.student_id,
+        status: a.status || "PENDING",
+        score: a.score,
+        maxScore: a.max_score
       }))
     });
   } catch (error) {

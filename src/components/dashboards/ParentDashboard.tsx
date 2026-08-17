@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "@/app/[locale]/dashboard/page.module.css";
-import { Users, Calendar, CreditCard, CheckCircle, Clock, AlertTriangle, BookOpen } from "lucide-react";
+import { Users, Calendar, CreditCard, CheckCircle, Clock, AlertTriangle, BookOpen, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
@@ -15,6 +15,7 @@ export default function ParentDashboard() {
   const [payments, setPayments] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [exams, setExams] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedChild, setSelectedChild] = useState<string | null>(null);
 
@@ -28,6 +29,7 @@ export default function ParentDashboard() {
           setPayments(data.payments || []);
           setAttendance(data.attendance || []);
           setExams(data.exams || []);
+          setAssignments(data.assignments || []);
           
           if (data.children && data.children.length > 0) {
             setSelectedChild(data.children[0].id);
@@ -47,6 +49,7 @@ export default function ParentDashboard() {
   const filteredPayments = payments.filter(p => selectedChild ? p.studentId === selectedChild : true);
   const filteredAttendance = attendance.filter(a => selectedChild ? a.studentId === selectedChild : true);
   const filteredExams = exams.filter(e => selectedChild ? e.studentId === selectedChild : true);
+  const filteredAssignments = assignments.filter(a => selectedChild ? a.studentId === selectedChild : true);
 
   return (
     <div className={styles.dashboard} style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
@@ -285,6 +288,56 @@ export default function ParentDashboard() {
                         {ex.score}
                       </span>
                       <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}> / {ex.maxScore}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Tapşırıqlar (Assignments) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ background: "var(--surface-dark)", borderRadius: "16px", border: "1px solid var(--border-color)", overflow: "hidden", display: "flex", flexDirection: "column" }}
+        >
+          <div style={{ padding: "1.5rem", borderBottom: "1px solid var(--border-color)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <FileText size={20} color="#3b82f6" />
+            <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--text-primary)" }}>Tapşırıqlar</h3>
+          </div>
+          <div style={{ padding: "1rem", flex: 1, overflowY: "auto", maxHeight: "400px" }}>
+            {filteredAssignments.length === 0 ? (
+              <p style={{ color: "var(--text-secondary)", textAlign: "center", padding: "1rem 0" }}>Tapşırıq tapılmadı</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {filteredAssignments.map((a, idx) => (
+                  <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(var(--glass-color), 0.02)", padding: "1rem", borderRadius: "10px", borderLeft: "4px solid #3b82f6" }}>
+                    <div>
+                      <h4 style={{ margin: "0 0 0.25rem 0", color: "var(--text-primary)", fontSize: "0.95rem" }}>{a.title}</h4>
+                      <span style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>{a.studentName} • {a.group}</span>
+                      <p style={{ margin: "0.25rem 0 0 0", color: "var(--text-secondary)", fontSize: "0.85rem" }}>Son tarix: {a.dueDate}</p>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      {a.status === 'GRADED' ? (
+                        <>
+                          <span style={{ fontWeight: 700, fontSize: "1.1rem", color: parseFloat(a.score) >= (a.maxScore/2) ? "#10b981" : "#ef4444" }}>
+                            {a.score}
+                          </span>
+                          <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}> / {a.maxScore}</span>
+                        </>
+                      ) : (
+                        <span style={{ 
+                          fontSize: "0.8rem", 
+                          fontWeight: 600, 
+                          padding: "0.3rem 0.6rem", 
+                          borderRadius: "12px", 
+                          background: a.status === 'SUBMITTED' ? "rgba(16, 185, 129, 0.15)" : a.status === 'LATE' ? "rgba(239, 68, 68, 0.15)" : "rgba(245, 158, 11, 0.15)",
+                          color: a.status === 'SUBMITTED' ? "#10b981" : a.status === 'LATE' ? "#ef4444" : "#f59e0b" 
+                        }}>
+                          {a.status === 'SUBMITTED' ? "Təhvil verilib" : a.status === 'LATE' ? "Gecikib" : "Gözləyir"}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}

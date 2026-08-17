@@ -261,7 +261,6 @@ export async function GET() {
           UNIQUE(exam_id, student_id)
         )
       `;
-    });
 
       // 16. assignments
       await tx`
@@ -299,8 +298,9 @@ export async function GET() {
       } catch (e) {
         console.log("Could not add is_private to student_notes:", e);
       }
+    });
 
-      return NextResponse.json({ message: "Database initialized successfully" });
+    return NextResponse.json({ message: "Database initialized successfully" });
   } catch (error: any) {
     console.error("Database init error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

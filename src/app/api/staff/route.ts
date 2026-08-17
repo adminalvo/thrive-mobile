@@ -15,7 +15,7 @@ export async function GET() {
       FROM auth.users u
       LEFT JOIN user_roles r ON u.id = r.user_id
       LEFT JOIN user_profiles p ON u.id = p.user_id
-      WHERE r.role IN ('super_admin', 'teacher', 'sales') OR r.role IS NULL
+      WHERE r.role IN ('super_admin', 'admin', 'staff', 'teacher', 'sales') OR r.role IS NULL
     `;
 
     const formatted = staff.map((s: any) => ({

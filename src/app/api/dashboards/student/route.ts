@@ -13,63 +13,87 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // Find student ID
+    // Get student ID
     const studentRes = await sql`
-      SELECT s.id 
+      SELECT s.id, p.first_name, p.last_name 
       FROM students s
-      LEFT JOIN user_profiles up ON s.profile_id = up.id
-      WHERE up.user_id = ${userId}
+      JOIN user_profiles p ON s.profile_id = p.id
+      WHERE p.user_id = ${userId}
     `;
 
-    const studentId = studentRes.length > 0 ? studentRes[0].id : null;
-    
-    let classes = [];
-    let payments = [];
+    if (studentRes.length === 0) {
+      return NextResponse.json({ schedules: [], notes: [], attendance: [], error: "Student profile not found" });
+    }
 
-    if (studentId) {
-      // Get upcoming classes for this student
-      classes = await sql`
-        SELECT c.id, c.date, c.start_time, c.end_time, c.status, g.name as group_name, 
-               pr.name as program_name, t_up.first_name as teacher_name
+    const studentId = studentRes[0].id;
+
+    // Get Student Groups
+    const groupsRes = await sql`
+      SELECT group_id FROM student_groups WHERE student_id = ${studentId}
+    `;
+    const groupIds = groupsRes.map((g: any) => g.group_id);
+
+    // Get Schedules
+    let schedules = [];
+    if (groupIds.length > 0) {
+      schedules = await sql`
+        SELECT c.id, c.start_time, c.end_time, c.status, g.name as group_name, g.room, c.day_of_week
         FROM schedules c
-        LEFT JOIN groups g ON c.group_id = g.id
-        LEFT JOIN programs pr ON g.program_id = pr.id
-        LEFT JOIN teachers t ON g.teacher_id = t.id
-        LEFT JOIN user_profiles t_up ON t.profile_id = t_up.id
-        LEFT JOIN student_groups sg ON g.id = sg.group_id
-        WHERE sg.student_id = ${studentId}
-          AND DATE(c.date) >= CURRENT_DATE
-        ORDER BY c.date ASC, c.start_time ASC
-        LIMIT 10
+        JOIN groups g ON c.group_id = g.id
+        WHERE c.group_id IN ${sql(groupIds)}
+        ORDER BY c.day_of_week ASC, c.start_time ASC
       `;
+    }
 
-      // Get payments for this student
-      payments = await sql`
-        SELECT p.id, p.amount, p.status, p.created_at
-        FROM payments p
-        WHERE p.student_id = ${studentId}
-        ORDER BY p.created_at DESC
+    // Get Notes & Homework
+    let notes = [];
+    if (groupIds.length > 0) {
+      notes = await sql`
+        SELECT n.id, n.content, n.created_at, u.email as teacher_email, g.name as group_name
+        FROM group_notes n
+        LEFT JOIN auth.users u ON n.teacher_id = u.id
+        LEFT JOIN groups g ON n.group_id = g.id
+        WHERE n.student_id = ${studentId} OR n.group_id IN ${sql(groupIds)}
+        ORDER BY n.created_at DESC
         LIMIT 10
       `;
     }
 
+    // Get Attendance
+    const attendance = await sql`
+      SELECT a.id, a.status, a.date, a.notes, g.name as group_name
+      FROM attendance a
+      JOIN groups g ON a.group_id = g.id
+      WHERE a.student_id = ${studentId}
+      ORDER BY a.date DESC
+      LIMIT 10
+    `;
+
     return NextResponse.json({
-      upcomingClasses: classes.map((c: any) => ({
-        id: c.id,
-        date: new Date(c.date).toLocaleDateString(),
-        time: `${c.start_time ? c.start_time.substring(0,5) : ""} - ${c.end_time ? c.end_time.substring(0,5) : ""}`,
-        group: c.group_name || "Bilinmir",
-        program: c.program_name || "Proqram",
-        teacherName: c.teacher_name || "Təyin edilməyib",
-        status: c.status || "SCHEDULED"
+      schedules: schedules.map((s: any) => ({
+        id: s.id,
+        dayOfWeek: s.day_of_week,
+        time: `${s.start_time ? s.start_time.substring(0,5) : ""} - ${s.end_time ? s.end_time.substring(0,5) : ""}`,
+        group: s.group_name || "",
+        room: s.room || "N/A",
+        status: s.status
       })),
-      payments: payments.map((p: any) => ({
-        id: p.id,
-        amount: p.amount,
-        status: p.status,
-        date: new Date(p.created_at).toLocaleDateString()
+      notes: notes.map((n: any) => ({
+        id: n.id,
+        content: n.content,
+        date: n.created_at,
+        teacher: n.teacher_email || "Müəllim",
+        group: n.group_name || "Ümumi"
+      })),
+      attendance: attendance.map((a: any) => ({
+        id: a.id,
+        date: a.date,
+        status: a.status, // "PRESENT", "ABSENT", "LATE"
+        group: a.group_name,
+        notes: a.notes || ""
       }))
     });
+
   } catch (error) {
     console.error("Student Dashboard API Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

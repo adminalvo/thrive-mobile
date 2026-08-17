@@ -24,17 +24,14 @@ export async function GET() {
     const teacherId = teacherRes.length > 0 ? teacherRes[0].id : null;
     
     // Get students assigned to this teacher's groups
-    let students = [];
-    if (teacherId) {
-      students = await sql`
-        SELECT DISTINCT s.id, p.first_name, p.last_name, p.email, p.phone, g.name as group_name
-        FROM students s
-        LEFT JOIN user_profiles p ON s.profile_id = p.id
-        LEFT JOIN student_groups sg ON s.id = sg.student_id
-        LEFT JOIN groups g ON sg.group_id = g.id
-        WHERE g.teacher_id = ${teacherId} OR g.teacher_id = ${userId}
-      `;
-    }
+    const students = await sql`
+      SELECT DISTINCT s.id, p.first_name, p.last_name, p.email, p.phone, g.name as group_name
+      FROM students s
+      LEFT JOIN user_profiles p ON s.profile_id = p.id
+      LEFT JOIN student_groups sg ON s.id = sg.student_id
+      LEFT JOIN groups g ON sg.group_id = g.id
+      WHERE g.teacher_id = ${userId}
+    `;
 
     // Get today's classes
     const classes = await sql`
@@ -43,7 +40,7 @@ export async function GET() {
       FROM schedules c
       LEFT JOIN groups g ON c.group_id = g.id
       LEFT JOIN programs pr ON g.program_id = pr.id
-      WHERE (g.teacher_id = ${teacherId} OR g.teacher_id = ${userId})
+      WHERE g.teacher_id = ${userId}
         AND DATE(c.date) = CURRENT_DATE
       ORDER BY c.start_time ASC
     `;

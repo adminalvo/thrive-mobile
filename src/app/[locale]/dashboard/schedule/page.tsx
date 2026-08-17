@@ -6,6 +6,7 @@ import { Plus, Clock, Users, BookOpen, X, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 
 interface ScheduleItem {
   id: string;
@@ -34,6 +35,11 @@ interface GroupWithSchedule {
 export default function SchedulePage() {
   const t = useTranslations("Schedule");
   const c = useTranslations("Common");
+  
+  const { data: session } = useSession();
+  const userRole = session?.user?.role || "staff";
+  const canEdit = ["super_admin", "staff", "admin", "sales", "teacher"].includes(userRole);
+  
   const [groups, setGroups] = useState<GroupWithSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -174,9 +180,11 @@ export default function SchedulePage() {
           <h1 className={styles.title}>{t("title")}</h1>
           <p className={styles.subtitle}>{t("subtitle")}</p>
         </div>
-        <button className={styles.addBtn} onClick={() => openAddScheduleModal()}>
-          <Plus size={18} /> Cədvəl Əlavə Et
-        </button>
+        {canEdit && (
+          <button className={styles.addBtn} onClick={() => openAddScheduleModal()}>
+            <Plus size={18} /> Cədvəl Əlavə Et
+          </button>
+        )}
       </div>
 
       <div className={styles.tableContainer}>
@@ -192,7 +200,7 @@ export default function SchedulePage() {
                 <th>Həftənin Günü</th>
                 <th>Saat</th>
                 <th>Otaq</th>
-                <th style={{ textAlign: "right" }}>Əməliyyat</th>
+                {canEdit && <th style={{ textAlign: "right" }}>Əməliyyat</th>}
               </tr>
             </thead>
             <tbody>
@@ -234,16 +242,18 @@ export default function SchedulePage() {
                       <td>
                         <span style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>{room}</span>
                       </td>
-                      <td style={{ textAlign: "right" }}>
-                        <button
-                          className={styles.deleteScheduleBtn}
-                          title="Cədvəli Sil"
-                          onClick={() => handleDeleteSchedule(sch.id, group.id)}
-                          style={{ display: "inline-flex", background: "transparent", border: "none", color: "var(--danger-color)", padding: "0.4rem", cursor: "pointer", borderRadius: "6px" }}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
+                      {canEdit && (
+                        <td style={{ textAlign: "right" }}>
+                          <button
+                            className={styles.deleteScheduleBtn}
+                            title="Cədvəli Sil"
+                            onClick={() => handleDeleteSchedule(sch.id, group.id)}
+                            style={{ display: "inline-flex", background: "transparent", border: "none", color: "var(--danger-color)", padding: "0.4rem", cursor: "pointer", borderRadius: "6px" }}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </td>
+                      )}
                     </motion.tr>
                   );
                 }) : []

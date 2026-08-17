@@ -7,11 +7,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import { useSession } from "next-auth/react";
 
 export default function GroupsPage() {
   const t = useTranslations("Groups");
   const c = useTranslations("Common");
   const tp = useTranslations("Programs");
+  
+  const { data: session } = useSession();
+  const userRole = session?.user?.role || "staff";
+  const canEdit = ["super_admin", "staff", "admin", "sales", "teacher"].includes(userRole);
   
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,10 +119,13 @@ export default function GroupsPage() {
           <h1 className={styles.title}>{t("title")}</h1>
           <p className={styles.subtitle}>{t("subtitle")}</p>
         </div>
-        <button className={styles.addBtn} onClick={() => setShowModal(true)}>
-          <Plus size={18} />
-          {t("newGroup")}
-        </button>
+        
+        {canEdit && (
+          <button className={styles.addBtn} onClick={() => setShowModal(true)}>
+            <Plus size={18} />
+            {t("newGroup")}
+          </button>
+        )}
       </motion.div>
 
       <div className={styles.toolbar}>
@@ -173,9 +181,11 @@ export default function GroupsPage() {
                           <Component size={16} />
                         </button>
                       </Link>
-                      <button className={styles.iconBtn} onClick={() => handleDelete(g.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
-                        <Trash2 size={16} />
-                      </button>
+                      {canEdit && (
+                        <button className={styles.iconBtn} onClick={() => handleDelete(g.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

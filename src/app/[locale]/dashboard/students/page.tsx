@@ -10,18 +10,13 @@ import { Link, useRouter } from "@/i18n/routing";
 import { useSession } from "next-auth/react";
 
 export default function StudentsPage() {
-  const { data: session } = useSession();
-  const router = useRouter();
-  
-  if (session?.user?.role === "teacher") {
-    if (typeof window !== "undefined") {
-      router.push("/dashboard");
-    }
-    return null;
-  }
-
   const t = useTranslations("Students");
   const c = useTranslations("Common");
+  const { data: session } = useSession();
+  const router = useRouter();
+  const userRole = session?.user?.role || "staff";
+  const canEdit = ["super_admin", "admin", "sales", "teacher"].includes(userRole);
+  
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -113,9 +108,11 @@ export default function StudentsPage() {
           <h1 className={styles.title}>{t("title")}</h1>
           <p className={styles.subtitle}>{t("subtitle")}</p>
         </div>
-        <button className={styles.addBtn} onClick={() => setShowModal(true)}>
-          <Plus size={18} /> {t("newStudent")}
-        </button>
+        {canEdit && (
+          <button className={styles.addBtn} onClick={() => setShowModal(true)}>
+            <Plus size={18} /> {t("newStudent")}
+          </button>
+        )}
       </div>
 
       <div className={styles.toolbar}>
@@ -227,9 +224,11 @@ export default function StudentsPage() {
                             <BookOpen size={16} />
                           </button>
                         </Link>
-                        <button className={styles.iconBtn} onClick={() => handleDelete(student.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
-                          <Trash2 size={16} />
-                        </button>
+                        {canEdit && (
+                          <button className={styles.iconBtn} onClick={() => handleDelete(student.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </motion.tr>

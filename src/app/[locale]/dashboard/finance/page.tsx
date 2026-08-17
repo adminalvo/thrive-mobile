@@ -370,7 +370,7 @@ export default function FinancePage() {
                   const debt = Math.max(0, (Number(inv.amount) || 0) - (Number(inv.paidAmount) || 0));
                   return (
                     <tr key={inv.id}>
-                      <td className={styles.invoiceId}>#{inv.id.substring(0,6).toUpperCase()}</td>
+                      <td className={styles.invoiceId}>#{String(inv.id).substring(0,6).toUpperCase()}</td>
                       <td>
                         <div className={styles.studentInfo}>
                           <span className={styles.studentName}>{inv.studentName}</span>
@@ -379,7 +379,7 @@ export default function FinancePage() {
                       <td className={styles.boldAmount}>{inv.amount} ₼</td>
                       <td className={styles.paidAmount}>{inv.paidAmount} ₼</td>
                       <td className={debt > 0 ? styles.debtAmount : ""}>{debt} ₼</td>
-                      <td className={styles.date}>{new Date(inv.dueDate).toLocaleDateString("az-AZ")}</td>
+                      <td className={styles.date}>{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString("az-AZ") : "-"}</td>
                       <td>
                         <span className={`${styles.statusBadge} ${getStatusClass(inv.status)}`}>
                           {getStatusLabel(inv.status)}
@@ -450,7 +450,7 @@ export default function FinancePage() {
               <tbody>
                 {filteredExpenses.map(exp => (
                   <tr key={exp.id}>
-                    <td className={styles.date}>{new Date(exp.date).toLocaleDateString("az-AZ")}</td>
+                    <td className={styles.date}>{exp.date ? new Date(exp.date).toLocaleDateString("az-AZ") : "-"}</td>
                     <td>
                       <span className={styles.expenseCategory}>{exp.category}</span>
                     </td>

@@ -234,6 +234,32 @@ export async function GET() {
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `;
+
+      // 14. exams
+      await tx`
+        CREATE TABLE IF NOT EXISTS exams (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          title TEXT NOT NULL,
+          group_id UUID REFERENCES groups(id) ON DELETE CASCADE,
+          teacher_id UUID REFERENCES auth.users(id),
+          date DATE NOT NULL,
+          max_score INT NOT NULL DEFAULT 100,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
+      // 15. exam_results
+      await tx`
+        CREATE TABLE IF NOT EXISTS exam_results (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          exam_id UUID REFERENCES exams(id) ON DELETE CASCADE,
+          student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+          score DECIMAL(5,2) NOT NULL,
+          feedback TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(exam_id, student_id)
+        )
+      `;
     });
 
     return NextResponse.json({ message: "Database synchronized successfully" });

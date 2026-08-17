@@ -69,6 +69,16 @@ export async function GET() {
       LIMIT 10
     `;
 
+    // Get exam results
+    const exams = await sql`
+      SELECT e.title, e.date, e.max_score, r.score, r.feedback, g.name as group_name
+      FROM exam_results r
+      JOIN exams e ON r.exam_id = e.id
+      JOIN groups g ON e.group_id = g.id
+      WHERE r.student_id = ${studentId}
+      ORDER BY e.date DESC
+    `;
+
     return NextResponse.json({
       schedules: schedules.map((s: any) => ({
         id: s.id,
@@ -91,6 +101,14 @@ export async function GET() {
         status: a.status, // "PRESENT", "ABSENT", "LATE"
         group: a.group_name,
         notes: a.notes || ""
+      })),
+      exams: exams.map((e: any) => ({
+        title: e.title,
+        date: e.date,
+        score: e.score,
+        maxScore: e.max_score,
+        feedback: e.feedback,
+        groupName: e.group_name
       }))
     });
 

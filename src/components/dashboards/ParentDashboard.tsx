@@ -14,6 +14,7 @@ export default function ParentDashboard() {
   const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
+  const [exams, setExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export default function ParentDashboard() {
           setUpcomingClasses(data.upcomingClasses || []);
           setPayments(data.payments || []);
           setAttendance(data.attendance || []);
+          setExams(data.exams || []);
         }
         setLoading(false);
       });
@@ -180,6 +182,41 @@ export default function ParentDashboard() {
                         {p.amount} ₼
                       </span>
                       {p.status === "PENDING" && <AlertTriangle size={16} color="#ef4444" title="Ödəniş gecikir" />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Nəticələr və İmtahanlar */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ background: "var(--surface-dark)", borderRadius: "16px", border: "1px solid var(--border-color)", overflow: "hidden", display: "flex", flexDirection: "column" }}
+        >
+          <div style={{ padding: "1.5rem", borderBottom: "1px solid var(--border-color)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <BookOpen size={20} color="#8b5cf6" />
+            <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--white)" }}>İmtahan Nəticələri</h3>
+          </div>
+          <div style={{ padding: "1rem", flex: 1, overflowY: "auto", maxHeight: "400px" }}>
+            {exams.length === 0 ? (
+              <p style={{ color: "var(--text-secondary)", textAlign: "center", padding: "1rem 0" }}>İmtahan tapılmadı</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {exams.map((ex, idx) => (
+                  <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.02)", padding: "1rem", borderRadius: "10px", borderLeft: "4px solid #8b5cf6" }}>
+                    <div>
+                      <h4 style={{ margin: "0 0 0.25rem 0", color: "var(--white)", fontSize: "0.95rem" }}>{ex.title}</h4>
+                      <span style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>{ex.studentName} • {ex.group}</span>
+                      {ex.feedback && <p style={{ margin: "0.25rem 0 0 0", color: "var(--text-secondary)", fontSize: "0.85rem" }}>{ex.feedback}</p>}
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <span style={{ fontWeight: 700, fontSize: "1.1rem", color: parseFloat(ex.score) >= (ex.maxScore/2) ? "#10b981" : "#ef4444" }}>
+                        {ex.score}
+                      </span>
+                      <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}> / {ex.maxScore}</span>
                     </div>
                   </div>
                 ))}

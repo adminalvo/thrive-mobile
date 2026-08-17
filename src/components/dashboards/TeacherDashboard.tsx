@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "@/app/[locale]/dashboard/page.module.css";
-import { Users, Calendar, MoreVertical, MessageSquare, CheckCircle } from "lucide-react";
+import { Users, Calendar, MoreVertical, MessageSquare, CheckCircle, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
@@ -18,6 +18,26 @@ export default function TeacherDashboard() {
   const [attendanceModal, setAttendanceModal] = useState<{studentId: string, groupId: string, name: string} | null>(null);
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [attendanceStatus, setAttendanceStatus] = useState("PRESENT");
+
+  const [createExamModal, setCreateExamModal] = useState(false);
+  const [newExamForm, setNewExamForm] = useState({ title: "", groupId: "", date: new Date().toISOString().split("T")[0], maxScore: 100 });
+
+  const [examModal, setExamModal] = useState<{studentId: string, name: string, groupId: string} | null>(null);
+  const [examsList, setExamsList] = useState<any[]>([]);
+  const [examForm, setExamForm] = useState({ examId: "", score: "", feedback: "" });
+
+  const fetchExams = async (groupId: string) => {
+    try {
+      const res = await fetch(`/api/teacher/exams?groupId=${groupId}`);
+      const data = await res.json();
+      setExamsList(data || []);
+      if (data && data.length > 0) {
+        setExamForm({ examId: data[0].id, score: "", feedback: "" });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     fetch("/api/dashboards/teacher")
@@ -72,6 +92,50 @@ export default function TeacherDashboard() {
     }
   };
 
+  const submitExamGrade = async () => {
+    if (!examModal || !examForm.examId || !examForm.score) return;
+    try {
+      const res = await fetch("/api/teacher/exams/results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          examId: examForm.examId,
+          studentId: examModal.studentId,
+          score: parseFloat(examForm.score),
+          feedback: examForm.feedback
+        })
+      });
+      if (res.ok) {
+        alert("Nəticə uğurla qeyd edildi");
+        setExamModal(null);
+      } else {
+        alert("Xəta baş verdi");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const createExam = async () => {
+    if (!newExamForm.title || !newExamForm.groupId || !newExamForm.date) return;
+    try {
+      const res = await fetch("/api/teacher/exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newExamForm)
+      });
+      if (res.ok) {
+        alert("İmtahan yaradıldı");
+        setCreateExamModal(false);
+        setNewExamForm({ title: "", groupId: "", date: new Date().toISOString().split("T")[0], maxScore: 100 });
+      } else {
+        alert("Xəta baş verdi");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const stats = [
     { title: t("myStudents") || "Mənim Tələbələrim", value: students.length, icon: Users, color: "var(--aqua-teal)" },
     { title: t("todayClasses"), value: todayClasses.length, icon: Calendar, color: "var(--ocean-blue)" }
@@ -88,6 +152,9 @@ export default function TeacherDashboard() {
           <h1 className={styles.pageTitle}>{t("welcome")} (Müəllim)</h1>
           <p className={styles.pageSubtitle}>{t("subtitle")}</p>
         </div>
+        <button className={styles.actionBtn} onClick={() => setCreateExamModal(true)}>
+          <GraduationCap size={18} style={{ marginRight: "8px" }} /> Yeni İmtahan
+        </button>
       </motion.div>
 
       <div className={styles.statsGrid}>
@@ -145,6 +212,17 @@ export default function TeacherDashboard() {
                           title="Davamiyyət"
                         >
                           <CheckCircle size={16} />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setExamModal({ studentId: student.id, name: student.name, groupId: student.groupId });
+                            fetchExams(student.groupId);
+                          }}
+                          className={styles.iconBtn} 
+                          style={{ color: "#8b5cf6", background: "rgba(139, 92, 246, 0.1)" }}
+                          title="Qiymətləndir"
+                        >
+                          <GraduationCap size={16} />
                         </button>
                         <button 
                           onClick={() => setNoteStudentId(student.id)}
@@ -255,6 +333,136 @@ export default function TeacherDashboard() {
             <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
               <button onClick={() => setAttendanceModal(null)} style={{ padding: "0.5rem 1rem", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>Ləğv et</button>
               <button onClick={markAttendance} style={{ padding: "0.5rem 1rem", background: "#10b981", border: "none", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>Yadda Saxla</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exam Grading Modal */}
+      {examModal && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex",
+          alignItems: "center", justifyContent: "center"
+        }}>
+          <div style={{
+            background: "var(--bg-card, #111)", padding: "2rem", borderRadius: "12px", width: "400px", maxWidth: "90%"
+          }}>
+            <h3 style={{ marginBottom: "1rem" }}>Qiymətləndirmə: {examModal.name}</h3>
+            
+            {examsList.length === 0 ? (
+              <div style={{ marginBottom: "1.5rem", color: "var(--text-secondary)" }}>
+                Bu qrup üçün aktiv imtahan tapılmadı. Əvvəlcə imtahan yaratmalısınız.
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: "1rem" }}>
+                  <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>İmtahan seçin</label>
+                  <select 
+                    value={examForm.examId}
+                    onChange={(e) => setExamForm({...examForm, examId: e.target.value})}
+                    style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px" }}
+                  >
+                    {examsList.map(ex => (
+                      <option key={ex.id} value={ex.id} style={{ background: "var(--bg-dark)" }}>{ex.title} (Max: {ex.max_score})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ marginBottom: "1rem" }}>
+                  <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>Bal / Nəticə</label>
+                  <input 
+                    type="number" 
+                    value={examForm.score}
+                    onChange={(e) => setExamForm({...examForm, score: e.target.value})}
+                    placeholder="Məs: 85"
+                    style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px" }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>Müəllim Rəyi (Köməkçi)</label>
+                  <textarea 
+                    value={examForm.feedback}
+                    onChange={(e) => setExamForm({...examForm, feedback: e.target.value})}
+                    placeholder="Tələbə haqqında rəyiniz..."
+                    style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px", minHeight: "80px" }}
+                  />
+                </div>
+              </>
+            )}
+
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
+              <button onClick={() => setExamModal(null)} style={{ padding: "0.5rem 1rem", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>Ləğv et</button>
+              {examsList.length > 0 && (
+                <button onClick={submitExamGrade} style={{ padding: "0.5rem 1rem", background: "#8b5cf6", border: "none", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>Yadda Saxla</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Exam Modal */}
+      {createExamModal && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex",
+          alignItems: "center", justifyContent: "center"
+        }}>
+          <div style={{
+            background: "var(--bg-card, #111)", padding: "2rem", borderRadius: "12px", width: "400px", maxWidth: "90%"
+          }}>
+            <h3 style={{ marginBottom: "1rem" }}>Yeni İmtahan Yarat</h3>
+            
+            <div style={{ marginBottom: "1rem" }}>
+              <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>Başlıq</label>
+              <input 
+                type="text" 
+                value={newExamForm.title}
+                onChange={(e) => setNewExamForm({...newExamForm, title: e.target.value})}
+                placeholder="Məs: Fevral Sınaq İmtahanı"
+                style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px" }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "1rem" }}>
+              <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>Qrup</label>
+              <select 
+                value={newExamForm.groupId}
+                onChange={(e) => setNewExamForm({...newExamForm, groupId: e.target.value})}
+                style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px" }}
+              >
+                <option value="" style={{ background: "var(--bg-dark)" }}>Qrup Seçin</option>
+                {/* Extract unique groups from todayClasses or students array */}
+                {Array.from(new Map(students.map(s => [s.groupId, {id: s.groupId, name: s.group}])).values()).map((g: any) => (
+                  <option key={g.id} value={g.id} style={{ background: "var(--bg-dark)" }}>{g.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: "1rem" }}>
+              <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>Tarix</label>
+              <input 
+                type="date" 
+                value={newExamForm.date}
+                onChange={(e) => setNewExamForm({...newExamForm, date: e.target.value})}
+                style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px" }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>Maksimal Bal</label>
+              <input 
+                type="number" 
+                value={newExamForm.maxScore}
+                onChange={(e) => setNewExamForm({...newExamForm, maxScore: parseInt(e.target.value) || 100})}
+                style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px" }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
+              <button onClick={() => setCreateExamModal(false)} style={{ padding: "0.5rem 1rem", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>Ləğv et</button>
+              <button onClick={createExam} style={{ padding: "0.5rem 1rem", background: "#8b5cf6", border: "none", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>İmtahan Yarat</button>
             </div>
           </div>
         </div>

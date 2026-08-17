@@ -27,6 +27,7 @@ export async function GET() {
     let classes = [];
     let payments = [];
     let attendance = [];
+    let exams = [];
 
     if (parentId) {
       // Get children
@@ -79,6 +80,19 @@ export async function GET() {
           ORDER BY a.date DESC
           LIMIT 15
         `;
+
+        // Get exams for these children
+        exams = await sql`
+          SELECT e.title, e.date, e.max_score, r.score, r.feedback, g.name as group_name, up.first_name as student_name
+          FROM exam_results r
+          JOIN exams e ON r.exam_id = e.id
+          JOIN groups g ON e.group_id = g.id
+          LEFT JOIN students s ON r.student_id = s.id
+          LEFT JOIN user_profiles up ON s.profile_id = up.id
+          WHERE r.student_id IN ${sql(studentIds)}
+          ORDER BY e.date DESC
+          LIMIT 10
+        `;
       }
     }
 
@@ -110,6 +124,15 @@ export async function GET() {
         status: a.status,
         group: a.group_name,
         studentName: a.student_name || "Tələbə"
+      })),
+      exams: exams.map((e: any) => ({
+        title: e.title,
+        date: new Date(e.date).toLocaleDateString("az-AZ"),
+        score: e.score,
+        maxScore: e.max_score,
+        feedback: e.feedback,
+        group: e.group_name,
+        studentName: e.student_name || "Tələbə"
       }))
     });
   } catch (error) {

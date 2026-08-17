@@ -19,7 +19,8 @@ import {
   GraduationCap,
   Library,
   ShieldAlert,
-  GripVertical
+  GripVertical,
+  Search
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
@@ -83,11 +84,13 @@ function SortableNavItem({ item, isActive, isCollapsed, name, onNavClick }: any)
 
   return (
     <div ref={setNodeRef} style={style} className={`${styles.navItemContainer} ${isActive ? styles.navActiveContainer : ""}`} >
-      <div {...attributes} {...listeners} className={styles.dragHandle} title="Sürüşdür">
-        <GripVertical size={16} />
-      </div>
+      {!isCollapsed && (
+        <div {...attributes} {...listeners} className={styles.dragHandle} title="Sürüşdür">
+          <GripVertical size={16} />
+        </div>
+      )}
       <Link href={item.href} onClick={onNavClick} style={{flex: 1}}>
-        <div className={`${styles.navItem} ${isActive ? styles.navActive : ""}`} title={isCollapsed ? name : undefined} style={{paddingLeft: '0.2rem'}}>
+        <div className={`${styles.navItem} ${isActive ? styles.navActive : ""}`} title={isCollapsed ? name : undefined} style={{paddingLeft: isCollapsed ? '1rem' : '0.2rem', justifyContent: isCollapsed ? 'center' : 'flex-start'}}>
           <item.icon size={20} className={isActive ? styles.iconActive : styles.icon} />
           {!isCollapsed && <span>{name}</span>}
         </div>
@@ -200,21 +203,36 @@ export default function Sidebar({
     <aside 
       className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""} ${isCollapsed ? styles.sidebarCollapsed : ""}`}
     >
-      <div className={styles.sidebarHeader}>
-        <div className={styles.logo}>
-          <LayoutDashboard className={styles.logoAccent} size={24} />
-          {!isCollapsed && <span>Thrive<span className={styles.logoAccent}>CRM</span></span>}
-        </div>
+      <div className={styles.sidebarHeader} style={isCollapsed ? { padding: 0, justifyContent: 'center' } : {}}>
+        {!isCollapsed && (
+          <div className={styles.logo}>
+            <LayoutDashboard className={styles.logoAccent} size={24} />
+            <span>Thrive<span className={styles.logoAccent}>CRM</span></span>
+          </div>
+        )}
         <button className={styles.desktopCollapseBtn} onClick={() => setIsCollapsed(!isCollapsed)}>
           <Menu size={20} />
         </button>
-        <button className={styles.closeBtn} onClick={() => setSidebarOpen(false)}>
-          <X size={20} />
-        </button>
+        {!isCollapsed && (
+          <button className={styles.closeBtn} onClick={() => setSidebarOpen(false)}>
+            <X size={20} />
+          </button>
+        )}
       </div>
 
-      <div style={{ padding: "0 1rem", marginBottom: "1rem" }}>
-        <GlobalSearch />
+      <div style={{ padding: isCollapsed ? "0" : "0 1rem", marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
+        {isCollapsed ? (
+          <button 
+            className={styles.iconBtn} 
+            onClick={() => setIsCollapsed(false)} 
+            style={{ width: "40px", height: "40px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", border: "none", color: "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+            title={t("search") || "Axtarış"}
+          >
+            <Search size={20} />
+          </button>
+        ) : (
+          <GlobalSearch />
+        )}
       </div>
 
       <nav className={styles.sidebarNav}>
@@ -243,7 +261,7 @@ export default function Sidebar({
       <div className={styles.sidebarFooter}>
         {isSuperAdmin && (
           <Link href={`/dashboard/staff`}>
-            <div className={`${styles.navItem} ${pathname === '/dashboard/staff' ? styles.navActive : ""}`} title={isCollapsed ? "İşçilər (RBAC)" : undefined}>
+            <div className={`${styles.navItem} ${pathname === '/dashboard/staff' ? styles.navActive : ""}`} title={isCollapsed ? "İşçilər (RBAC)" : undefined} style={{justifyContent: isCollapsed ? 'center' : 'flex-start'}}>
               <ShieldAlert size={20} className={pathname === '/dashboard/staff' ? styles.iconActive : styles.icon} />
               {!isCollapsed && <span>İşçilər (RBAC)</span>}
             </div>
@@ -255,7 +273,7 @@ export default function Sidebar({
             await signOut({ redirect: false });
             window.location.href = "/login";
           }}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", justifyContent: isCollapsed ? 'center' : 'flex-start' }}
           title={isCollapsed ? t("logout") : undefined}
         >
           <LogOut size={20} className={styles.iconLogout} />

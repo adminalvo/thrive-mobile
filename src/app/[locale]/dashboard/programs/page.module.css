@@ -15,7 +15,7 @@
   background: rgba(15, 23, 42, 0.4);
   padding: 1.5rem 2rem;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.05);
   backdrop-filter: blur(10px);
 }
 
@@ -96,8 +96,8 @@
 .searchBox input {
   width: 100%;
   padding: 0.85rem 1rem 0.85rem 2.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.03);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   border-radius: 10px;
   color: var(--white);
   font-size: 0.95rem;
@@ -107,15 +107,15 @@
 .searchBox input:focus {
   outline: none;
   border-color: var(--aqua-teal);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
 }
 
 .filterBtn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   color: var(--text-secondary);
   padding: 0 1.25rem;
   border-radius: 10px;
@@ -125,14 +125,14 @@
 }
 
 .filterBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.1);
   color: var(--white);
 }
 
 .tableContainer {
   background: rgba(15, 23, 42, 0.4);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.05);
   backdrop-filter: blur(10px);
   overflow: hidden;
 }
@@ -173,13 +173,13 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(var(--glass-color), 0.05);
   background: rgba(0, 0, 0, 0.2);
 }
 
 .table td {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(var(--glass-color), 0.02);
   color: var(--text-primary);
   vertical-align: middle;
 }
@@ -189,7 +189,7 @@
 }
 
 .table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--glass-color), 0.02);
 }
 
 .userCell {
@@ -222,8 +222,8 @@
 }
 
 .iconBtn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   border-radius: 8px;
   width: 32px;
   height: 32px;
@@ -235,7 +235,7 @@
 }
 
 .iconBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.1);
   transform: translateY(-2px);
 }
 
@@ -269,7 +269,7 @@
 
 .modal {
   background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   border-radius: 16px;
   width: 100%;
   max-width: 500px;
@@ -324,7 +324,7 @@
 .formGroup input {
   padding: 0.85rem 1rem;
   background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   border-radius: 10px;
   color: var(--white);
   font-size: 0.95rem;
@@ -334,7 +334,7 @@
 .formGroup input:focus {
   outline: none;
   border-color: var(--aqua-teal);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
 }
 
 .modalActions {
@@ -346,7 +346,7 @@
 
 .cancelBtn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   color: var(--white);
   padding: 0.75rem 1.5rem;
   border-radius: 10px;
@@ -356,7 +356,7 @@
 }
 
 .cancelBtn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
 }
 
 .saveBtn {

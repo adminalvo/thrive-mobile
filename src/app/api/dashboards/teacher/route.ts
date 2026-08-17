@@ -35,13 +35,13 @@ export async function GET() {
 
     // Get today's classes
     const classes = await sql`
-      SELECT c.id, c.start_time, c.end_time, c.status, g.name as group_name, g.room, 
+      SELECT c.id, c.start_time, c.end_time, 'SCHEDULED' as status, g.name as group_name, g.room, 
              pr.name as program_name, g.id as group_id
-      FROM schedules c
+      FROM group_schedules c
       LEFT JOIN groups g ON c.group_id = g.id
       LEFT JOIN programs pr ON g.program_id = pr.id
       WHERE g.teacher_id = ${userId}
-        AND DATE(c.date) = CURRENT_DATE
+        AND c.day_of_week = EXTRACT(ISODOW FROM CURRENT_DATE)
       ORDER BY c.start_time ASC
     `;
 

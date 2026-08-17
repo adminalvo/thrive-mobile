@@ -7,7 +7,7 @@
 }
 
 .header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(var(--glass-color), 0.05);
   padding-bottom: 1rem;
 }
 
@@ -50,7 +50,7 @@
 }
 
 .tabBtn:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(var(--glass-color), 0.03);
   color: var(--white);
 }
 
@@ -63,7 +63,7 @@
 .main {
   flex: 1;
   background: rgba(2, 6, 23, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.05);
   border-radius: 16px;
   padding: 2rem;
   backdrop-filter: blur(10px);
@@ -90,8 +90,8 @@
 .formGroup input,
 .formGroup select {
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.03);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   border-radius: 8px;
   color: var(--white);
   font-family: inherit;
@@ -141,7 +141,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(var(--glass-color), 0.05);
 }
 
 .toggleGroup span {
@@ -153,7 +153,7 @@
   appearance: none;
   width: 48px;
   height: 24px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.1);
   border-radius: 12px;
   position: relative;
   cursor: pointer;
@@ -187,7 +187,7 @@
   justify-content: flex-end;
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(var(--glass-color), 0.05);
 }
 
 .saveBtn {

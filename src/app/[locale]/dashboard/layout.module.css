@@ -10,7 +10,7 @@
 .sidebar {
   width: 260px;
   background: rgba(2, 6, 23, 0.8);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(var(--glass-color), 0.05);
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(20px);
@@ -24,7 +24,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(var(--glass-color), 0.05);
 }
 
 .logo {
@@ -72,7 +72,7 @@
 }
 
 .navItem:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
   color: var(--white);
 }
 
@@ -98,7 +98,7 @@
 
 .sidebarFooter {
   padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(var(--glass-color), 0.05);
 }
 
 .logoutItem:hover {
@@ -139,7 +139,7 @@
 
 .desktopCollapseBtn:hover {
   color: var(--white);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.1);
 }
 
 /* Main Content */
@@ -159,7 +159,7 @@
   padding: 0 2rem;
   background: rgba(2, 6, 23, 0.5);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(var(--glass-color), 0.05);
   z-index: 40;
 }
 
@@ -190,8 +190,8 @@
 }
 
 .searchBar input {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.03);
+  border: 1px solid rgba(var(--glass-color), 0.05);
   border-radius: 20px;
   padding: 0.6rem 1rem 0.6rem 2.8rem;
   color: var(--white);
@@ -204,7 +204,7 @@
   outline: none;
   border-color: var(--aqua-teal);
   width: 300px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
 }
 
 .headerRight {
@@ -217,10 +217,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
   padding: 0.4rem 0.8rem;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.1);
 }
 
 .langIcon {
@@ -244,8 +244,8 @@
 }
 
 .iconBtn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.05);
   color: var(--text-secondary);
   width: 40px;
   height: 40px;
@@ -383,9 +383,9 @@
 .coursesWidget {
   margin: 1rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(var(--glass-color), 0.03);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.05);
 }
 
 .coursesHeader {
@@ -419,6 +419,6 @@
 }
 
 .courseItem:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
   color: var(--text-primary);
 }

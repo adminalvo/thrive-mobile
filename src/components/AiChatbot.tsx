@@ -255,7 +255,7 @@ export default function AiChatbot() {
               height: "520px",
               background: "rgba(15, 23, 42, 0.95)",
               backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
+              border: "1px solid rgba(var(--glass-color), 0.12)",
               borderRadius: "16px",
               boxShadow: "0 20px 50px rgba(0, 0, 0, 0.55)",
               display: "flex",
@@ -268,7 +268,7 @@ export default function AiChatbot() {
             <div style={{
               padding: "0.85rem 1rem",
               background: "rgba(76, 162, 181, 0.12)",
-              borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+              borderBottom: "1px solid rgba(var(--glass-color), 0.08)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center"
@@ -316,7 +316,7 @@ export default function AiChatbot() {
                     width: "28px",
                     height: "28px",
                     borderRadius: "14px",
-                    background: m.role === "user" ? "rgba(255,255,255,0.15)" : "var(--aqua-teal)",
+                    background: m.role === "user" ? "rgba(var(--glass-color), 0.15)" : "var(--aqua-teal)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -325,8 +325,8 @@ export default function AiChatbot() {
                     {m.role === "user" ? <User size={14} color="white" /> : <Bot size={14} color="white" />}
                   </div>
                   <div style={{
-                    background: m.role === "user" ? "rgba(76, 162, 181, 0.25)" : "rgba(255, 255, 255, 0.08)",
-                    border: m.role === "user" ? "1px solid rgba(76, 162, 181, 0.35)" : "1px solid rgba(255, 255, 255, 0.08)",
+                    background: m.role === "user" ? "rgba(76, 162, 181, 0.25)" : "rgba(var(--glass-color), 0.08)",
+                    border: m.role === "user" ? "1px solid rgba(76, 162, 181, 0.35)" : "1px solid rgba(var(--glass-color), 0.08)",
                     padding: "0.75rem 0.95rem",
                     borderRadius: "14px",
                     borderBottomRightRadius: m.role === "user" ? "2px" : "14px",
@@ -357,7 +357,7 @@ export default function AiChatbot() {
                                   borderRadius: "8px",
                                   objectFit: "cover",
                                   display: "block",
-                                  border: "1px solid rgba(255, 255, 255, 0.15)"
+                                  border: "1px solid rgba(var(--glass-color), 0.15)"
                                 }}
                               />
                             );
@@ -390,7 +390,7 @@ export default function AiChatbot() {
               <div style={{
                 padding: "0.5rem 1rem",
                 background: "rgba(0, 0, 0, 0.3)",
-                borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+                borderTop: "1px solid rgba(var(--glass-color), 0.06)",
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem"
@@ -441,7 +441,7 @@ export default function AiChatbot() {
             {/* Input Form */}
             <form onSubmit={sendMessage} style={{
               padding: "0.75rem 1rem",
-              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+              borderTop: "1px solid rgba(var(--glass-color), 0.08)",
               display: "flex",
               alignItems: "center",
               gap: "0.4rem",
@@ -466,8 +466,8 @@ export default function AiChatbot() {
                   width: "32px",
                   height: "32px",
                   borderRadius: "16px",
-                  background: selectedImage ? "rgba(76, 162, 181, 0.3)" : "rgba(255, 255, 255, 0.08)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  background: selectedImage ? "rgba(76, 162, 181, 0.3)" : "rgba(var(--glass-color), 0.08)",
+                  border: "1px solid rgba(var(--glass-color), 0.1)",
                   color: selectedImage ? "var(--aqua-teal)" : "var(--text-secondary)",
                   display: "flex",
                   alignItems: "center",
@@ -490,8 +490,8 @@ export default function AiChatbot() {
                   width: "32px",
                   height: "32px",
                   borderRadius: "16px",
-                  background: isRecording ? "#ef4444" : "rgba(255, 255, 255, 0.08)",
-                  border: isRecording ? "1px solid #ef4444" : "1px solid rgba(255, 255, 255, 0.1)",
+                  background: isRecording ? "#ef4444" : "rgba(var(--glass-color), 0.08)",
+                  border: isRecording ? "1px solid #ef4444" : "1px solid rgba(var(--glass-color), 0.1)",
                   color: isRecording ? "white" : "var(--text-secondary)",
                   display: "flex",
                   alignItems: "center",
@@ -514,8 +514,8 @@ export default function AiChatbot() {
                 disabled={loading}
                 style={{
                   flex: 1,
-                  background: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  background: "rgba(var(--glass-color), 0.05)",
+                  border: "1px solid rgba(var(--glass-color), 0.12)",
                   borderRadius: "18px",
                   padding: "0.5rem 0.85rem",
                   color: "white",

@@ -51,7 +51,7 @@
 
 .groupCard {
   background: rgba(2, 6, 23, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.05);
   border-radius: 16px;
   padding: 1.5rem;
   backdrop-filter: blur(10px);
@@ -104,7 +104,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--glass-color), 0.02);
   padding: 1rem;
   border-radius: 8px;
 }
@@ -113,7 +113,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+  border-bottom: 1px dashed rgba(var(--glass-color), 0.05);
   padding-bottom: 0.6rem;
 }
 
@@ -143,7 +143,7 @@
 }
 
 .room {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -177,13 +177,12 @@
 
 /* Table */
 .tableContainer {
-  background: rgba(2, 6, 23, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 1.5rem;
-  backdrop-filter: blur(10px);
+  background: var(--surface-dark, rgba(2, 6, 23, 0.6));
+  border: 1px solid rgba(var(--glass-color), 0.15);
+  border-radius: 12px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .table {
@@ -195,22 +194,25 @@
 .table th {
   text-align: left;
   padding: 1rem;
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: var(--text-primary);
+  background: rgba(var(--glass-color), 0.03);
+  font-weight: 600;
   font-size: 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.1);
 }
 
 .table td {
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  color: var(--white);
+  border: 1px solid rgba(var(--glass-color), 0.1);
+  color: var(--text-primary);
   font-size: 0.95rem;
   vertical-align: middle;
+  background: var(--surface-dark, transparent);
+  transition: background 0.2s ease;
 }
 
-.tableRow:last-child td {
-  border-bottom: none;
+.tableRow:hover td {
+  background: rgba(var(--glass-color), 0.03);
 }
 
 /* Modal */
@@ -228,7 +230,7 @@
 
 .modal {
   background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   padding: 2rem;
   border-radius: 16px;
   width: 90%;
@@ -291,8 +293,8 @@
 .inputGroup input,
 .inputGroup select {
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.05);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   border-radius: 8px;
   color: var(--white);
   font-size: 0.95rem;
@@ -325,7 +327,7 @@
 }
 
 .cancelBtn {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--glass-color), 0.08);
   color: var(--text-secondary);
   border: none;
   padding: 0.75rem 1.4rem;
@@ -337,7 +339,7 @@
 }
 
 .cancelBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(var(--glass-color), 0.12);
   color: var(--white);
 }
 

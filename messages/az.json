@@ -71,7 +71,48 @@
       "date": "Tarix",
       "status": "Status"
     },
-    "myStudents": "Mənim Tələbələrim"
+    "myStudents": "Mənim Tələbələrim",
+    "parentSubtitle": "Övladlarınızın təhsil proqresini və ödənişləri izləyin.",
+    "needsAttention": "Diqqət Tələb Edən Məsələlər",
+    "pendingPayment": "Gecikən Ödəniş",
+    "absentRecord": "Qayıb Qeydi",
+    "myChildren": "Övladlarım",
+    "upcomingClassesSchedule": "Qarşıdan Gələn Dərslər (Cədvəl)",
+    "upcomingClasses": "Qarşıdan Gələn Dərslər",
+    "unpaidAmount": "Ödənilməmiş Məbləğ",
+    "noStudentSelected": "Tələbə Seçilməyib",
+    "pleaseSelectStudent": "Zəhmət olmasa yuxarıdan tələbə seçin.",
+    "recentPayments": "Son Ödənişlər",
+    "attendanceAndPerformance": "Davamiyyət və Performans",
+    "amountLabel": "Məbləğ:",
+    "roomLabel": "Otaq:",
+    "noPaymentFound": "Ödəniş tapılmadı",
+    "noClassFound": "Dərs tapılmadı",
+    "noResultFound": "Nəticə tapılmadı",
+    "studentSubtitle": "Öz dərslərinizi, tapşırıqlarınızı və proqresinizi izləyin.",
+    "nextLevel": "Növbəti Səviyyəyə",
+    "pendingTasks": "Gözləyən Tapşırıqlar",
+    "monthlyAttendance": "Cari Ayın Davamiyyəti",
+    "solveNow": "İndi Həll Et",
+    "noTaskFound": "Tapşırıq tapılmadı",
+    "checkBtn": "Yoxla",
+    "assignmentBtn": "Tapşırıq",
+    "examBtn": "İmtahan",
+    "todayClassesSchedule": "Bugünkü Dərslər (Cədvəl)",
+    "checkPendingAssignment": "Tapşırığı Yoxla (Gözləyən)",
+    "recordBtn": "Qeyd Et",
+    "resultBtn": "Nəticə",
+    "sendWarningBtn": "Xəbərdarlıq göndər",
+    "noUncheckedTasks": "Yoxlanılmamış tapşırıqlar yoxdur",
+    "attendanceRecorded": "Davamiyyət qeyd edildi",
+    "resultRecorded": "Nəticə uğurla qeyd edildi",
+    "examCreated": "İmtahan yaradıldı",
+    "noStudentSelectedExam": "Şagird seçilməyib",
+    "createNewExam": "Yeni İmtahan / Sınaq Yarat",
+    "examName": "İmtahan Adı",
+    "date": "Tarix",
+    "maxScore": "Maksimum Bal",
+    "createBtn": "Yarat"
   },
   "Leads": {
     "title": "Liderlər (Leads)",
@@ -297,7 +338,13 @@
       }
     },
     "save": "Yadda Saxla",
-    "success": "Tənzimləmələr yadda saxlanıldı!"
+    "success": "Tənzimləmələr yadda saxlanıldı!",
+    "settings": "Tənzimləmələr",
+    "about": {
+      "p1": "Thrive CRM, Thrive Education Center tərəfindən hazırlanmış CRM sistemidir. Sistem daxilində qeydiyyat edilmiş hər kəs müəyyənləşdirilmiş funksiyaları istifadə edə, ödənişlərini izləyə və s. əhatəli funksiyaları istifadə edə bilər.",
+      "p2": "Əlavə olaraq AI ilə gücləndirilmiş bu sistem HacTag tərəfindən dizayn edilmişdir.",
+      "copyright": "© 2026 Thrive Education Center. Bütün hüquqlar qorunur."
+    }
   },
   "Common": {
     "active": "Aktiv",
@@ -492,5 +539,9 @@
     "student": "TƏLƏBƏ",
     "studentDetails": "{studentName}\nŞ/v №: {idCard}\nFİN: {fin}\nTel.: {phone}",
     "parent": "Valideyn:"
+  },
+  "Universities": {
+    "title": "Xaricdə Təhsil (Universitetlər)",
+    "subtitle": "Tərəfdaş universitetlərin siyahısı"
   }
 }

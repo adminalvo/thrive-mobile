@@ -52,7 +52,7 @@ export default function AdminDashboard() {
             className={styles.statCard}
           >
             <div className={styles.statTop}>
-              <div className={styles.statIcon} style={{ background: `linear-gradient(135deg, ${stat.color} 0%, rgba(255,255,255,0.1) 100%)` }}>
+              <div className={styles.statIcon} style={{ background: `linear-gradient(135deg, ${stat.color} 0%, rgba(var(--glass-color), 0.1) 100%)` }}>
                 <stat.icon size={22} color="#fff" />
               </div>
             </div>

@@ -8,7 +8,7 @@
   background: var(--glass-bg, rgba(15, 23, 42, 0.75));
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border: 1px solid var(--glass-border, rgba(var(--glass-color), 0.1));
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
@@ -19,8 +19,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
-  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--glass-border, rgba(var(--glass-color), 0.08));
+  background: rgba(var(--glass-color), 0.02);
 }
 
 .headerInfo {
@@ -85,8 +85,8 @@
   gap: 0.4rem;
   padding: 0.45rem 0.85rem;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  background: rgba(var(--glass-color), 0.05);
+  border: 1px solid var(--glass-border, rgba(var(--glass-color), 0.1));
   color: var(--text-secondary, #94a3b8);
   font-size: 0.82rem;
   cursor: pointer;
@@ -161,8 +161,8 @@
 }
 
 .suggestionCard {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  background: rgba(var(--glass-color), 0.03);
+  border: 1px solid var(--glass-border, rgba(var(--glass-color), 0.08));
   border-radius: 12px;
   padding: 0.85rem 1rem;
   text-align: left;
@@ -210,7 +210,7 @@
 }
 
 .avatarUser {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(var(--glass-color), 0.15);
 }
 
 .bubble {
@@ -230,8 +230,8 @@
 }
 
 .bubbleAssistant {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  background: rgba(var(--glass-color), 0.05);
+  border: 1px solid var(--glass-border, rgba(var(--glass-color), 0.08));
   color: var(--text-primary, #f8fafc);
   border-top-left-radius: 4px;
 }
@@ -243,7 +243,7 @@
   object-fit: cover;
   display: block;
   margin-top: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(var(--glass-color), 0.15);
 }
 
 .loaderRow {
@@ -256,7 +256,7 @@
 .imagePreviewTray {
   padding: 0.6rem 1.5rem;
   background: rgba(0, 0, 0, 0.25);
-  border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
+  border-top: 1px solid var(--glass-border, rgba(var(--glass-color), 0.06));
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -301,7 +301,7 @@
 /* Input Container */
 .inputForm {
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  border-top: 1px solid var(--glass-border, rgba(var(--glass-color), 0.08));
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -312,8 +312,8 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  background: rgba(var(--glass-color), 0.06);
+  border: 1px solid var(--glass-border, rgba(var(--glass-color), 0.1));
   color: var(--text-secondary, #94a3b8);
   display: flex;
   align-items: center;
@@ -338,8 +338,8 @@
 
 .inputField {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+  background: rgba(var(--glass-color), 0.05);
+  border: 1px solid var(--glass-border, rgba(var(--glass-color), 0.12));
   border-radius: 14px;
   padding: 0.7rem 1.1rem;
   color: var(--text-primary, #f8fafc);

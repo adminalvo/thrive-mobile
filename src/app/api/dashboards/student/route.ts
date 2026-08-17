@@ -37,8 +37,8 @@ export async function GET() {
     let schedules = [];
     if (groupIds.length > 0) {
       schedules = await sql`
-        SELECT c.id, c.start_time, c.end_time, c.status, g.name as group_name, g.room, c.day_of_week
-        FROM schedules c
+        SELECT c.id, c.start_time, c.end_time, 'SCHEDULED' as status, g.name as group_name, g.room, c.day_of_week
+        FROM group_schedules c
         JOIN groups g ON c.group_id = g.id
         WHERE c.group_id IN ${sql(groupIds)}
         ORDER BY c.day_of_week ASC, c.start_time ASC
@@ -89,6 +89,27 @@ export async function GET() {
       ORDER BY e.date DESC
     `;
 
+    // Calculate Gamification Progress (Average Score from Exams + Assignments)
+    let avgScore = 0;
+    if (exams.length > 0) {
+      const totalPercent = exams.reduce((acc: number, e: any) => acc + ((parseFloat(e.score) / parseFloat(e.max_score)) * 100), 0);
+      avgScore = Math.round(totalPercent / exams.length);
+    }
+
+    // Get Active Assignments
+    let activeAssignments = [];
+    if (groupIds.length > 0) {
+      activeAssignments = await sql`
+        SELECT a.id, a.title, a.due_date, g.name as group_name
+        FROM assignments a
+        JOIN groups g ON a.group_id = g.id
+        LEFT JOIN assignment_submissions s ON a.id = s.assignment_id AND s.student_id = ${studentId}
+        WHERE a.group_id IN ${sql(groupIds)} AND (s.id IS NULL OR s.status != 'GRADED')
+        ORDER BY a.due_date ASC
+        LIMIT 5
+      `;
+    }
+
     return NextResponse.json({
       schedules: schedules.map((s: any) => ({
         id: s.id,
@@ -119,7 +140,16 @@ export async function GET() {
         maxScore: e.max_score,
         feedback: e.feedback,
         groupName: e.group_name
-      }))
+      })),
+      assignments: activeAssignments.map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        dueDate: a.due_date ? new Date(a.due_date).toLocaleDateString("az-AZ") : "Təyin edilməyib",
+        group: a.group_name
+      })),
+      performance: {
+        averageScore: avgScore
+      }
     });
 
   } catch (error) {

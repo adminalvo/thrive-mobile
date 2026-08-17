@@ -12,7 +12,7 @@
 
 .modalContainer {
   background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   border-radius: 16px;
   width: 90%;
   max-width: 800px;
@@ -29,7 +29,7 @@
   align-items: center;
   padding: 1.5rem 2rem;
   background: rgba(2, 6, 23, 0.5);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(var(--glass-color), 0.05);
 }
 
 .modalHeader h2 {
@@ -227,7 +227,7 @@
 .digitalSignatureArea {
   padding: 1.5rem 2rem;
   background: #020617;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(var(--glass-color), 0.05);
 }
 
 .canvasHeader {
@@ -243,9 +243,9 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
   color: var(--text-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
   font-size: 0.85rem;
@@ -254,7 +254,7 @@
 }
 
 .clearBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.1);
   color: var(--white);
 }
 

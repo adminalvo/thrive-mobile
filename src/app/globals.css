@@ -10,6 +10,26 @@
   --glass-border: rgba(255, 255, 255, 0.1);
   --gradient-primary: linear-gradient(135deg, var(--deep-navy) 0%, var(--ocean-blue) 50%, var(--aqua-teal) 100%);
   --bg-main: var(--deep-navy);
+  --glass-color: 255, 255, 255;
+  --surface-dark: rgba(255,255,255,0.02);
+  --border-color: rgba(255,255,255,0.1);
+}
+
+[data-theme='light'] {
+  --deep-navy: #f8fafc;
+  --ocean-blue: #e2e8f0;
+  --aqua-teal: #0284c7;
+  --white: #0f172a;
+  --gray-light: #475569;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --gradient-primary: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  --bg-main: #f8fafc;
+  --glass-color: 0, 0, 0;
+  --surface-dark: #ffffff;
+  --border-color: rgba(0,0,0,0.1);
 }
 
 

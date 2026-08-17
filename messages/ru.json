@@ -71,7 +71,48 @@
       "date": "Дата",
       "status": "Статус"
     },
-    "myStudents": "Мои Студенты"
+    "myStudents": "Мои Студенты",
+    "parentSubtitle": "Отслеживайте успеваемость и платежи ваших детей.",
+    "needsAttention": "Требует Внимания",
+    "pendingPayment": "Ожидающий Платеж",
+    "absentRecord": "Запись о Пропуске",
+    "myChildren": "Мои Дети",
+    "upcomingClassesSchedule": "Предстоящие Занятия (Расписание)",
+    "upcomingClasses": "Предстоящие Занятия",
+    "unpaidAmount": "Неоплаченная Сумма",
+    "noStudentSelected": "Студент Не Выбран",
+    "pleaseSelectStudent": "Пожалуйста, выберите студента выше.",
+    "recentPayments": "Последние Платежи",
+    "attendanceAndPerformance": "Посещаемость и Успеваемость",
+    "amountLabel": "Сумма:",
+    "roomLabel": "Комната:",
+    "noPaymentFound": "Платеж не найден",
+    "noClassFound": "Занятие не найдено",
+    "noResultFound": "Результат не найден",
+    "studentSubtitle": "Отслеживайте свои занятия, задания и прогресс.",
+    "nextLevel": "До Следующего Уровня",
+    "pendingTasks": "Ожидающие Задания",
+    "monthlyAttendance": "Ежемесячная Посещаемость",
+    "solveNow": "Решить Сейчас",
+    "noTaskFound": "Задание не найдено",
+    "checkBtn": "Проверить",
+    "assignmentBtn": "Задание",
+    "examBtn": "Экзамен",
+    "todayClassesSchedule": "Сегодняшние Занятия (Расписание)",
+    "checkPendingAssignment": "Проверить Ожидающее Задание",
+    "recordBtn": "Записать",
+    "resultBtn": "Результат",
+    "sendWarningBtn": "Отправить Предупреждение",
+    "noUncheckedTasks": "Нет непроверенных заданий",
+    "attendanceRecorded": "Посещаемость записана",
+    "resultRecorded": "Результат успешно записан",
+    "examCreated": "Экзамен создан",
+    "noStudentSelectedExam": "Студент не выбран",
+    "createNewExam": "Создать Новый Экзамен / Тест",
+    "examName": "Название Экзамена",
+    "date": "Дата",
+    "maxScore": "Макс. Балл",
+    "createBtn": "Создать"
   },
   "Leads": {
     "title": "Лиды (Leads)",
@@ -296,7 +337,13 @@
       }
     },
     "save": "Сохранить",
-    "success": "Настройки успешно сохранены!"
+    "success": "Настройки успешно сохранены!",
+    "settings": "Настройки",
+    "about": {
+      "p1": "Thrive CRM — это CRM-система, разработанная Thrive Education Center. Любой зарегистрированный в системе может использовать определенные функции, отслеживать свои платежи и использовать другие комплексные возможности.",
+      "p2": "Кроме того, эта система на базе ИИ была разработана HacTag.",
+      "copyright": "© 2026 Thrive Education Center. Все права защищены."
+    }
   },
   "Common": {
     "active": "Активный",
@@ -491,5 +538,9 @@
     "student": "СТУДЕНТ",
     "studentDetails": "{studentName}\nУд. личн. №: {idCard}\nFIN: {fin}\nТел.: {phone}",
     "parent": "Родитель:"
+  },
+  "Universities": {
+    "title": "Обучение за рубежом (Университеты)",
+    "subtitle": "Список университетов-партнеров"
   }
 }

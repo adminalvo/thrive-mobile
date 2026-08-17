@@ -88,7 +88,7 @@ export default function StaffPage() {
                       fontSize: "12px", 
                       fontWeight: 600,
                       backgroundColor: s.role === 'super_admin' ? '#ef4444' : s.role === 'teacher' ? '#3b82f6' : '#10b981',
-                      color: '#fff'
+                      color: "var(--white)"
                     }}>
                       {s.role}
                     </span>

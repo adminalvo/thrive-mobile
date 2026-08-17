@@ -43,25 +43,23 @@ export async function GET() {
       if (children.length > 0) {
         const studentIds = children.map((c: any) => c.id);
         
-        // Get upcoming classes for these children
+        // Get upcoming classes for these children (weekly schedule)
         classes = await sql`
-          SELECT c.id, c.date, c.start_time, c.end_time, c.status, g.name as group_name, 
-                 pr.name as program_name, up.first_name as student_name
-          FROM schedules c
+          SELECT c.id, c.day_of_week, c.start_time, c.end_time, 'SCHEDULED' as status, g.name as group_name, 
+                 pr.name as program_name, up.first_name as student_name, s.id as student_id
+          FROM group_schedules c
           LEFT JOIN groups g ON c.group_id = g.id
           LEFT JOIN programs pr ON g.program_id = pr.id
           LEFT JOIN student_groups sg ON g.id = sg.group_id
           LEFT JOIN students s ON sg.student_id = s.id
           LEFT JOIN user_profiles up ON s.profile_id = up.id
           WHERE s.id IN ${sql(studentIds)}
-            AND DATE(c.date) >= CURRENT_DATE
-          ORDER BY c.date ASC, c.start_time ASC
-          LIMIT 10
+          ORDER BY c.day_of_week ASC, c.start_time ASC
         `;
 
         // Get payments for these children
         payments = await sql`
-          SELECT p.id, p.amount, p.status, p.created_at, up.first_name as student_name
+          SELECT p.id, p.amount, p.status, p.created_at, up.first_name as student_name, p.student_id
           FROM payments p
           LEFT JOIN students s ON p.student_id = s.id
           LEFT JOIN user_profiles up ON s.profile_id = up.id
@@ -72,7 +70,7 @@ export async function GET() {
 
         // Get attendance for these children
         attendance = await sql`
-          SELECT a.id, a.date, a.status, a.notes, g.name as group_name, up.first_name as student_name
+          SELECT a.id, a.date, a.status, a.notes, g.name as group_name, up.first_name as student_name, a.student_id
           FROM attendance a
           LEFT JOIN groups g ON a.group_id = g.id
           LEFT JOIN students s ON a.student_id = s.id
@@ -84,7 +82,7 @@ export async function GET() {
 
         // Get exams for these children
         exams = await sql`
-          SELECT e.title, e.date, e.max_score, r.score, r.feedback, g.name as group_name, up.first_name as student_name
+          SELECT e.title, e.date, e.max_score, r.score, r.feedback, g.name as group_name, up.first_name as student_name, r.student_id
           FROM exam_results r
           JOIN exams e ON r.exam_id = e.id
           JOIN groups g ON e.group_id = g.id
@@ -97,7 +95,7 @@ export async function GET() {
 
         // Get non-private notes for these children
         notes = await sql`
-          SELECT sn.id, sn.content, sn.created_at, up.first_name as student_name, t_up.email as teacher_email
+          SELECT sn.id, sn.content, sn.created_at, up.first_name as student_name, t_up.email as teacher_email, sn.student_id
           FROM student_notes sn
           LEFT JOIN students s ON sn.student_id = s.id
           LEFT JOIN user_profiles up ON s.profile_id = up.id
@@ -116,28 +114,34 @@ export async function GET() {
         name: `${c.first_name || ""} ${c.last_name || ""}`.trim() || "Tələbə",
         program: c.program || "Bilinmir"
       })),
-      upcomingClasses: classes.map((c: any) => ({
-        id: c.id,
-        date: new Date(c.date).toLocaleDateString(),
-        time: `${c.start_time ? c.start_time.substring(0,5) : ""} - ${c.end_time ? c.end_time.substring(0,5) : ""}`,
-        group: c.group_name || "Bilinmir",
-        program: c.program_name || "Proqram",
-        studentName: c.student_name || "Tələbə",
-        status: c.status || "SCHEDULED"
-      })),
+      upcomingClasses: classes.map((c: any) => {
+        const days = ["", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə", "Bazar"];
+        return {
+          id: c.id,
+          date: days[c.day_of_week] || "Görüş",
+          time: `${c.start_time ? c.start_time.substring(0,5) : ""} - ${c.end_time ? c.end_time.substring(0,5) : ""}`,
+          group: c.group_name || "Bilinmir",
+          program: c.program_name || "Proqram",
+          studentName: c.student_name || "Tələbə",
+          studentId: c.student_id,
+          status: c.status || "SCHEDULED"
+        };
+      }),
       payments: payments.map((p: any) => ({
         id: p.id,
         amount: p.amount,
         status: p.status,
         date: new Date(p.created_at).toLocaleDateString(),
-        studentName: p.student_name || "Tələbə"
+        studentName: p.student_name || "Tələbə",
+        studentId: p.student_id
       })),
       attendance: attendance.map((a: any) => ({
         id: a.id,
         date: new Date(a.date).toLocaleDateString("az-AZ"),
         status: a.status,
         group: a.group_name,
-        studentName: a.student_name || "Tələbə"
+        studentName: a.student_name || "Tələbə",
+        studentId: a.student_id
       })),
       exams: exams.map((e: any) => ({
         title: e.title,
@@ -146,13 +150,15 @@ export async function GET() {
         maxScore: e.max_score,
         feedback: e.feedback,
         group: e.group_name,
-        studentName: e.student_name || "Tələbə"
+        studentName: e.student_name || "Tələbə",
+        studentId: e.student_id
       })),
       notes: notes.map((n: any) => ({
         id: n.id,
         content: n.content,
         date: new Date(n.created_at).toLocaleDateString("az-AZ"),
         studentName: n.student_name || "Tələbə",
+        studentId: n.student_id,
         teacher: n.teacher_email || "Müəllim"
       }))
     });

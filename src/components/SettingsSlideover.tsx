@@ -139,26 +139,19 @@ export default function SettingsSlideover({ isOpen, onClose, user, locale }: Set
                     </div>
                   </div>
                   <p style={{ marginBottom: "1rem" }}>
-                    <strong>Thrive CRM</strong>, Thrive Education Center tərəfindən hazırlanmış CRM sistemidir. Sistem daxilində qeydiyyat edilmiş hər kəs müəyyənləşdirilmiş funksiyaları istifadə edə, ödənişlərini izləyə və s. əhatəli funksiyaları istifadə edə bilər.
+                    <strong dangerouslySetInnerHTML={{ __html: t("about.p1").replace('Thrive CRM', '<strong>Thrive CRM</strong>') }} />
                   </p>
                   <p style={{ marginBottom: "1rem" }}>
-                    Əlavə olaraq AI ilə gücləndirilmiş bu sistem <strong>HacTag</strong> tərəfindən dizayn edilmişdir.
+                    <span dangerouslySetInnerHTML={{ __html: t("about.p2").replace('HacTag', '<strong>HacTag</strong>') }} />
                   </p>
                   <div style={{ marginTop: "2rem", paddingTop: "1rem", borderTop: "1px solid var(--border-color)", textAlign: "center", fontSize: "0.85rem" }}>
-                    &copy; 2026 Thrive Education Center. Bütün hüquqlar qorunur.
+                    {t("about.copyright")}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className={styles.footer}>
-              <button 
-                className={styles.logoutBtn}
-                onClick={() => signOut({ callbackUrl: `${window.location.origin}/login` })}
-              >
-                <LogOut size={16} /> Çıxış et
-              </button>
-            </div>
+
           </motion.div>
         </>
       )}

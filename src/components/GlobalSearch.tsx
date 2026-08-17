@@ -184,7 +184,6 @@ export default function GlobalSearch() {
               <X size={12} />
             </button>
           )}
-          <span className={styles.kbd}>⌘K</span>
         </div>
       </div>
 

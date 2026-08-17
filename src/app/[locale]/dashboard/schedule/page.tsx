@@ -216,13 +216,13 @@ export default function SchedulePage() {
                             <BookOpen size={16} />
                           </div>
                           <div>
-                            <div style={{ fontWeight: 600, color: "var(--white)", fontSize: "0.95rem" }}>{group.name}</div>
+                            <div style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: "0.95rem" }}>{group.name}</div>
                             <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{group.program?.name || "Proqram seçilməyib"}</div>
                           </div>
                         </div>
                       </td>
                       <td>
-                        <span style={{ background: "rgba(255,255,255,0.05)", padding: "0.3rem 0.6rem", borderRadius: "6px", fontSize: "0.85rem", color: "var(--text-primary)" }}>
+                        <span style={{ background: "rgba(var(--glass-color), 0.05)", padding: "0.3rem 0.6rem", borderRadius: "6px", fontSize: "0.85rem", color: "var(--text-primary)" }}>
                           {getDayName(dayNum)}
                         </span>
                       </td>

@@ -71,7 +71,48 @@
       "date": "Date",
       "status": "Status"
     },
-    "myStudents": "My Students"
+    "myStudents": "My Students",
+    "parentSubtitle": "Track your children's educational progress and payments.",
+    "needsAttention": "Needs Attention",
+    "pendingPayment": "Pending Payment",
+    "absentRecord": "Absent Record",
+    "myChildren": "My Children",
+    "upcomingClassesSchedule": "Upcoming Classes (Schedule)",
+    "upcomingClasses": "Upcoming Classes",
+    "unpaidAmount": "Unpaid Amount",
+    "noStudentSelected": "No Student Selected",
+    "pleaseSelectStudent": "Please select a student from above.",
+    "recentPayments": "Recent Payments",
+    "attendanceAndPerformance": "Attendance & Performance",
+    "amountLabel": "Amount:",
+    "roomLabel": "Room:",
+    "noPaymentFound": "No payment found",
+    "noClassFound": "No class found",
+    "noResultFound": "No result found",
+    "studentSubtitle": "Track your classes, assignments, and progress.",
+    "nextLevel": "To Next Level",
+    "pendingTasks": "Pending Tasks",
+    "monthlyAttendance": "Monthly Attendance",
+    "solveNow": "Solve Now",
+    "noTaskFound": "No task found",
+    "checkBtn": "Check",
+    "assignmentBtn": "Assignment",
+    "examBtn": "Exam",
+    "todayClassesSchedule": "Today's Classes (Schedule)",
+    "checkPendingAssignment": "Check Pending Assignment",
+    "recordBtn": "Record",
+    "resultBtn": "Result",
+    "sendWarningBtn": "Send Warning",
+    "noUncheckedTasks": "No unchecked tasks",
+    "attendanceRecorded": "Attendance recorded",
+    "resultRecorded": "Result successfully recorded",
+    "examCreated": "Exam created",
+    "noStudentSelectedExam": "No student selected",
+    "createNewExam": "Create New Exam / Test",
+    "examName": "Exam Name",
+    "date": "Date",
+    "maxScore": "Max Score",
+    "createBtn": "Create"
   },
   "Leads": {
     "title": "Leads",
@@ -296,7 +337,13 @@
       }
     },
     "save": "Save Changes",
-    "success": "Settings saved successfully!"
+    "success": "Settings saved successfully!",
+    "settings": "Settings",
+    "about": {
+      "p1": "Thrive CRM is a CRM system developed by Thrive Education Center. Anyone registered in the system can use the defined functions, track their payments, and use comprehensive features.",
+      "p2": "Additionally, this AI-powered system was designed by HacTag.",
+      "copyright": "© 2026 Thrive Education Center. All rights reserved."
+    }
   },
   "Common": {
     "active": "Active",
@@ -491,5 +538,9 @@
     "student": "STUDENT",
     "studentDetails": "{studentName}\nID No: {idCard}\nFIN: {fin}\nTel.: {phone}",
     "parent": "Parent:"
+  },
+  "Universities": {
+    "title": "Study Abroad (Universities)",
+    "subtitle": "List of partner universities"
   }
 }

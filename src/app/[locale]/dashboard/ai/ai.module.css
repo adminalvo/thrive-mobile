@@ -6,12 +6,12 @@
   max-width: 1050px;
   margin: 0 auto;
   background: var(--glass-bg, rgba(2, 6, 23, 0.75));
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--glass-border, rgba(var(--glass-color), 0.08));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(var(--glass-color), 0.03) inset;
   position: relative;
 }
 
@@ -22,7 +22,7 @@
   align-items: center;
   padding: 1rem 1.5rem;
   background: rgba(15, 23, 42, 0.6);
-  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--glass-border, rgba(var(--glass-color), 0.08));
   backdrop-filter: blur(10px);
   z-index: 10;
 }
@@ -150,12 +150,12 @@
 }
 
 .chatStream::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.1);
   border-radius: 3px;
 }
 
 .chatStream::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(var(--glass-color), 0.2);
 }
 
 /* Welcome / Empty State */
@@ -232,8 +232,8 @@
   gap: 0.65rem;
   padding: 0.85rem 1rem;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(var(--glass-color), 0.03);
+  border: 1px solid rgba(var(--glass-color), 0.07);
   color: var(--text-primary, #f8fafc);
   font-size: 0.85rem;
   text-align: left;
@@ -301,8 +301,8 @@
 }
 
 .avatarUser {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(var(--glass-color), 0.1);
+  border: 1px solid rgba(var(--glass-color), 0.15);
   color: #ffffff;
 }
 
@@ -350,7 +350,7 @@
   max-width: 260px;
   max-height: 200px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(var(--glass-color), 0.15);
   object-fit: cover;
   display: block;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -382,7 +382,7 @@
 
 .copyBtn:hover {
   color: var(--aqua-teal, #4ca2b5);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(var(--glass-color), 0.05);
 }
 
 /* Loading State */
@@ -433,7 +433,7 @@
 .inputSection {
   padding: 1rem 1.5rem;
   background: rgba(15, 23, 42, 0.75);
-  border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+  border-top: 1px solid var(--glass-border, rgba(var(--glass-color), 0.08));
   backdrop-filter: blur(15px);
   position: relative;
   z-index: 10;
@@ -447,7 +447,7 @@
   margin-bottom: 0.75rem;
   padding: 0.5rem 0.75rem;
   background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(var(--glass-color), 0.08);
   border-radius: 12px;
   width: fit-content;
   animation: fadeIn 0.2s ease;
@@ -458,7 +458,7 @@
   height: 44px;
   border-radius: 8px;
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(var(--glass-color), 0.15);
 }
 
 .imagePreviewInfo {
@@ -502,8 +502,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--glass-color), 0.04);
+  border: 1px solid rgba(var(--glass-color), 0.1);
   border-radius: 16px;
   padding: 0.4rem 0.6rem 0.4rem 1rem;
   transition: all 0.2s ease;
@@ -512,7 +512,7 @@
 .inputForm:focus-within {
   border-color: var(--aqua-teal, #4ca2b5);
   box-shadow: 0 0 0 2px rgba(76, 162, 181, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(var(--glass-color), 0.06);
 }
 
 .inputField {
@@ -553,9 +553,9 @@
 }
 
 .iconBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--glass-color), 0.08);
   color: var(--text-primary, #f8fafc);
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(var(--glass-color), 0.12);
 }
 
 .iconBtn:disabled {

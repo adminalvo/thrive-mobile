@@ -44,9 +44,11 @@ export async function GET(req: Request) {
       LIMIT 5
     `;
 
-    const results = [...students, ...teachers, ...groups];
-
-    return NextResponse.json({ results });
+    return NextResponse.json({ 
+      students, 
+      teachers, 
+      groups 
+    });
   } catch (error: any) {
     console.error("Search API Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

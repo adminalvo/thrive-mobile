@@ -15,24 +15,15 @@ export default function StudentsPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const userRole = session?.user?.role || "staff";
-  const canEdit = ["super_admin", "admin", "sales", "teacher"].includes(userRole);
+  const permissions = (session?.user as any)?.permissions?.students || {};
+  const canCreate = userRole === "super_admin" || userRole === "admin" || permissions.create;
   
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [newStudent, setNewStudent] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    program: "",
-    monthlyPayment: "150",
-    durationMonths: "6",
-    password: "",
-    parentName: "",
-    parentPhone: "",
-    parentFin: "",
-    parentIdCard: "",
-    parentEmail: ""
+  const [newStudent, setNewStudent] = useState({ 
+    name: "", phone: "", email: "", program: "", monthlyPayment: "", durationMonths: "", password: "",
+    parentName: "", parentPhone: "", parentEmail: "", parentFin: "", parentIdCard: "", parentPassword: ""
   });
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -117,7 +108,7 @@ export default function StudentsPage() {
           <h1 className={styles.title}>{t("title")}</h1>
           <p className={styles.subtitle}>{t("subtitle")}</p>
         </div>
-        {canEdit && (
+        {canCreate && (
           <button className={styles.addBtn} onClick={() => setShowModal(true)}>
             <Plus size={18} /> {t("newStudent")}
           </button>
@@ -141,7 +132,7 @@ export default function StudentsPage() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="ALL">Bütün Statuslar</option>
+            <option value="ALL">{t("filter.all")}</option>
             <option value="ACTIVE">{c("active")} (ACTIVE)</option>
             <option value="FROZEN">{c("inactive")} (FROZEN)</option>
           </select>
@@ -247,69 +238,73 @@ export default function StudentsPage() {
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>Yeni Tələbə Əlavə Et</h2>
+              <h2>{t("modal.newStudent")}</h2>
               <button type="button" className={styles.closeModalBtn} onClick={() => setShowModal(false)}>
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={createStudent} className={styles.form}>
               <div className={styles.inputGroup}>
-                <label>Ad və Soyad</label>
-                <input required type="text" value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})} placeholder="Məs: Cavid Rüstəmov" />
+                <label>{t("modal.name")}</label>
+                <input type="text" value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})} placeholder="Məs: Cavid Rüstəmov" />
               </div>
               <div className={styles.inputGroup}>
-                <label>Telefon</label>
-                <input required type="text" value={newStudent.phone} onChange={e => setNewStudent({...newStudent, phone: e.target.value})} placeholder="+994551234567" />
+                <label>{t("modal.phone")}</label>
+                <input type="text" value={newStudent.phone} onChange={e => setNewStudent({...newStudent, phone: e.target.value})} placeholder="+994551234567" />
               </div>
               <div className={styles.inputGroup}>
-                <label>Email (İstəyə bağlı)</label>
-                <input type="email" value={newStudent.email} onChange={e => setNewStudent({...newStudent, email: e.target.value})} placeholder="ornek@thrive.az" />
-              </div>
-
-              <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem', fontSize: '1.1rem', color: 'var(--text-color)' }}>Valideyn Məlumatları (Müqavilə üçün)</h3>
-              <div className={styles.inputGroup}>
-                <label>Valideyn Adı və Soyadı</label>
-                <input required type="text" value={newStudent.parentName} onChange={e => setNewStudent({...newStudent, parentName: e.target.value})} placeholder="Məs: Əli Rüstəmov" />
+                <label>{t("modal.email")}</label>
+                <input type="email" value={newStudent.email} onChange={e => setNewStudent({...newStudent, email: e.target.value})} placeholder="simple@thrive.az" />
               </div>
               <div className={styles.inputGroup}>
-                <label>Valideyn Email (Giriş üçün)</label>
-                <input required type="email" value={newStudent.parentEmail} onChange={e => setNewStudent({...newStudent, parentEmail: e.target.value})} placeholder="ornek@thrive.az" />
-              </div>
-              <div className={styles.inputGroup}>
-                <label>Valideyn Telefonu</label>
-                <input required type="text" value={newStudent.parentPhone} onChange={e => setNewStudent({...newStudent, parentPhone: e.target.value})} placeholder="+994501234567" />
-              </div>
-              <div className={styles.inputGroup}>
-                <label>Valideyn FIN Kod</label>
-                <input required type="text" value={newStudent.parentFin} onChange={e => setNewStudent({...newStudent, parentFin: e.target.value})} placeholder="Məs: 5G8Y2P1" />
-              </div>
-              <div className={styles.inputGroup}>
-                <label>Valideyn Ş/V Seriyası</label>
-                <input required type="text" value={newStudent.parentIdCard} onChange={e => setNewStudent({...newStudent, parentIdCard: e.target.value})} placeholder="Məs: AZE1234567" />
+                <label>{t("modal.password")}</label>
+                <input type="password" value={newStudent.password} onChange={e => setNewStudent({...newStudent, password: e.target.value})} placeholder="123456" />
               </div>
 
-              <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem', fontSize: '1.1rem', color: 'var(--text-color)' }}>Tədris Məlumatları</h3>
+              <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem', fontSize: '1.1rem', color: 'var(--text-color)' }}>{t("modal.parentSection")}</h3>
               <div className={styles.inputGroup}>
-                <label>Tədris Proqramı</label>
+                <label>{t("modal.parentName")}</label>
+                <input type="text" value={newStudent.parentName} onChange={e => setNewStudent({...newStudent, parentName: e.target.value})} placeholder="Məs: Əli Rüstəmov" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>{t("modal.parentEmail")}</label>
+                <input type="email" value={newStudent.parentEmail} onChange={e => setNewStudent({...newStudent, parentEmail: e.target.value})} placeholder="simple@thrive.az" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>{t("modal.parentPhone")}</label>
+                <input type="text" value={newStudent.parentPhone} onChange={e => setNewStudent({...newStudent, parentPhone: e.target.value})} placeholder="+994501234567" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>{t("modal.parentFin")}</label>
+                <input type="text" value={newStudent.parentFin} onChange={e => setNewStudent({...newStudent, parentFin: e.target.value})} placeholder="Məs: 5G8Y2P1" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>{t("modal.parentIdCard")}</label>
+                <input type="text" value={newStudent.parentIdCard} onChange={e => setNewStudent({...newStudent, parentIdCard: e.target.value})} placeholder="Məs: AZE1234567" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>{t("modal.parentPassword")}</label>
+                <input type="password" value={newStudent.parentPassword} onChange={e => setNewStudent({...newStudent, parentPassword: e.target.value})} placeholder="123456" />
+              </div>
+
+              <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem', fontSize: '1.1rem', color: 'var(--text-color)' }}>{t("modal.academicSection")}</h3>
+              <div className={styles.inputGroup}>
+                <label>{t("modal.program")}</label>
                 <input type="text" value={newStudent.program} onChange={e => setNewStudent({...newStudent, program: e.target.value})} placeholder="Məs: General English" />
               </div>
               <div style={{ display: "flex", gap: "1rem" }}>
                 <div className={styles.inputGroup} style={{ flex: 1 }}>
-                  <label>Aylıq Ödəniş (₼)</label>
-                  <input type="number" value={newStudent.monthlyPayment} onChange={e => setNewStudent({...newStudent, monthlyPayment: e.target.value})} placeholder="Məs: 150" />
+                  <label>{t("modal.monthlyPayment")}</label>
+                  <input type="number" value={newStudent.monthlyPayment} onChange={e => setNewStudent({...newStudent, monthlyPayment: e.target.value})} placeholder="150" />
                 </div>
                 <div className={styles.inputGroup} style={{ flex: 1 }}>
-                  <label>Müddət (Ay)</label>
-                  <input type="number" value={newStudent.durationMonths} onChange={e => setNewStudent({...newStudent, durationMonths: e.target.value})} placeholder="Məs: 6" />
+                  <label>{t("modal.durationMonths")}</label>
+                  <input type="number" value={newStudent.durationMonths} onChange={e => setNewStudent({...newStudent, durationMonths: e.target.value})} placeholder="6" />
                 </div>
               </div>
-              <div className={styles.inputGroup}>
-                <label>Şifrə (Giriş üçün)</label>
-                <input required type="text" value={newStudent.password} onChange={e => setNewStudent({...newStudent, password: e.target.value})} placeholder="Şifrə təyin edin" />
-              </div>
               <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>Ləğv et</button>
-                <button type="submit" className={styles.saveBtn}>Qeydiyyatdan Keçir</button>
+                <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>{t("modal.cancel")}</button>
+                <button type="submit" className={styles.saveBtn}>{t("modal.save")}</button>
               </div>
             </form>
           </div>

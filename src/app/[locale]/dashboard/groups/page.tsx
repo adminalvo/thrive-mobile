@@ -16,7 +16,8 @@ export default function GroupsPage() {
   
   const { data: session } = useSession();
   const userRole = session?.user?.role || "staff";
-  const canEdit = ["super_admin", "staff", "admin", "sales", "teacher"].includes(userRole);
+  const permissions = (session?.user as any)?.permissions?.groups || {};
+  const canEdit = userRole === "super_admin" || userRole === "admin" || permissions.create || permissions.edit;
   
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -217,7 +218,7 @@ export default function GroupsPage() {
               <form onSubmit={handleCreate} className={styles.form}>
                 <div className={styles.formGrid}>
                   <div className={styles.inputGroup}>
-                    <label>Qrup Adı</label>
+                    <label>{t("modal.name")}</label>
                     <input 
                       type="text" 
                       required 
@@ -226,7 +227,7 @@ export default function GroupsPage() {
                     />
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>Otaq (Room)</label>
+                    <label>{t("table.room") || "Otaq"}</label>
                     <input 
                       type="text" 
                       value={formData.room}
@@ -234,7 +235,7 @@ export default function GroupsPage() {
                     />
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>Proqram</label>
+                    <label>{t("modal.program")}</label>
                     <select 
                       required
                       value={formData.program_id}
@@ -249,14 +250,14 @@ export default function GroupsPage() {
                     </select>
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>Məsul Müəllim</label>
+                    <label>{t("modal.teacher")}</label>
                     <select 
                       value={formData.teacher_id}
                       onChange={(e) => setFormData({...formData, teacher_id: e.target.value})}
                     >
                       <option value="">Seçin...</option>
                       {teachers.map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
+                        <option key={t.id} value={t.teacher_table_id || t.id}>{t.name}</option>
                       ))}
                     </select>
                   </div>

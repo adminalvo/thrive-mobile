@@ -16,7 +16,8 @@ import {
   UserPlus,
   Bot,
   GraduationCap,
-  Library
+  Library,
+  ShieldAlert
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
@@ -61,9 +62,9 @@ export default function Sidebar({
 
   const navItems = allNavItems.filter(item => {
     if (userRole === "super_admin") return true;
-    
+
     if (userRole === "teacher") {
-      const allowed = ["/dashboard", "/dashboard/schedule", "/dashboard/students", "/dashboard/ai", "/dashboard/programs", "/dashboard/universities"];
+      const allowed = ["/dashboard", "/dashboard/schedule", "/dashboard/students", "/dashboard/ai", "/dashboard/programs", "/dashboard/universities", "/dashboard/tasks", "/dashboard/groups"];
       return allowed.includes(item.href);
     }
     
@@ -72,8 +73,33 @@ export default function Sidebar({
       return allowed.includes(item.href);
     }
 
-    // Default staff / sales
-    if (item.href.includes('/finance')) return false;
+    if (userRole === "staff" || userRole === "admin") {
+      // Allow dashboard base, schedule, AI by default for staff unless strict logic applies
+      if (["/dashboard", "/dashboard/schedule", "/dashboard/ai", "/dashboard/programs", "/dashboard/universities", "/dashboard/leads"].includes(item.href)) {
+        return true;
+      }
+      
+      const permissions = (session?.user as any)?.permissions || {};
+      const modMap: Record<string, string> = {
+        "/dashboard/students": "students",
+        "/dashboard/finance": "finance",
+        "/dashboard/groups": "groups",
+        "/dashboard/tasks": "tasks",
+        "/dashboard/teachers": "teachers",
+        "/dashboard/parents": "parents",
+        "/dashboard/staff": "staff"
+      };
+      
+      const modKey = modMap[item.href];
+      if (modKey && permissions[modKey]) {
+        return !!permissions[modKey].view;
+      }
+      
+      // Default fallback if permissions are empty
+      if (item.href.includes('/finance')) return false;
+      return true;
+    }
+
     return true;
   });
 
@@ -114,14 +140,12 @@ export default function Sidebar({
 
       <div className={styles.sidebarFooter}>
         {isSuperAdmin && (
-          <>
-            <Link href={`/dashboard/logs`}>
-              <div className={`${styles.navItem} ${pathname === '/dashboard/logs' ? styles.navActive : ""}`} title={isCollapsed ? "Logs" : undefined}>
-                <Target size={20} className={pathname === '/dashboard/logs' ? styles.iconActive : styles.icon} />
-                {!isCollapsed && <span>Tarixçə (Logs)</span>}
-              </div>
-            </Link>
-          </>
+          <Link href={`/dashboard/staff`}>
+            <div className={`${styles.navItem} ${pathname === '/dashboard/staff' ? styles.navActive : ""}`} title={isCollapsed ? "İşçilər (RBAC)" : undefined}>
+              <ShieldAlert size={20} className={pathname === '/dashboard/staff' ? styles.iconActive : styles.icon} />
+              {!isCollapsed && <span>İşçilər (RBAC)</span>}
+            </div>
+          </Link>
         )}
         <div 
           className={`${styles.navItem} ${styles.logoutItem}`}

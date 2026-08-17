@@ -625,7 +625,7 @@ export default function TeacherDashboard() {
                 style={{ width: "100%", padding: "0.8rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", borderRadius: "8px" }}
               >
                 <option value="" style={{ color: "#000" }}>Qrup Seçin</option>
-                {Array.from(new Map(students.map(s => [s.groupId, {id: s.groupId, name: s.group}])).values()).map((g: any) => (
+                {dashboardData?.groups?.map((g: any) => (
                   <option key={g.id} value={g.id} style={{ color: "#000" }}>{g.name}</option>
                 ))}
               </select>

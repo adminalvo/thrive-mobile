@@ -11,7 +11,8 @@ export async function GET() {
         r.role,
         p.first_name, 
         p.last_name,
-        p.phone
+        p.phone,
+        r.is_active
       FROM auth.users u
       LEFT JOIN user_roles r ON u.id = r.user_id
       LEFT JOIN user_profiles p ON u.id = p.user_id
@@ -23,12 +24,55 @@ export async function GET() {
       name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "İstifadəçi",
       email: s.email || "",
       phone: s.phone || "",
-      role: s.role || "Təyin edilməyib"
+      role: s.role || "Təyin edilməyib",
+      isActive: s.is_active !== false
     }));
 
     return NextResponse.json(formatted);
   } catch (error) {
     console.error("Staff fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch staff" }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { email, password, firstName, lastName, phone, role } = await req.json();
+
+    if (!email || !password || !firstName || !role) {
+      return NextResponse.json({ error: "Eksik məlumatlar" }, { status: 400 });
+    }
+
+    const { supabaseAdmin } = await import("@/lib/supabaseAdmin");
+
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true
+    });
+
+    if (authError) {
+      return NextResponse.json({ error: authError.message }, { status: 400 });
+    }
+
+    const userId = authData.user.id;
+
+    await sql.begin(async (tx) => {
+      const profile = await tx`
+        INSERT INTO user_profiles (user_id, first_name, last_name, email, phone)
+        VALUES (${userId}, ${firstName}, ${lastName}, ${email}, ${phone || null})
+        RETURNING id
+      `;
+
+      await tx`
+        INSERT INTO user_roles (user_id, role, is_active)
+        VALUES (${userId}, ${role}, true)
+      `;
+    });
+
+    return NextResponse.json({ success: true, userId }, { status: 201 });
+  } catch (error: any) {
+    console.error("Staff create error:", error);
+    return NextResponse.json({ error: error.message || "Xəta baş verdi" }, { status: 500 });
   }
 }

@@ -467,3 +467,159 @@
     flex-direction: column;
   }
 }
+
+/* Tabs & Overview */
+.tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 0.5rem;
+}
+
+.tabBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.tabBtn:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--white);
+}
+
+.activeTab {
+  background: rgba(var(--aqua-teal-rgb), 0.1);
+  color: var(--aqua-teal);
+  border-bottom: 2px solid var(--aqua-teal);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.amountWarning {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.chartContainer {
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(var(--glass-color), 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.chartContainer h3 {
+  font-size: 1.1rem;
+  color: var(--white);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.chartWrapper {
+  width: 100%;
+}
+
+.submitBtn {
+  background: var(--aqua-teal);
+  color: var(--white);
+  border: none;
+  padding: 0.75rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.submitBtn:hover {
+  opacity: 0.9;
+}
+
+.dangerIcon {
+  color: #ef4444;
+}
+.dangerIcon:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.boldAmount {
+  font-weight: 700;
+}
+.paidAmount {
+  color: #10b981;
+  font-weight: 600;
+}
+.debtAmount {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.expenseCategory {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--white);
+}
+
+.paymentSummary {
+  background: rgba(255,255,255,0.03);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.input, .select {
+  padding: 0.75rem 1rem;
+  background: var(--bg-main);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.input:focus, .select:focus {
+  border-color: var(--aqua-teal);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.formGroup label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}

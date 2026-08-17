@@ -6,7 +6,9 @@ import bcrypt from "bcrypt";
 export async function GET() {
   try {
     const parents = await sql`
-      SELECT p.id, p.fin_code, p.id_card_number, p.created_at, p.full_name, p.phone,
+      SELECT p.id, p.fin_code, p.id_card_number, p.created_at, 
+             COALESCE(NULLIF(TRIM(CONCAT(u.first_name, ' ', u.last_name)), ''), p.full_name) as full_name, 
+             COALESCE(u.phone, p.phone) as phone,
              au.email
       FROM parents p
       LEFT JOIN user_profiles u ON p.profile_id = u.id

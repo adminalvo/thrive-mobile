@@ -94,8 +94,14 @@ export default function GroupDetailPage({
   // Edit form state
   const [editForm, setEditForm] = useState({
     name: "",
-    room: ""
+    room: "",
+    program_id: "",
+    teacher_id: ""
   });
+
+  // Data for selects
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
 
   // Add student form
   const [selectedStudentToAdd, setSelectedStudentToAdd] = useState("");
@@ -109,7 +115,9 @@ export default function GroupDetailPage({
         setData(json);
         setEditForm({
           name: json.group.name || "",
-          room: json.group.room || ""
+          room: json.group.room || "",
+          program_id: json.group.program_id || "",
+          teacher_id: json.group.teacher_id || ""
         });
       } else {
         toast.error(t("notFound"));
@@ -133,9 +141,23 @@ export default function GroupDetailPage({
     }
   };
 
+  const fetchDropdownData = async () => {
+    try {
+      const [progRes, teachRes] = await Promise.all([
+        fetch("/api/programs"),
+        fetch("/api/teachers")
+      ]);
+      if (progRes.ok) setPrograms(await progRes.json());
+      if (teachRes.ok) setTeachers(await teachRes.json());
+    } catch (e) {
+      console.error("Failed to fetch dropdown data", e);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
     fetchAvailableStudents();
+    fetchDropdownData();
   }, [fetchProfile]);
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -559,6 +581,30 @@ export default function GroupDetailPage({
                     value={editForm.room} 
                     onChange={e => setEditForm({...editForm, room: e.target.value})} 
                   />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>{t("program")}</label>
+                  <select 
+                    value={editForm.program_id} 
+                    onChange={e => setEditForm({...editForm, program_id: e.target.value})}
+                  >
+                    <option value="">Seçin...</option>
+                    {programs.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>{t("teacher")}</label>
+                  <select 
+                    value={editForm.teacher_id} 
+                    onChange={e => setEditForm({...editForm, teacher_id: e.target.value})}
+                  >
+                    <option value="">Seçin...</option>
+                    {teachers.map((t) => (
+                      <option key={t.id} value={t.teacher_table_id || t.id}>{t.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className={styles.modalActions}>
                   <button type="button" className={styles.cancelBtn} onClick={() => setShowEditModal(false)}>

@@ -16,7 +16,7 @@ const credentialsProvider = CredentialsProvider({
 
     const emailLower = credentials.email.toLowerCase();
     const users = await sql`
-      SELECT u.id, u.email, u.encrypted_password, p.first_name, p.last_name, r.role as app_role
+      SELECT u.id, u.email, u.encrypted_password, p.first_name, p.last_name, r.role as app_role, r.is_active
       FROM auth.users u
       LEFT JOIN public.user_profiles p ON u.id = p.user_id
       LEFT JOIN public.user_roles r ON u.id = r.user_id
@@ -27,6 +27,10 @@ const credentialsProvider = CredentialsProvider({
 
     if (!user) {
       throw new Error("İstifadəçi tapılmadı.");
+    }
+
+    if (user.is_active === false) {
+      throw new Error("Hesabınız deaktiv edilib. Zəhmət olmasa rəhbərliklə əlaqə saxlayın.");
     }
 
     // Supabase Auth stores password in encrypted_password
@@ -62,11 +66,33 @@ const credentialsProvider = CredentialsProvider({
       console.error("Failed to log login action:", err);
     }
 
+    let permissions = {};
+    try {
+      const permissionsRows = await sql`
+        SELECT module_name, can_view, can_create, can_edit, can_delete, can_export
+        FROM user_permissions
+        WHERE user_id = ${user.id}
+      `;
+      permissions = permissionsRows.reduce((acc: any, row: any) => {
+        acc[row.module_name] = {
+          view: row.can_view,
+          create: row.can_create,
+          edit: row.can_edit,
+          delete: row.can_delete,
+          export: row.can_export
+        };
+        return acc;
+      }, {});
+    } catch (e) {
+      console.error("Failed to fetch permissions:", e);
+    }
+
     return {
       id: user.id,
       email: user.email,
       name: displayName,
-      role: user.app_role || "staff"
+      role: user.app_role || "staff",
+      permissions
     };
   }
 });
@@ -81,6 +107,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.id = user.id;
+        token.permissions = (user as any).permissions;
       }
       return token;
     },
@@ -88,6 +115,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
+        (session.user as any).permissions = token.permissions || {};
       }
       return session;
     }

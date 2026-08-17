@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const data = await req.json();
     const { 
       name, email, phone, program, monthlyPayment, durationMonths, password,
-      parentName, parentPhone, parentFin, parentIdCard, parentEmail
+      parentName, parentPhone, parentFin, parentIdCard, parentEmail, parentPassword
     } = data;
     
     // Fallback: If old frontend sends fin/idCard directly
@@ -47,6 +47,7 @@ export async function POST(req: Request) {
     const totalPrice = parsedPayment * parsedDuration;
     
     const hashedPassword = password ? await bcrypt.hash(password, 10) : await bcrypt.hash("123456", 10);
+    const hashedParentPassword = parentPassword ? await bcrypt.hash(parentPassword, 10) : await bcrypt.hash("123456", 10);
     
     const nameParts = (name || "").trim().split(" ");
     const firstName = nameParts[0] || "Tələbə";
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
         } else {
           await tx`
             INSERT INTO auth.users (id, email, role, aud, encrypted_password)
-            VALUES (${pUserId}, ${pEmail}, 'authenticated', 'authenticated', ${hashedPassword})
+            VALUES (${pUserId}, ${pEmail}, 'authenticated', 'authenticated', ${hashedParentPassword})
           `;
         }
 

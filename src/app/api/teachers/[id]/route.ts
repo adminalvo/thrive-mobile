@@ -24,7 +24,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         p.user_id
       FROM teachers t
       LEFT JOIN user_profiles p ON t.profile_id = p.id
-      WHERE t.id = ${id}
+      WHERE t.id = ${id} OR p.user_id = ${id}
     `;
 
     if (teacherRows.length === 0) {
@@ -56,23 +56,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         groups = groupRows.map((g: any) => ({
           id: g.id,
           name: g.name,
-          program: g.program || t.specialization || "General English",
-          room: g.room || "Room 101",
-          studentCount: 12,
+          program: g.program || t.specialization || "Proqram seçilməyib",
+          room: g.room || "Room",
+          studentCount: 0, // Should be fetched from enrollments ideally
           maxCapacity: 15
         }));
-      } else {
-        // Fallback to demo group linked to teacher specialty
-        groups = [
-          {
-            id: "g-1",
-            name: `${t.specialization || "İngilis dili"} Qrupu #1`,
-            program: t.specialization || "IELTS",
-            room: "Room 102",
-            studentCount: 8,
-            maxCapacity: 12
-          }
-        ];
       }
     } catch (e) {
       console.error("Fetch teacher groups error:", e);
@@ -106,38 +94,32 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     // 4. Schedules
-    const schedules = [
-      {
-        id: "sch-1",
-        dayOfWeek: 1,
-        dayName: "Bazar ertəsi",
-        startTime: "10:00",
-        endTime: "12:00",
-        room: groups[0]?.room || "Room 101",
-        groupName: groups[0]?.name || "Əsas Qrup"
-      },
-      {
-        id: "sch-2",
-        dayOfWeek: 3,
-        dayName: "Çərşənbə",
-        startTime: "10:00",
-        endTime: "12:00",
-        room: groups[0]?.room || "Room 101",
-        groupName: groups[0]?.name || "Əsas Qrup"
-      },
-      {
-        id: "sch-3",
-        dayOfWeek: 5,
-        dayName: "Cümə",
-        startTime: "14:00",
-        endTime: "16:00",
-        room: groups[0]?.room || "Room 101",
-        groupName: groups[0]?.name || "Əsas Qrup"
-      }
-    ];
+    let schedules: any[] = [];
+    try {
+      const scheduleRows = await sql`
+        SELECT s.id, s.day_of_week, s.start_time, s.end_time, g.name as group_name, g.room
+        FROM schedules s
+        JOIN groups g ON s.group_id = g.id
+        WHERE g.teacher_id = ${t.user_id || ""} 
+           OR g.teacher_id = ${id}
+           OR g.teacher_id = ${t.profile_id || ""}
+      `;
+      const days = ["Bazar", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə"];
+      schedules = scheduleRows.map((sch: any) => ({
+        id: sch.id,
+        dayOfWeek: sch.day_of_week,
+        dayName: days[sch.day_of_week] || "Məlum deyil",
+        startTime: sch.start_time?.substring(0, 5) || "",
+        endTime: sch.end_time?.substring(0, 5) || "",
+        room: sch.room || "Room",
+        groupName: sch.group_name || "Qrup"
+      }));
+    } catch (e) {
+      console.error("Fetch teacher schedules error:", e);
+    }
 
     // 5. Stats
-    const totalStudentsCount = students.length > 0 ? students.length : groups.reduce((acc, g) => acc + (g.studentCount || 0), 0);
+    const totalStudentsCount = students.length;
     const stats = {
       activeGroupsCount: groups.length,
       totalStudentsCount,

@@ -38,9 +38,13 @@ export default function TasksPage() {
   ];
 
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
+  const [staffUsers, setStaffUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
-  const isSuperAdmin = session?.user?.role === 'super_admin';
+  const userRole = session?.user?.role || "staff";
+  const isSuperAdmin = userRole === 'super_admin';
+  const permissions = (session?.user as any)?.permissions?.tasks || {};
+  const canCreate = userRole === "super_admin" || userRole === "admin" || permissions.create;
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -81,8 +85,21 @@ export default function TasksPage() {
     }
   };
 
+  const fetchStaff = async () => {
+    try {
+      const res = await fetch("/api/staff");
+      if (res.ok) {
+        const data = await res.json();
+        setStaffUsers(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
+    fetchStaff();
   }, []);
 
   useEffect(() => {
@@ -290,9 +307,11 @@ export default function TasksPage() {
           <h1 className={styles.title}>{t("title")}</h1>
           <p className={styles.subtitle}>{t("subtitle")}</p>
         </div>
-        <button className={styles.addBtn} onClick={openCreateModal}>
-          <Plus size={18} /> {t("newTask")}
-        </button>
+        {canCreate && (
+          <button className={styles.addBtn} onClick={openCreateModal}>
+            <Plus size={18} /> {t("newTask")}
+          </button>
+        )}
       </div>
 
       <div className={styles.kanbanBoard}>
@@ -471,12 +490,17 @@ export default function TasksPage() {
 
                 <div className={styles.inputGroup}>
                   <label>Məsul Şəxs</label>
-                  <input
-                    type="text"
-                    placeholder="Məs: Əli Məmmədov"
+                  <select
                     value={formData.assignee}
                     onChange={e => setFormData({ ...formData, assignee: e.target.value })}
-                  />
+                  >
+                    <option value="">-- Məsul Şəxs Seçin --</option>
+                    {staffUsers.map(staff => (
+                      <option key={staff.id} value={staff.id}>
+                        {staff.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -572,12 +596,17 @@ export default function TasksPage() {
 
                 <div className={styles.inputGroup}>
                   <label>Məsul Şəxs</label>
-                  <input
-                    type="text"
-                    placeholder="Məs: Əli Məmmədov"
+                  <select
                     value={formData.assignee}
                     onChange={e => setFormData({ ...formData, assignee: e.target.value })}
-                  />
+                  >
+                    <option value="">-- Məsul Şəxs Seçin --</option>
+                    {staffUsers.map(staff => (
+                      <option key={staff.id} value={staff.id}>
+                        {staff.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

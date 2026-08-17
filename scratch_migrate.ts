@@ -1,52 +1,34 @@
 import sql from './src/lib/db';
 
 async function migrate() {
-  console.log("Running migrations...");
-
-  await sql`
-    DO $$ 
-    BEGIN 
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='created_by') THEN
-            ALTER TABLE leads ADD COLUMN created_by UUID;
-        END IF;
-    END $$;
-  `;
-
-  await sql`
-    CREATE TABLE IF NOT EXISTS attendance (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      schedule_id UUID,
-      student_id UUID,
-      status TEXT NOT NULL,
-      date DATE NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-
-  await sql`
-    CREATE TABLE IF NOT EXISTS group_notes (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      teacher_id UUID,
-      group_id UUID,
-      content TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-
-  await sql`
-    CREATE TABLE IF NOT EXISTS activity_logs (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id UUID,
-      action TEXT NOT NULL,
-      details_az TEXT,
-      details_en TEXT,
-      details_ru TEXT,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `;
-
-  console.log("Migrations done");
-  process.exit(0);
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS expenses (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        category VARCHAR(100) NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL,
+        date DATE NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+    `;
+    
+    // Add some dummy expenses for presentation purposes (optional, but good for charts)
+    await sql`
+      INSERT INTO expenses (category, amount, date, description)
+      VALUES 
+      ('Maaşlar', 1500, NOW() - INTERVAL '2 days', 'Müəllim maaşları'),
+      ('Ofis xərcləri', 300, NOW() - INTERVAL '5 days', 'İşıq pulu və su'),
+      ('Reklam', 200, NOW() - INTERVAL '10 days', 'Instagram reklamı')
+      ON CONFLICT DO NOTHING;
+    `;
+    
+    console.log("Expenses migration successful");
+    process.exit(0);
+  } catch (err) {
+    console.error("Migration error:", err);
+    process.exit(1);
+  }
 }
 
 migrate();

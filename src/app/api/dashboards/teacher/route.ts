@@ -22,6 +22,13 @@ export async function GET() {
     `;
 
     const teacherId = teacherRes.length > 0 ? teacherRes[0].id : null;
+
+    // Get all groups assigned to this teacher
+    const groups = await sql`
+      SELECT id, name
+      FROM groups
+      WHERE teacher_id = ${userId} OR teacher_id = ${teacherId}
+    `;
     
     // Get students assigned to this teacher's groups
     const students = await sql`
@@ -68,6 +75,10 @@ export async function GET() {
     `;
 
     return NextResponse.json({
+      groups: groups.map((g: any) => ({
+        id: g.id,
+        name: g.name
+      })),
       students: students.map((s: any) => ({
         id: s.id,
         name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Tələbə",

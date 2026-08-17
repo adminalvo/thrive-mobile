@@ -238,11 +238,11 @@ export default function ProgramsPage() {
                   <select 
                     value={formData.parent_id}
                     onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
-                    style={{ width: "100%", padding: "0.8rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", borderRadius: "8px", color: "var(--white)" }}
+                    style={{ width: "100%", padding: "0.8rem", background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "8px", color: "var(--white)" }}
                   >
-                    <option value="">Heç biri (Ana Proqram)</option>
+                    <option value="" style={{ background: "#111827", color: "white" }}>Heç biri (Ana Proqram)</option>
                     {programs.filter(p => p.id !== formData.id && !p.parent_id).map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
+                      <option key={p.id} value={p.id} style={{ background: "#111827", color: "white" }}>{p.name}</option>
                     ))}
                   </select>
                 </div>

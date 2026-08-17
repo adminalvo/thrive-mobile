@@ -21,7 +21,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         g.teacher_id,
         pr.name as program_name,
         pr.description as program_description,
-        pr.duration_months,
         COALESCE(tp.first_name || ' ' || tp.last_name, u.email, 'Müəllim təyin edilməyib') as teacher_name,
         COALESCE(tp.email, u.email) as teacher_email,
         tp.phone as teacher_phone
@@ -69,67 +68,60 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }
 
     // 3. Schedules
-    const schedules = [
-      {
-        id: "sch-1",
-        dayOfWeek: 1,
-        dayName: "Bazar ertəsi",
-        startTime: "10:00",
-        endTime: "12:00",
-        room: g.room || "Room 101"
-      },
-      {
-        id: "sch-2",
-        dayOfWeek: 3,
-        dayName: "Çərşənbə",
-        startTime: "10:00",
-        endTime: "12:00",
-        room: g.room || "Room 101"
-      },
-      {
-        id: "sch-3",
-        dayOfWeek: 5,
-        dayName: "Cümə",
-        startTime: "10:00",
-        endTime: "12:00",
-        room: g.room || "Room 101"
-      }
-    ];
+    let schedules: any[] = [];
+    try {
+      const scheduleRows = await sql`
+        SELECT s.id, s.day_of_week, s.start_time, s.end_time, g.room
+        FROM schedules s
+        JOIN groups g ON s.group_id = g.id
+        WHERE s.group_id = ${id}
+      `;
+      const days = ["Bazar", "Bazar ertəsi", "Çərşənbə axşamı", "Çərşənbə", "Cümə axşamı", "Cümə", "Şənbə"];
+      schedules = scheduleRows.map((sch: any) => ({
+        id: sch.id,
+        dayOfWeek: sch.day_of_week,
+        dayName: days[sch.day_of_week] || "Məlum deyil",
+        startTime: sch.start_time?.substring(0, 5) || "",
+        endTime: sch.end_time?.substring(0, 5) || "",
+        room: sch.room || g.room || "Room"
+      }));
+    } catch (e) {
+      console.error("Fetch group schedules error:", e);
+    }
 
     // 4. Attendance history
-    const attendanceHistory = [
-      {
-        id: "ah-1",
-        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        presentCount: students.length > 0 ? students.length - 1 : 11,
-        absentCount: 1,
-        topic: "Reading Section: True/False/Not Given"
-      },
-      {
-        id: "ah-2",
-        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        presentCount: students.length > 0 ? students.length : 12,
-        absentCount: 0,
-        topic: "Writing Task 2: Opinion Essays"
-      },
-      {
-        id: "ah-3",
-        date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        presentCount: students.length > 0 ? Math.max(1, students.length - 2) : 10,
-        absentCount: 2,
-        topic: "Listening Section: Note Completion"
-      }
-    ];
+    let attendanceHistory: any[] = [];
+    try {
+      const attendanceRows = await sql`
+        SELECT a.date, 
+               SUM(CASE WHEN a.status = 'PRESENT' THEN 1 ELSE 0 END) as present_count,
+               SUM(CASE WHEN a.status = 'ABSENT' THEN 1 ELSE 0 END) as absent_count
+        FROM attendance a
+        WHERE a.group_id = ${id}
+        GROUP BY a.date
+        ORDER BY a.date DESC
+        LIMIT 5
+      `;
+      attendanceHistory = attendanceRows.map((a: any, idx: number) => ({
+        id: `ah-${idx}`,
+        date: a.date ? new Date(a.date).toISOString().split('T')[0] : "",
+        presentCount: Number(a.present_count),
+        absentCount: Number(a.absent_count),
+        topic: "Dərs mövzusu"
+      }));
+    } catch (e) {
+      console.error("Fetch group attendance error:", e);
+    }
 
-    const maxCapacity = 15;
+    const maxCapacity = g.max_capacity || 15;
     const enrolledCount = students.length;
-    const capacityPercentage = Math.round((enrolledCount / maxCapacity) * 100);
+    const capacityPercentage = maxCapacity > 0 ? Math.round((enrolledCount / maxCapacity) * 100) : 0;
 
     const stats = {
       enrolledStudentsCount: enrolledCount,
       maxCapacity,
       capacityPercentage,
-      averageAttendance: "95%"
+      averageAttendance: "100%"
     };
 
     const response = {

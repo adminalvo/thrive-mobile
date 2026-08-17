@@ -156,6 +156,30 @@
     "empty": "No data found."
   },
   "Students": {
+    "modal": {
+      "newStudent": "Add New Student",
+      "name": "Full Name",
+      "phone": "Phone",
+      "email": "Email",
+      "password": "Student Password",
+      "parentSection": "Parent Information (for Contract)",
+      "parentName": "Parent Full Name",
+      "parentEmail": "Parent Email (for Login)",
+      "parentPhone": "Parent Phone",
+      "parentFin": "Parent FIN Code",
+      "parentIdCard": "Parent ID Card",
+      "parentPassword": "Parent Password",
+      "academicSection": "Academic Details",
+      "program": "Program",
+      "monthlyPayment": "Monthly Payment (₼)",
+      "durationMonths": "Duration (Months)",
+      "paymentDay": "Payment Day (every month)",
+      "cancel": "Cancel",
+      "save": "Add"
+    },
+    "filter": {
+      "all": "All Statuses"
+    },
     "title": "Student Base",
     "subtitle": "List of all students, groups, and general information.",
     "newStudent": "+ New Student",
@@ -210,6 +234,17 @@
     "noSchedule": "No schedule set"
   },
   "Groups": {
+    "modal": {
+      "newGroup": "New Group",
+      "name": "Group Name",
+      "teacher": "Teacher",
+      "program": "Program",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "capacity": "Capacity",
+      "cancel": "Cancel",
+      "save": "Create"
+    },
     "title": "Groups",
     "subtitle": "Manage class groups and programs.",
     "newGroup": "+ New Group",
@@ -234,6 +269,20 @@
     }
   },
   "Finance": {
+    "modal": {
+      "newInvoice": "New Invoice",
+      "student": "Student",
+      "amount": "Amount (₼)",
+      "dueDate": "Due Date",
+      "status": "Status",
+      "statusPaid": "Paid",
+      "statusPending": "Pending",
+      "statusOverdue": "Overdue",
+      "statusFailed": "Failed",
+      "description": "Description",
+      "cancel": "Cancel",
+      "save": "Create"
+    },
     "title": "Finance & Payments",
     "subtitle": "Track student payments, invoices, and debtors.",
     "newInvoice": "New Invoice",
@@ -254,7 +303,8 @@
       "PAID": "Paid",
       "PARTIAL": "Partial",
       "PENDING": "Pending"
-    }
+    },
+    "searchPlaceholder": "Search..."
   },
   "Contract": {
     "title": "Electronic Contract & Invoice",
@@ -544,5 +594,44 @@
   "Universities": {
     "title": "Study Abroad (Universities)",
     "subtitle": "List of partner universities"
+  },
+  "Staff": {
+    "title": "Staff (RBAC)",
+    "subtitle": "Manage staff accounts and system access permissions.",
+    "search": "Search...",
+    "addStaff": "Add Staff",
+    "name": "Name / Surname",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "permissions": "Permissions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "loading": "Loading...",
+    "empty": "Not found.",
+    "modalPermTitle": "Permissions",
+    "modalPermDesc": "Set appropriate rights for this user across the following modules.",
+    "module": "Module",
+    "view": "View",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "export": "Export",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "addStaffTitle": "Create New Staff",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phone": "Phone",
+    "password": "Password",
+    "passwordPlaceholder": "Minimum 6 characters",
+    "roleSelect": "Select Role",
+    "admin": "Admin",
+    "staff": "Staff (Office worker)",
+    "teacher": "Teacher",
+    "sales": "Sales",
+    "denied": "Access Denied",
+    "deniedDesc": "You don't have sufficient privileges to view this page."
   }
 }

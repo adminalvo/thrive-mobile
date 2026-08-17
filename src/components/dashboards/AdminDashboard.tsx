@@ -14,11 +14,14 @@ export default function AdminDashboard() {
   const [statsData, setStatsData] = useState<any>(null);
   const [recentStudents, setRecentStudents] = useState<any[]>([]);
   const [todayClasses, setTodayClasses] = useState<any[]>([]);
+  const [myTasks, setMyTasks] = useState<any[]>([]);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   useEffect(() => {
     fetch("/api/dashboard/stats").then(res => res.json()).then(setStatsData);
     fetch("/api/dashboard/recent").then(res => res.json()).then(setRecentStudents);
     fetch("/api/dashboard/today").then(res => res.json()).then(setTodayClasses);
+    fetch("/api/dashboard/my-tasks").then(res => res.json()).then(setMyTasks);
   }, []);
   
   const stats = [
@@ -39,7 +42,9 @@ export default function AdminDashboard() {
           <h1 className={styles.pageTitle}>{t("welcome")}</h1>
           <p className={styles.pageSubtitle}>{t("subtitle")}</p>
         </div>
-        <button className={styles.actionBtn}>{t("newStudent")}</button>
+        <Link href="/dashboard/students">
+          <button className={styles.actionBtn}>+</button>
+        </Link>
       </motion.div>
 
       {/* Stats Cards */}
@@ -111,34 +116,96 @@ export default function AdminDashboard() {
         </motion.div>
 
         {/* Schedule/Tasks Mini */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={styles.sideCard}
-        >
-          <div className={styles.cardHeader}>
-            <h3>{t("todayClasses")}</h3>
-            <Link href="/dashboard/schedule">
-              <button className={styles.iconBtn}><MoreVertical size={18} /></button>
-            </Link>
-          </div>
-          <div className={styles.taskList}>
-            {todayClasses.length > 0 ? todayClasses.map((cls, idx) => (
-              <div key={idx} className={styles.taskItem}>
-                <div className={styles.taskTime}>{cls.time}</div>
-                <div className={styles.taskInfo}>
-                  <h4>{cls.title}</h4>
-                  <p>{cls.room} • {cls.teacher}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.sideCard}
+          >
+            <div className={styles.cardHeader}>
+              <h3>{t("todayClasses")}</h3>
+              <Link href="/dashboard/schedule">
+                <button className={styles.iconBtn}><MoreVertical size={18} /></button>
+              </Link>
+            </div>
+            <div className={styles.taskList}>
+              {todayClasses.length > 0 ? todayClasses.map((cls, idx) => (
+                <div key={idx} className={styles.taskItem}>
+                  <div className={styles.taskTime}>{cls.time}</div>
+                  <div className={styles.taskInfo}>
+                    <h4>{cls.title}</h4>
+                    <p>{cls.room} • {cls.teacher}</p>
+                  </div>
                 </div>
-              </div>
-            )) : (
-              <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                {c("empty")}
-              </div>
-            )}
-          </div>
-        </motion.div>
+              )) : (
+                <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                  {c("empty")}
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* My Tasks Mini */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.sideCard}
+          >
+            <div className={styles.cardHeader}>
+              <h3>Mənim Tapşırıqlarım</h3>
+              <Link href="/dashboard/tasks">
+                <button className={styles.iconBtn}><MoreVertical size={18} /></button>
+              </Link>
+            </div>
+            <div className={styles.taskList}>
+              {myTasks && myTasks.length > 0 ? myTasks.slice(0, 5).map((task, idx) => (
+                <div 
+                  key={idx} 
+                  className={styles.taskItem} 
+                  style={{ cursor: "pointer", padding: "0.8rem", borderRadius: "8px", background: "var(--glass-bg)" }}
+                  onClick={() => setSelectedTask(task)}
+                >
+                  <div className={styles.taskInfo}>
+                    <h4 style={{ marginBottom: "0.3rem" }}>{task.title}</h4>
+                    <span style={{ fontSize: "0.75rem", padding: "2px 6px", borderRadius: "4px", background: "rgba(255,255,255,0.1)" }}>
+                      {task.status}
+                    </span>
+                  </div>
+                </div>
+              )) : (
+                <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                  Mövcud deyil
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
       </div>
+
+      {selectedTask && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedTask(null)} style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100000 }}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ background: "var(--bg-color)", padding: "2rem", borderRadius: "12px", width: "90%", maxWidth: "500px", color: "var(--text-color)" }}>
+            <h2 style={{ marginBottom: "1rem", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "1rem" }}>{selectedTask.title}</h2>
+            <div style={{ marginBottom: "1rem", whiteSpace: "pre-wrap", lineHeight: 1.5, color: "var(--text-secondary)" }}>
+              {selectedTask.description || "Təsvir yoxdur."}
+            </div>
+            <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", fontSize: "0.9rem" }}>
+              <div style={{ padding: "0.4rem 0.8rem", background: "rgba(255,255,255,0.05)", borderRadius: "6px" }}>
+                <strong>Status:</strong> {selectedTask.status}
+              </div>
+              <div style={{ padding: "0.4rem 0.8rem", background: "rgba(255,255,255,0.05)", borderRadius: "6px" }}>
+                <strong>Prioritet:</strong> {selectedTask.priority}
+              </div>
+            </div>
+            <button 
+              onClick={() => setSelectedTask(null)}
+              style={{ width: "100%", padding: "0.8rem", background: "var(--aqua-teal)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}
+            >
+              Bağla
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

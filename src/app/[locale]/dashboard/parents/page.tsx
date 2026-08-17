@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../students/page.module.css";
-import { Plus, Search, Filter, MoreHorizontal, UserPlus, Trash2, X, Users } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, UserPlus, Trash2, X, Users, Edit } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -20,6 +20,9 @@ export default function ParentsPage() {
     first_name: "", last_name: "", email: "", phone: "", fin_code: "", id_card_number: "", password: "" 
   });
   const [submitting, setSubmitting] = useState(false);
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editData, setEditData] = useState({ id: "", fin_code: "", id_card_number: "" });
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   
@@ -138,10 +141,35 @@ export default function ParentsPage() {
       } else {
         toast.error("Silinmədi");
       }
-    } catch (error) {
+    } catch (e) {
       toast.error("Xəta baş verdi");
     }
-    setActiveMenu(null);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/parents/${editData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fin_code: editData.fin_code,
+          id_card_number: editData.id_card_number
+        })
+      });
+      if (res.ok) {
+        toast.success("Valideyn məlumatları yeniləndi!");
+        setShowEditModal(false);
+        fetchParents();
+      } else {
+        toast.error("Xəta baş verdi");
+      }
+    } catch (error) {
+      toast.error("Xəta baş verdi");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const filteredParents = parents.filter(p => 
@@ -183,6 +211,7 @@ export default function ParentsPage() {
               <th>{t("table.contact")}</th>
               <th>{t("table.fin")}</th>
               <th>{t("table.idCard")}</th>
+              <th>{c("actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -207,6 +236,19 @@ export default function ParentsPage() {
                   <td>{p.contact}</td>
                   <td>{p.fin}</td>
                   <td>{p.idCard}</td>
+                  <td>
+                    <div className={styles.actionMenu}>
+                      <button className={styles.iconBtn} onClick={() => {
+                        setEditData({ id: p.id, fin_code: p.fin, id_card_number: p.idCard });
+                        setShowEditModal(true);
+                      }} title="Redaktə et" style={{ color: "var(--aqua-teal)", marginRight: 8 }}>
+                        <Edit size={16} />
+                      </button>
+                      <button className={styles.iconBtn} onClick={() => handleDelete(p.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))
             ) : (
@@ -217,6 +259,54 @@ export default function ParentsPage() {
           </tbody>
         </table>
       </div>
+
+      <AnimatePresence>
+        {showEditModal && (
+          <div className={styles.modalOverlay}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={styles.modal}
+            >
+              <div className={styles.modalHeader}>
+                <h2>Valideyni Redaktə Et</h2>
+                <button type="button" className={styles.closeModalBtn} onClick={() => setShowEditModal(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <form onSubmit={handleEditSubmit} className={styles.form}>
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <label>FİN Kod</label>
+                    <input 
+                      type="text" 
+                      value={editData.fin_code}
+                      onChange={(e) => setEditData({...editData, fin_code: e.target.value})}
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>Vəsiqənin Seriya No</label>
+                    <input 
+                      type="text" 
+                      value={editData.id_card_number}
+                      onChange={(e) => setEditData({...editData, id_card_number: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className={styles.modalActions}>
+                  <button type="button" className={styles.cancelBtn} onClick={() => setShowEditModal(false)}>
+                    Ləğv et
+                  </button>
+                  <button type="submit" className={styles.saveBtn} disabled={submitting}>
+                    {submitting ? "Yadda saxlanılır..." : "Yadda saxla"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

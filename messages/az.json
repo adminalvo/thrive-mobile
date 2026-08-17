@@ -156,6 +156,30 @@
     "empty": "Heç bir məlumat tapılmadı."
   },
   "Students": {
+    "modal": {
+      "newStudent": "Yeni Tələbə Əlavə Et",
+      "name": "Ad və Soyad",
+      "phone": "Telefon",
+      "email": "Email",
+      "password": "Tələbə Şifrəsi",
+      "parentSection": "Valideyn Məlumatları (Müqavilə üçün)",
+      "parentName": "Valideyn Adı və Soyadı",
+      "parentEmail": "Valideyn Email (Giriş üçün)",
+      "parentPhone": "Valideyn Telefonu",
+      "parentFin": "Valideyn FIN Kod",
+      "parentIdCard": "Valideyn Ş/V Seriyası",
+      "parentPassword": "Valideyn Şifrəsi",
+      "academicSection": "Tədris Məlumatları",
+      "program": "Tədris Proqramı",
+      "monthlyPayment": "Aylıq Ödəniş (₼)",
+      "durationMonths": "Müddət (Ay)",
+      "paymentDay": "Ödəniş Günü (hər ayın)",
+      "cancel": "Ləğv et",
+      "save": "Əlavə Et"
+    },
+    "filter": {
+      "all": "Bütün Statuslar"
+    },
     "title": "Tələbə Bazası",
     "subtitle": "Bütün tələbələrin siyahısı, qrupları və ümumi məlumatları.",
     "newStudent": "+ Yeni Tələbə",
@@ -210,6 +234,17 @@
     "noSchedule": "Cədvəl təyin edilməyib"
   },
   "Groups": {
+    "modal": {
+      "newGroup": "Yeni Qrup",
+      "name": "Qrup Adı",
+      "teacher": "Müəllim",
+      "program": "Proqram",
+      "startDate": "Başlama Tarixi",
+      "endDate": "Bitiş Tarixi",
+      "capacity": "Tutum",
+      "cancel": "Ləğv et",
+      "save": "Yarat"
+    },
     "title": "Qruplar",
     "subtitle": "Qrup və proqramları idarə edin.",
     "newGroup": "+ Yeni Qrup",
@@ -234,6 +269,20 @@
     }
   },
   "Finance": {
+    "modal": {
+      "newInvoice": "Yeni Faktura",
+      "student": "Tələbə",
+      "amount": "Məbləğ (₼)",
+      "dueDate": "Ödəniş Tarixi",
+      "status": "Status",
+      "statusPaid": "Ödənildi",
+      "statusPending": "Gözləyir",
+      "statusOverdue": "Gecikir",
+      "statusFailed": "Uğursuz",
+      "description": "Açıqlama",
+      "cancel": "Ləğv et",
+      "save": "Yarat"
+    },
     "title": "Maliyyə və Ödənişlər",
     "subtitle": "Tələbə ödənişlərini, fakturaları və borcluları izləyin.",
     "newInvoice": "Yeni Faktura",
@@ -255,7 +304,8 @@
       "PAID": "Ödənilib",
       "PARTIAL": "Qismən",
       "PENDING": "Gecikir"
-    }
+    },
+    "searchPlaceholder": "Axtarış..."
   },
   "Contract": {
     "title": "Elektron Müqavilə və Faktura",
@@ -545,5 +595,44 @@
   "Universities": {
     "title": "Xaricdə Təhsil (Universitetlər)",
     "subtitle": "Tərəfdaş universitetlərin siyahısı"
+  },
+  "Staff": {
+    "title": "İşçilər (RBAC)",
+    "subtitle": "İşçi hesablarının idarəedilməsi və sistemə giriş icazələri.",
+    "search": "Axtarış...",
+    "addStaff": "Yeni İşçi",
+    "name": "Ad / Soyad",
+    "email": "Email",
+    "role": "Rol",
+    "status": "Status",
+    "permissions": "İcazələr",
+    "active": "Aktiv",
+    "inactive": "Deaktiv",
+    "loading": "Yüklənir...",
+    "empty": "Tapılmadı.",
+    "modalPermTitle": "İcazələr",
+    "modalPermDesc": "Aşağıdakı modullar üzrə bu istifadəçiyə uyğun hüquqları təyin edin.",
+    "module": "Modul",
+    "view": "View",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "export": "Export",
+    "cancel": "Ləğv et",
+    "save": "Yadda saxla",
+    "saving": "Saxlanılır...",
+    "addStaffTitle": "Yeni İşçi Yaradın",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "phone": "Telefon",
+    "password": "Şifrə",
+    "passwordPlaceholder": "Ən azı 6 simvol",
+    "roleSelect": "Rol seçin",
+    "admin": "Admin",
+    "staff": "Staff (Ofis işçisi)",
+    "teacher": "Müəllim",
+    "sales": "Satış",
+    "denied": "Bu səhifəyə giriş qadağandır",
+    "deniedDesc": "Sizin bu səhifəni görmək üçün kifayət qədər yetkiniz yoxdur."
   }
 }

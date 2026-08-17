@@ -358,7 +358,8 @@
     "notSpecified": "Not specified",
     "errors": {
       "unexpected": "An unexpected error occurred"
-    }
+    },
+    "errorDelete": "An error occurred during deletion"
   },
   "NotFound": {
     "title": "System Error: Page Not Found",

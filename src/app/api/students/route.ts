@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const data = await req.json();
     const { 
       name, email, phone, program, monthlyPayment, durationMonths, password,
-      parentName, parentPhone, parentFin, parentIdCard
+      parentName, parentPhone, parentFin, parentIdCard, parentEmail
     } = data;
     
     // Fallback: If old frontend sends fin/idCard directly
@@ -92,17 +92,9 @@ export async function POST(req: Request) {
 
       // 3. Create student record
       await tx`
-        INSERT INTO students (id, profile_id, program, monthly_payment, duration_months, total_price)
-        VALUES (${studentId}, ${finalProfileId}, ${program || null}, ${parsedPayment}, ${parsedDuration}, ${totalPrice})
+        INSERT INTO students (id, profile_id, program, monthly_payment, duration_months, total_price, fin_code, id_card_number)
+        VALUES (${studentId}, ${finalProfileId}, ${program || null}, ${parsedPayment}, ${parsedDuration}, ${totalPrice}, ${studentFin || null}, ${studentIdCard || null})
       `;
-      
-      if (parentName || parentFin || parentIdCard) {
-        await tx`
-          INSERT INTO parents (id, profile_id, fin_code, id_card_number, full_name, phone)
-          VALUES (${crypto.randomUUID()}, ${finalProfileId}, ${parentFin || null}, ${parentIdCard || null}, ${parentName || null}, ${parentPhone || null})
-          ON CONFLICT DO NOTHING
-        `;
-      }
       
       // 4. Optionally create user_roles record
       await tx`
@@ -110,6 +102,71 @@ export async function POST(req: Request) {
         VALUES (${finalUserId}, 'student')
         ON CONFLICT (user_id) DO NOTHING
       `;
+
+      // 5. Parent Auto-Creation & Pairing
+      if (parentName || parentFin || parentIdCard || parentEmail) {
+        const pEmail = parentEmail || `${studentId.substring(0,8)}@parent.thrive.az`;
+        const pUserId = crypto.randomUUID();
+        const pProfileId = crypto.randomUUID();
+        const pId = crypto.randomUUID();
+
+        // 5a. Parent auth user
+        const existingParentUser = await tx`SELECT id FROM auth.users WHERE email = ${pEmail}`;
+        let finalParentUserId = pUserId;
+
+        if (existingParentUser.length > 0) {
+          finalParentUserId = existingParentUser[0].id;
+        } else {
+          await tx`
+            INSERT INTO auth.users (id, email, role, aud, encrypted_password)
+            VALUES (${pUserId}, ${pEmail}, 'authenticated', 'authenticated', ${hashedPassword})
+          `;
+        }
+
+        // 5b. Parent user profile
+        const pNameParts = (parentName || "").trim().split(" ");
+        const pFirstName = pNameParts[0] || "Valideyn";
+        const pLastName = pNameParts.slice(1).join(" ") || "";
+
+        const existingParentProfile = await tx`SELECT id FROM user_profiles WHERE user_id = ${finalParentUserId}`;
+        let finalParentProfileId = pProfileId;
+
+        if (existingParentProfile.length > 0) {
+          finalParentProfileId = existingParentProfile[0].id;
+        } else {
+          await tx`
+            INSERT INTO user_profiles (id, user_id, first_name, last_name, email, phone)
+            VALUES (${pProfileId}, ${finalParentUserId}, ${pFirstName}, ${pLastName}, ${pEmail}, ${parentPhone || null})
+          `;
+        }
+
+        // 5c. Parents record
+        const existingParentRecord = await tx`SELECT id FROM parents WHERE profile_id = ${finalParentProfileId}`;
+        let finalParentId = pId;
+
+        if (existingParentRecord.length > 0) {
+          finalParentId = existingParentRecord[0].id;
+        } else {
+          await tx`
+            INSERT INTO parents (id, profile_id, fin_code, id_card_number, full_name, phone)
+            VALUES (${pId}, ${finalParentProfileId}, ${parentFin || null}, ${parentIdCard || null}, ${parentName || null}, ${parentPhone || null})
+          `;
+        }
+
+        // 5d. Link Parent to Student
+        await tx`
+          INSERT INTO student_parents (student_id, parent_id)
+          VALUES (${studentId}, ${finalParentId})
+          ON CONFLICT DO NOTHING
+        `;
+        
+        // 5e. Role
+        await tx`
+          INSERT INTO user_roles (user_id, role)
+          VALUES (${finalParentUserId}, 'parent')
+          ON CONFLICT (user_id) DO NOTHING
+        `;
+      }
     });
 
     await logAction("CREATE_STUDENT", { studentId, name: `${firstName} ${lastName}`.trim(), email });

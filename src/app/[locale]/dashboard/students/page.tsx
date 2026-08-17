@@ -20,10 +20,19 @@ export default function StudentsPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [newStudent, setNewStudent] = useState({ 
-    name: "", phone: "", email: "", fin: "", idCard: "", password: "",
-    program: "", monthlyPayment: "", durationMonths: "",
-    parentName: "", parentPhone: "", parentFin: "", parentIdCard: ""
+  const [newStudent, setNewStudent] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    program: "",
+    monthlyPayment: "150",
+    durationMonths: "6",
+    password: "",
+    parentName: "",
+    parentPhone: "",
+    parentFin: "",
+    parentIdCard: "",
+    parentEmail: ""
   });
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -266,6 +275,10 @@ export default function StudentsPage() {
               <div className={styles.inputGroup}>
                 <label>Valideyn Adı və Soyadı</label>
                 <input required type="text" value={newStudent.parentName} onChange={e => setNewStudent({...newStudent, parentName: e.target.value})} placeholder="Məs: Əli Rüstəmov" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Valideyn Email (Giriş üçün)</label>
+                <input required type="email" value={newStudent.parentEmail} onChange={e => setNewStudent({...newStudent, parentEmail: e.target.value})} placeholder="ornek@thrive.az" />
               </div>
               <div className={styles.inputGroup}>
                 <label>Valideyn Telefonu</label>

@@ -359,7 +359,8 @@
     "notSpecified": "Qeyd edilməyib",
     "errors": {
       "unexpected": "Gözlənilməz xəta baş verdi"
-    }
+    },
+    "errorDelete": "Silinmə zamanı xəta baş verdi"
   },
   "NotFound": {
     "title": "Sistem Xətası: Səhifə Tapılmadı",

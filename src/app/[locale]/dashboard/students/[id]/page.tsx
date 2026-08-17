@@ -212,6 +212,21 @@ export default function StudentDetailPage({
     }
   };
 
+  const handleDeletePayment = async (paymentId: string) => {
+    if (!confirm("Bu ödənişi silmək istədiyinizə əminsiniz?")) return;
+    try {
+      const res = await fetch(`/api/finance/${paymentId}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Ödəniş silindi");
+        fetchProfile();
+      } else {
+        toast.error(c("errorDelete"));
+      }
+    } catch {
+      toast.error(c("errors.unexpected"));
+    }
+  };
+
   const handleFetchParents = async () => {
     try {
       const res = await fetch("/api/parents");
@@ -612,19 +627,29 @@ export default function StudentDetailPage({
                         </td>
                         <td>{new Date(p.date).toLocaleDateString()}</td>
                         <td>
-                          <button 
-                            className={styles.actionBtnSecondary} 
-                            style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
-                            onClick={() => setSelectedInvoice({
-                              id: p.id,
-                              amount: p.amount,
-                              status: p.status,
-                              createdAt: p.date,
-                              student: { name: student.name, phone: student.phone }
-                            })}
-                          >
-                            <Printer size={14} /> {t("printContract")}
-                          </button>
+                          <div style={{ display: "flex", gap: "0.5rem" }}>
+                            <button 
+                              className={styles.actionBtnSecondary} 
+                              style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
+                              onClick={() => setSelectedInvoice({
+                                id: p.id,
+                                amount: p.amount,
+                                status: p.status,
+                                createdAt: p.date,
+                                student: { name: student.name, phone: student.phone }
+                              })}
+                            >
+                              <Printer size={14} /> {t("printContract")}
+                            </button>
+                            <button 
+                              className={styles.actionBtnDanger} 
+                              style={{ padding: "0.4rem", fontSize: "0.8rem" }}
+                              onClick={() => handleDeletePayment(p.id)}
+                              title="Sil"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

@@ -24,16 +24,19 @@ interface KanbanTask {
   updated_at?: string;
 }
 
-const COLUMNS: { id: KanbanTask["status"]; title: string; color: string }[] = [
-  { id: "TODO", title: "Ediləcəklər", color: "#64748b" },
-  { id: "IN_PROGRESS", title: "İcra Edilir", color: "#3b82f6" },
-  { id: "REVIEW", title: "Yoxlamada", color: "#f59e0b" },
-  { id: "DONE", title: "Tamamlandı", color: "#10b981" }
-];
+
 
 export default function TasksPage() {
   const t = useTranslations("Tasks");
   const c = useTranslations("Common");
+
+  const COLUMNS: { id: KanbanTask["status"]; title: string; color: string }[] = [
+    { id: "TODO", title: t("columns.TODO"), color: "#64748b" },
+    { id: "IN_PROGRESS", title: t("columns.IN_PROGRESS"), color: "#3b82f6" },
+    { id: "REVIEW", title: t("columns.REVIEW"), color: "#f59e0b" },
+    { id: "DONE", title: t("columns.DONE"), color: "#10b981" }
+  ];
+
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
@@ -356,13 +359,13 @@ export default function TasksPage() {
                                   className={styles.dropdownItem}
                                   onClick={() => openEditModal(task)}
                                 >
-                                  <Edit2 size={14} /> Redaktə et
+                                  <Edit2 size={14} /> {c("edit") || "Redaktə et"}
                                 </button>
                                 <button
                                   className={`${styles.dropdownItem} ${styles.deleteDropdownItem}`}
                                   onClick={() => handleDeleteTask(task.id)}
                                 >
-                                  <Trash2 size={14} /> Sil
+                                  <Trash2 size={14} /> {c("delete") || "Sil"}
                                 </button>
                               </div>
                             )}
@@ -410,7 +413,7 @@ export default function TasksPage() {
                 <input
                   required
                   type="text"
-                  placeholder="Məs: Tələbə qeydiyyatını yoxlamaq"
+                  placeholder="Başlıq..."
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
                 />
@@ -419,7 +422,7 @@ export default function TasksPage() {
               <div className={styles.inputGroup}>
                 <label>Təsvir</label>
                 <textarea
-                  placeholder="Tapşırığın detallı təsviri..."
+                  placeholder="Detallar..."
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
@@ -434,10 +437,10 @@ export default function TasksPage() {
                       setFormData({ ...formData, status: e.target.value as KanbanTask["status"] })
                     }
                   >
-                    <option value="TODO">Ediləcəklər</option>
-                    <option value="IN_PROGRESS">İcra Edilir</option>
-                    <option value="REVIEW">Yoxlamada</option>
-                    <option value="DONE">Tamamlandı</option>
+                    <option value="TODO">{t("columns.TODO")}</option>
+                    <option value="IN_PROGRESS">{t("columns.IN_PROGRESS")}</option>
+                    <option value="REVIEW">{t("columns.REVIEW")}</option>
+                    <option value="DONE">{t("columns.DONE")}</option>
                   </select>
                 </div>
 
@@ -499,7 +502,7 @@ export default function TasksPage() {
         <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>Tapşırığı Redaktə Et</h2>
+              <h2>{t("modal.edit.title")}</h2>
               <button className={styles.closeModalBtn} onClick={() => setShowEditModal(false)}>
                 <X size={20} />
               </button>
@@ -511,7 +514,7 @@ export default function TasksPage() {
                 <input
                   required
                   type="text"
-                  placeholder="Başlıq"
+                  placeholder="Başlıq..."
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
                 />
@@ -520,7 +523,7 @@ export default function TasksPage() {
               <div className={styles.inputGroup}>
                 <label>Təsvir</label>
                 <textarea
-                  placeholder="Təsvir..."
+                  placeholder="Detallar..."
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
@@ -535,10 +538,10 @@ export default function TasksPage() {
                       setFormData({ ...formData, status: e.target.value as KanbanTask["status"] })
                     }
                   >
-                    <option value="TODO">Ediləcəklər</option>
-                    <option value="IN_PROGRESS">İcra Edilir</option>
-                    <option value="REVIEW">Yoxlamada</option>
-                    <option value="DONE">Tamamlandı</option>
+                    <option value="TODO">{t("columns.TODO")}</option>
+                    <option value="IN_PROGRESS">{t("columns.IN_PROGRESS")}</option>
+                    <option value="REVIEW">{t("columns.REVIEW")}</option>
+                    <option value="DONE">{t("columns.DONE")}</option>
                   </select>
                 </div>
 

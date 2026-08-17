@@ -6,10 +6,14 @@ import { Plus, Search, Filter, MoreHorizontal, Library, Trash2, Edit, X } from "
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 
 export default function ProgramsPage() {
   const tp = useTranslations("Programs");
-  
+  const { data: session } = useSession();
+  const userRole = session?.user?.role || "staff";
+  const canEdit = ["super_admin", "staff", "admin", "sales"].includes(userRole);
+
   const [programs, setPrograms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -111,10 +115,12 @@ export default function ProgramsPage() {
           </div>
         </div>
         
-        <button className={styles.addBtn} onClick={openAddModal}>
-          <Plus size={18} />
-          {tp("add")}
-        </button>
+        {canEdit && (
+          <button className={styles.addBtn} onClick={openAddModal}>
+            <Plus size={18} />
+            {tp("add")}
+          </button>
+        )}
       </header>
 
       <div className={styles.controls}>
@@ -144,7 +150,7 @@ export default function ProgramsPage() {
             <thead>
               <tr>
                 <th>{tp("name")}</th>
-                <th style={{ width: "150px", textAlign: "right" }}>{tp("actions")}</th>
+                {canEdit && <th style={{ width: "150px", textAlign: "right" }}>{tp("actions")}</th>}
               </tr>
             </thead>
             <tbody>
@@ -171,16 +177,18 @@ export default function ProgramsPage() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ textAlign: "right" }}>
-                      <div className={styles.inlineActions} style={{ justifyContent: "flex-end" }}>
-                        <button className={styles.iconBtn} onClick={() => openEditModal(prog)} title={tp("edit")} style={{ color: "var(--aqua-teal)" }}>
-                          <Edit size={16} />
-                        </button>
-                        <button className={styles.iconBtn} onClick={() => handleDelete(prog.id)} title={tp("delete")} style={{ color: "var(--danger-color)" }}>
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+                    {canEdit && (
+                      <td style={{ textAlign: "right" }}>
+                        <div className={styles.inlineActions} style={{ justifyContent: "flex-end" }}>
+                          <button className={styles.iconBtn} onClick={() => openEditModal(prog)} title={tp("edit")} style={{ color: "var(--aqua-teal)" }}>
+                            <Edit size={16} />
+                          </button>
+                          <button className={styles.iconBtn} onClick={() => handleDelete(prog.id)} title={tp("delete")} style={{ color: "var(--danger-color)" }}>
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </motion.tr>
                 ))
               ) : (

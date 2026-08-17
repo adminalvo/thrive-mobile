@@ -63,12 +63,12 @@ export default function Sidebar({
     if (userRole === "super_admin") return true;
     
     if (userRole === "teacher") {
-      const allowed = ["/dashboard", "/dashboard/schedule", "/dashboard/students", "/dashboard/ai"];
+      const allowed = ["/dashboard", "/dashboard/schedule", "/dashboard/students", "/dashboard/ai", "/dashboard/programs", "/dashboard/universities"];
       return allowed.includes(item.href);
     }
     
     if (userRole === "parent" || userRole === "student") {
-      const allowed = ["/dashboard", "/dashboard/ai"];
+      const allowed = ["/dashboard", "/dashboard/ai", "/dashboard/programs", "/dashboard/universities"];
       return allowed.includes(item.href);
     }
 

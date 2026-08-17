@@ -96,6 +96,33 @@ export default function DashboardLayout({
             </h2>
           </div>
 
+          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ 
+              fontFamily: 'sans-serif', 
+              fontSize: '1.4rem', 
+              fontWeight: '800', 
+              color: 'transparent', 
+              WebkitTextStroke: '1px #0ea5e9',
+              letterSpacing: '1px',
+              textTransform: 'lowercase',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              <BookOpen size={20} style={{ color: '#0ea5e9' }} />
+              thrive
+            </span>
+            <span style={{ 
+              fontFamily: 'sans-serif', 
+              fontSize: '1.05rem', 
+              color: 'var(--text-secondary)',
+              fontWeight: '500',
+              textTransform: 'capitalize'
+            }}>
+              Education Center
+            </span>
+          </div>
+
           <div className={styles.headerRight}>
             <NotificationsDropdown />
             <button 

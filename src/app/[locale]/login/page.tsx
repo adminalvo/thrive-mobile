@@ -108,10 +108,18 @@ export default function LoginPage() {
               {error && <div className={styles.errorText}>{error}</div>}
 
               <button type="submit" className={styles.submitBtn} disabled={loading}>
-                <LogIn size={20} />
                 {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
+          </motion.div>
+          
+          <motion.div 
+            className={styles.developerCredit}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 1 }}
+          >
+            Developed by <span className={styles.hactag}>HacTag</span>
           </motion.div>
         </div>
       </div>

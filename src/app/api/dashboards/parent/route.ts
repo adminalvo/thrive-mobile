@@ -28,6 +28,7 @@ export async function GET() {
     let payments = [];
     let attendance = [];
     let exams = [];
+    let notes = [];
 
     if (parentId) {
       // Get children
@@ -93,6 +94,19 @@ export async function GET() {
           ORDER BY e.date DESC
           LIMIT 10
         `;
+
+        // Get non-private notes for these children
+        notes = await sql`
+          SELECT sn.id, sn.content, sn.created_at, up.first_name as student_name, t_up.email as teacher_email
+          FROM student_notes sn
+          LEFT JOIN students s ON sn.student_id = s.id
+          LEFT JOIN user_profiles up ON s.profile_id = up.id
+          LEFT JOIN teachers t ON sn.teacher_id = t.id
+          LEFT JOIN user_profiles t_up ON t.profile_id = t_up.id
+          WHERE sn.student_id IN ${sql(studentIds)} AND sn.is_private = false
+          ORDER BY sn.created_at DESC
+          LIMIT 10
+        `;
       }
     }
 
@@ -133,6 +147,13 @@ export async function GET() {
         feedback: e.feedback,
         group: e.group_name,
         studentName: e.student_name || "Tələbə"
+      })),
+      notes: notes.map((n: any) => ({
+        id: n.id,
+        content: n.content,
+        date: new Date(n.created_at).toLocaleDateString("az-AZ"),
+        studentName: n.student_name || "Tələbə",
+        teacher: n.teacher_email || "Müəllim"
       }))
     });
   } catch (error) {

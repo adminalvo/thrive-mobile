@@ -53,8 +53,18 @@ export async function GET() {
         FROM group_notes n
         LEFT JOIN auth.users u ON n.teacher_id = u.id
         LEFT JOIN groups g ON n.group_id = g.id
-        WHERE n.student_id = ${studentId} OR n.group_id IN ${sql(groupIds)}
-        ORDER BY n.created_at DESC
+        WHERE n.group_id IN ${sql(groupIds)}
+        
+        UNION ALL
+        
+        SELECT sn.id, sn.content, sn.created_at, u.email as teacher_email, 'Fərdi' as group_name
+        FROM student_notes sn
+        LEFT JOIN teachers t ON sn.teacher_id = t.id
+        LEFT JOIN user_profiles p ON t.profile_id = p.id
+        LEFT JOIN auth.users u ON p.user_id = u.id
+        WHERE sn.student_id = ${studentId} AND sn.is_private = false
+        
+        ORDER BY created_at DESC
         LIMIT 10
       `;
     }

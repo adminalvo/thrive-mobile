@@ -14,6 +14,8 @@ export default function TeacherDashboard() {
   const [todayClasses, setTodayClasses] = useState<any[]>([]);
   const [noteStudentId, setNoteStudentId] = useState<string | null>(null);
   const [noteContent, setNoteContent] = useState("");
+  const [noteIsPrivate, setNoteIsPrivate] = useState(false);
+  const [alerts, setAlerts] = useState<any>(null);
 
   const [attendanceModal, setAttendanceModal] = useState<{studentId: string, groupId: string, name: string} | null>(null);
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
@@ -46,6 +48,7 @@ export default function TeacherDashboard() {
         if (!data.error) {
           setStudents(data.students || []);
           setTodayClasses(data.todayClasses || []);
+          setAlerts(data.alerts || null);
         }
       });
   }, []);
@@ -56,11 +59,12 @@ export default function TeacherDashboard() {
       const res = await fetch("/api/teacher/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId: noteStudentId, content: noteContent })
+        body: JSON.stringify({ studentId: noteStudentId, content: noteContent, isPrivate: noteIsPrivate })
       });
       if (res.ok) {
         alert(c("success") || "Uğurla göndərildi");
         setNoteContent("");
+        setNoteIsPrivate(false);
         setNoteStudentId(null);
       }
     } catch (err) {
@@ -178,6 +182,42 @@ export default function TeacherDashboard() {
         ))}
       </div>
 
+      {alerts && (alerts.pendingAssignments > 0 || alerts.lowAttendanceStudents?.length > 0) && (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "12px", padding: "1.5rem", marginBottom: "1.5rem" }}
+        >
+          <h3 style={{ color: "#ef4444", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            Diqqət Tələb Edən (Needs Attention)
+          </h3>
+          <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+            {alerts.pendingAssignments > 0 && (
+              <div 
+                style={{ background: "rgba(2, 6, 23, 0.5)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)", cursor: "pointer" }}
+                onClick={() => alert("Tapşırıqlar yoxlamaq üçün kliklədiniz (Tezliklə)")}
+              >
+                <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#f59e0b" }}>{alerts.pendingAssignments}</div>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Yoxlanılmamış Tapşırıq</div>
+              </div>
+            )}
+            
+            {alerts.lowAttendanceStudents?.length > 0 && (
+              <div 
+                style={{ background: "rgba(2, 6, 23, 0.5)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)", cursor: "pointer" }}
+                onClick={() => {
+                  const studentIds = alerts.lowAttendanceStudents.map((s: any) => s.id);
+                  setStudents(students.filter(s => studentIds.includes(s.id)));
+                }}
+              >
+                <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#ef4444" }}>{alerts.lowAttendanceStudents.length}</div>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Aşağı Davamiyyətli Şagird (Baxmaq üçün klikləyin)</div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+
       <div className={styles.contentGrid}>
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -285,8 +325,12 @@ export default function TeacherDashboard() {
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               placeholder="Qeydinizin məzmunu..."
-              style={{ width: "100%", height: "100px", marginBottom: "1rem", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", padding: "0.5rem" }}
+              style={{ width: "100%", height: "100px", marginBottom: "1rem", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", padding: "0.5rem", borderRadius: "8px" }}
             />
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: "1.5rem", cursor: "pointer" }}>
+              <input type="checkbox" checked={noteIsPrivate} onChange={(e) => setNoteIsPrivate(e.target.checked)} />
+              Şəxsi Qeyd (Şagird və Valideyn görməyəcək)
+            </label>
             <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
               <button onClick={() => setNoteStudentId(null)} style={{ padding: "0.5rem 1rem", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }}>Ləğv et</button>
               <button onClick={sendNote} style={{ padding: "0.5rem 1rem", background: "var(--aqua-teal)", border: "none", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>Göndər</button>

@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { studentId, content } = await req.json();
+    const { studentId, content, isPrivate = false } = await req.json();
 
     if (!studentId || !content) {
       return NextResponse.json({ error: "studentId and content are required" }, { status: 400 });
@@ -33,8 +33,8 @@ export async function POST(req: Request) {
     const teacherId = teacherRes[0].id;
 
     await sql`
-      INSERT INTO student_notes (teacher_id, student_id, content)
-      VALUES (${teacherId}, ${studentId}, ${content})
+      INSERT INTO student_notes (teacher_id, student_id, content, is_private)
+      VALUES (${teacherId}, ${studentId}, ${content}, ${isPrivate})
     `;
 
     return NextResponse.json({ success: true });

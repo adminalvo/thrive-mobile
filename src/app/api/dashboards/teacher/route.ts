@@ -45,6 +45,29 @@ export async function GET() {
       ORDER BY c.start_time ASC
     `;
 
+    // Get pending assignments count
+    const pendingAssignmentsRes = await sql`
+      SELECT COUNT(*) as count
+      FROM assignment_submissions s
+      JOIN assignments a ON s.assignment_id = a.id
+      WHERE a.teacher_id = ${userId} AND s.status = 'SUBMITTED'
+    `;
+    const pendingAssignments = pendingAssignmentsRes[0].count || 0;
+
+    // Get students with low attendance (e.g., < 80%)
+    // Mocking this or calculating simply: we just count total 'ABSENT' > 3 for now as a quick risk indicator
+    const lowAttendanceRes = await sql`
+      SELECT s.id, up.first_name, up.last_name, COUNT(a.id) as absent_count
+      FROM students s
+      JOIN attendance a ON s.id = a.student_id
+      LEFT JOIN user_profiles up ON s.profile_id = up.id
+      JOIN student_groups sg ON s.id = sg.student_id
+      JOIN groups g ON sg.group_id = g.id
+      WHERE g.teacher_id = ${userId} AND a.status = 'ABSENT'
+      GROUP BY s.id, up.first_name, up.last_name
+      HAVING COUNT(a.id) >= 3
+    `;
+
     return NextResponse.json({
       students: students.map((s: any) => ({
         id: s.id,
@@ -61,7 +84,15 @@ export async function GET() {
         program: c.program_name || "Proqram",
         room: c.room || "Otaq təyin edilməyib",
         status: c.status || "SCHEDULED"
-      }))
+      })),
+      alerts: {
+        pendingAssignments: Number(pendingAssignments),
+        lowAttendanceStudents: lowAttendanceRes.map((s: any) => ({
+          id: s.id,
+          name: `${s.first_name || ""} ${s.last_name || ""}`.trim(),
+          absentCount: s.absent_count
+        }))
+      }
     });
   } catch (error) {
     console.error("Teacher Dashboard API Error:", error);

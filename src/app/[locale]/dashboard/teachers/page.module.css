@@ -266,10 +266,31 @@
   padding: 3rem 0;
 }
 
-.actionMenu { position: absolute; right: 0; top: 100%; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10; min-width: 120px; }
-.actionMenu button { width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: none; border: none; font-size: 0.85rem; cursor: pointer; border-radius: 4px; transition: background 0.2s; }
-.actionMenu button:hover { background: var(--surface-hover); }
-.cardHeader { display: flex; justify-content: space-between; align-items: flex-start; }
+.inlineActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.iconBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.iconBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.cardHeader { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 1rem; }
 
 @media (max-width: 768px) {
   .modal {

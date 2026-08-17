@@ -6,6 +6,7 @@ import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2 } from "luci
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
 
 interface KanbanTask {
@@ -35,6 +36,8 @@ export default function TasksPage() {
   const c = useTranslations("Common");
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.role === 'super_admin';
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -286,7 +289,7 @@ export default function TasksPage() {
         </div>
         <button className={styles.addBtn} onClick={openCreateModal}>
           <Plus size={18} /> {t("newTask")}
-        </button>
+        </button>}
       </div>
 
       <div className={styles.kanbanBoard}>

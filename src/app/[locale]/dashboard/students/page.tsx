@@ -2,13 +2,24 @@
 
 import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
-import { Plus, Search, Filter, MoreHorizontal, UserCheck, UserX, Trash2, X } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, UserCheck, UserX, Trash2, Edit, X, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
+import { useSession } from "next-auth/react";
 
 export default function StudentsPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  
+  if (session?.user?.role === "teacher") {
+    if (typeof window !== "undefined") {
+      router.push("/dashboard");
+    }
+    return null;
+  }
+
   const t = useTranslations("Students");
   const c = useTranslations("Common");
   const [students, setStudents] = useState<any[]>([]);
@@ -16,7 +27,8 @@ export default function StudentsPage() {
   const [showModal, setShowModal] = useState(false);
   const [newStudent, setNewStudent] = useState({ 
     name: "", phone: "", email: "", fin: "", idCard: "", password: "",
-    program: "", monthlyPayment: "", durationMonths: ""
+    program: "", monthlyPayment: "", durationMonths: "",
+    parentName: "", parentPhone: "", parentFin: "", parentIdCard: ""
   });
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -66,7 +78,7 @@ export default function StudentsPage() {
       });
       if (res.ok) {
         setShowModal(false);
-        setNewStudent({ name: "", phone: "", email: "", fin: "", password: "" });
+        setNewStudent({ name: "", phone: "", email: "", fin: "", idCard: "", password: "", program: "", monthlyPayment: "", durationMonths: "", parentName: "", parentPhone: "", parentFin: "", parentIdCard: "" });
         toast.success("Tələbə uğurla əlavə edildi!");
         fetchStudents();
       } else {
@@ -209,22 +221,15 @@ export default function StudentsPage() {
                     </td>
                     <td className={styles.date}>{displayDate}</td>
                     <td>
-                      <div style={{ position: "relative" }}>
-                        <button className={styles.actionBtn} onClick={() => setActiveMenu(activeMenu === student.id ? null : student.id)}>
-                          <MoreHorizontal size={18}/>
+                      <div className={styles.inlineActions}>
+                        <Link href={`/dashboard/students/${student.id}`} style={{ textDecoration: "none" }}>
+                          <button className={styles.iconBtn} title="Profilə bax" style={{ color: "var(--aqua-teal)" }}>
+                            <BookOpen size={16} />
+                          </button>
+                        </Link>
+                        <button className={styles.iconBtn} onClick={() => handleDelete(student.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
+                          <Trash2 size={16} />
                         </button>
-                        {activeMenu === student.id && (
-                          <div className={styles.actionMenu}>
-                            <Link href={`/dashboard/students/${student.id}`} style={{ textDecoration: "none", display: "block" }}>
-                              <button style={{ color: "var(--aqua-teal)" }}>
-                                Profilə bax
-                              </button>
-                            </Link>
-                            <button onClick={() => handleDelete(student.id)} style={{ color: "var(--danger-color)" }}>
-                              <Trash2 size={14} /> Sil
-                            </button>
-                          </div>
-                        )}
                       </div>
                     </td>
                   </motion.tr>
@@ -257,14 +262,26 @@ export default function StudentsPage() {
                 <label>Email (İstəyə bağlı)</label>
                 <input type="email" value={newStudent.email} onChange={e => setNewStudent({...newStudent, email: e.target.value})} placeholder="ornek@thrive.az" />
               </div>
+
+              <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem', fontSize: '1.1rem', color: 'var(--text-color)' }}>Valideyn Məlumatları (Müqavilə üçün)</h3>
               <div className={styles.inputGroup}>
-                <label>FIN Kod (İstəyə bağlı)</label>
-                <input type="text" value={newStudent.fin} onChange={e => setNewStudent({...newStudent, fin: e.target.value})} placeholder="Məs: 5G8Y2P1" />
+                <label>Valideyn Adı və Soyadı</label>
+                <input required type="text" value={newStudent.parentName} onChange={e => setNewStudent({...newStudent, parentName: e.target.value})} placeholder="Məs: Əli Rüstəmov" />
               </div>
               <div className={styles.inputGroup}>
-                <label>Şəxsiyyət Vəsiqəsi Seriyası (Ş/V)</label>
-                <input type="text" value={newStudent.idCard} onChange={e => setNewStudent({...newStudent, idCard: e.target.value})} placeholder="Məs: AZE1234567" />
+                <label>Valideyn Telefonu</label>
+                <input required type="text" value={newStudent.parentPhone} onChange={e => setNewStudent({...newStudent, parentPhone: e.target.value})} placeholder="+994501234567" />
               </div>
+              <div className={styles.inputGroup}>
+                <label>Valideyn FIN Kod</label>
+                <input required type="text" value={newStudent.parentFin} onChange={e => setNewStudent({...newStudent, parentFin: e.target.value})} placeholder="Məs: 5G8Y2P1" />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Valideyn Ş/V Seriyası</label>
+                <input required type="text" value={newStudent.parentIdCard} onChange={e => setNewStudent({...newStudent, parentIdCard: e.target.value})} placeholder="Məs: AZE1234567" />
+              </div>
+
+              <h3 style={{ marginTop: '1rem', marginBottom: '0.5rem', fontSize: '1.1rem', color: 'var(--text-color)' }}>Tədris Məlumatları</h3>
               <div className={styles.inputGroup}>
                 <label>Tədris Proqramı</label>
                 <input type="text" value={newStudent.program} onChange={e => setNewStudent({...newStudent, program: e.target.value})} placeholder="Məs: General English" />

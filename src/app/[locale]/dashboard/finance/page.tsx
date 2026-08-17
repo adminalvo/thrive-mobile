@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
-import { CreditCard, AlertCircle, CheckCircle, Search, FileText, Plus, X, DollarSign } from "lucide-react";
+import { CreditCard, AlertCircle, CheckCircle, Search, FileText, Plus, X, DollarSign, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import ContractModal from "@/components/ContractModal";
@@ -63,7 +63,8 @@ export default function FinancePage() {
   // Process Payment Form State
   const [paymentForm, setPaymentForm] = useState({
     amount: "",
-    paymentMethod: "CASH"
+    paymentMethod: "CASH",
+    lessonTime: ""
   });
 
   useEffect(() => {
@@ -173,12 +174,28 @@ export default function FinancePage() {
     }
   };
 
+  const handleDeletePayment = async (id: string) => {
+    if (!confirm(c("confirmDelete") || "Bu ödənişi silmək istədiyinizə əminsiniz?")) return;
+    try {
+      const res = await fetch(`/api/finance/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setInvoices(prev => prev.filter(inv => inv.id !== id));
+        toast.success(c("successDelete") || "Uğurla silindi");
+      } else {
+        toast.error(c("errorDelete") || "Silmək mümkün olmadı");
+      }
+    } catch (error) {
+      toast.error(c("error") || "Xəta baş verdi");
+    }
+  };
+
   const openPaymentModal = (invoice: Invoice) => {
     const debt = Math.max(0, (Number(invoice.amount) || 0) - (Number(invoice.paidAmount) || 0));
     setPaymentModalInvoice(invoice);
     setPaymentForm({
       amount: debt > 0 ? String(debt) : "0",
-      paymentMethod: "CASH"
+      paymentMethod: "CASH",
+      lessonTime: ""
     });
   };
 
@@ -199,7 +216,8 @@ export default function FinancePage() {
         body: JSON.stringify({
           invoiceId: paymentModalInvoice.id,
           amount: amountNum,
-          paymentMethod: paymentForm.paymentMethod
+          paymentMethod: paymentForm.paymentMethod,
+          lessonTime: paymentForm.lessonTime
         })
       });
 
@@ -314,8 +332,13 @@ export default function FinancePage() {
                   >
                     <td className={styles.invoiceId}>#{inv.id ? inv.id.substring(0, 6).toUpperCase() : "INV"}</td>
                     <td className={styles.studentName}>
-                      {studentName}
-                      {isOverdue && <AlertCircle size={14} className={styles.alertIcon} />}
+                      <div>
+                        <strong>{studentName}</strong>
+                        {isOverdue && <AlertCircle size={14} className={styles.alertIcon} />}
+                      </div>
+                      <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: "2px" }}>
+                        Valideyn: {inv.parentName || "Qeyd edilməyib"}
+                      </div>
                     </td>
                     <td>{amount} ₼</td>
                     <td className={styles.paid}>{paid} ₼</td>
@@ -345,6 +368,14 @@ export default function FinancePage() {
                           onClick={() => setSelectedInvoice(inv)}
                         >
                           <FileText size={16} />
+                        </button>
+                        <button 
+                          className={styles.actionBtn} 
+                          title="Sil"
+                          style={{ color: "#ef4444", background: "rgba(239, 68, 68, 0.1)" }}
+                          onClick={() => handleDeletePayment(inv.id)}
+                        >
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
@@ -501,18 +532,28 @@ export default function FinancePage() {
                   />
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label>Ödəniş Üsulu</label>
-                  <select
-                    value={paymentForm.paymentMethod}
-                    onChange={e => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
-                  >
-                    <option value="CASH">Nağd (CASH)</option>
-                    <option value="CARD">Kartla (CARD)</option>
-                    <option value="BANK_TRANSFER">Bank Köçürməsi</option>
-                  </select>
+                  <div className={styles.inputGroup}>
+                    <label>Ödəniş Üsulu</label>
+                    <select
+                      value={paymentForm.paymentMethod}
+                      onChange={e => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
+                    >
+                      <option value="CASH">Nağd (CASH)</option>
+                      <option value="CARD">Kartla (CARD)</option>
+                      <option value="BANK_TRANSFER">Bank Köçürməsi</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
+
+                <div className={styles.inputGroup}>
+                  <label>Dərs Saatı</label>
+                  <input
+                    type="text"
+                    placeholder="Məs: Həftəiçi 19:00 - 20:30"
+                    value={paymentForm.lessonTime}
+                    onChange={e => setPaymentForm({ ...paymentForm, lessonTime: e.target.value })}
+                  />
+                </div>
 
               <div className={styles.modalActions}>
                 <button

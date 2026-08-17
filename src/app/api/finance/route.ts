@@ -19,11 +19,13 @@ export async function GET() {
         pr.last_name,
         pr.phone,
         pr.email,
+        pa.full_name as parent_name,
         COALESCE((SELECT SUM(amount) FROM payments WHERE invoice_id = i.id), 0) AS paid_amount
       FROM invoices i
       LEFT JOIN auth.users u ON i.student_id = u.id
       LEFT JOIN user_profiles pr ON pr.user_id = u.id OR i.student_id = pr.id
       LEFT JOIN students s ON s.profile_id = pr.id OR i.student_id = s.id
+      LEFT JOIN parents pa ON pa.profile_id = s.profile_id
       ORDER BY i.created_at DESC
     `;
 
@@ -42,6 +44,7 @@ export async function GET() {
         id: i.id,
         studentId: resolvedStudentId,
         studentName,
+        parentName: i.parent_name || "Qeyd edilməyib",
         amount,
         paidAmount,
         status,

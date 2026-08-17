@@ -1,90 +1,54 @@
 export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const q = (searchParams.get("q") || "").trim();
-
-    if (!q) {
-      return NextResponse.json({
-        students: [],
-        teachers: [],
-        groups: []
-      });
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const term = `%${q}%`;
+    const { searchParams } = new URL(req.url);
+    const query = searchParams.get("q") || "";
 
-    // Query Students, Teachers, and Groups simultaneously using raw SQL
-    const [students, teachers, groups] = await Promise.all([
-      // 1. Students query
-      sql`
-        SELECT s.id, p.first_name, p.last_name, p.email, p.phone
-        FROM students s
-        LEFT JOIN user_profiles p ON s.profile_id = p.id
-        WHERE (
-          p.first_name ILIKE ${term} OR
-          p.last_name ILIKE ${term} OR
-          p.email ILIKE ${term} OR
-          p.phone ILIKE ${term} OR
-          CONCAT_WS(' ', p.first_name, p.last_name) ILIKE ${term}
-        )
-        LIMIT 10
-      `,
-      // 2. Teachers query
-      sql`
-        SELECT t.id, t.specialization, p.first_name, p.last_name, p.email, p.phone
-        FROM teachers t
-        LEFT JOIN user_profiles p ON t.profile_id = p.id
-        WHERE (
-          p.first_name ILIKE ${term} OR
-          p.last_name ILIKE ${term} OR
-          p.email ILIKE ${term} OR
-          p.phone ILIKE ${term} OR
-          t.specialization ILIKE ${term} OR
-          CONCAT_WS(' ', p.first_name, p.last_name) ILIKE ${term}
-        )
-        LIMIT 10
-      `,
-      // 3. Groups query
-      sql`
-        SELECT g.id, g.name, g.room, p.name as program_name
-        FROM groups g
-        LEFT JOIN programs p ON g.program_id = p.id
-        WHERE (
-          g.name ILIKE ${term} OR
-          g.room ILIKE ${term} OR
-          p.name ILIKE ${term}
-        )
-        LIMIT 10
-      `
-    ]);
+    if (!query || query.length < 2) {
+      return NextResponse.json({ results: [] });
+    }
 
-    return NextResponse.json({
-      students: students.map((s: any) => ({
-        id: s.id,
-        name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Bilinmir",
-        email: s.email || "",
-        phone: s.phone || ""
-      })),
-      teachers: teachers.map((t: any) => ({
-        id: t.id,
-        name: `${t.first_name || ""} ${t.last_name || ""}`.trim() || "Bilinmir",
-        email: t.email || "",
-        specialization: t.specialization || "N/A"
-      })),
-      groups: groups.map((g: any) => ({
-        id: g.id,
-        name: g.name || "",
-        program: g.program_name || "N/A",
-        room: g.room || ""
-      }))
-    });
+    const searchTerm = `%${query}%`;
+
+    // Axtarış üçün tələbələr, müəllimlər və qruplar:
+    const students = await sql`
+      SELECT id, first_name || ' ' || last_name as name, 'student' as type, '/dashboard/students/' || id as url
+      FROM user_profiles p
+      JOIN students s ON p.id = s.profile_id
+      WHERE first_name ILIKE ${searchTerm} OR last_name ILIKE ${searchTerm} OR phone ILIKE ${searchTerm}
+      LIMIT 5
+    `;
+
+    const teachers = await sql`
+      SELECT id, first_name || ' ' || last_name as name, 'teacher' as type, '/dashboard/teachers/' || id as url
+      FROM user_profiles p
+      JOIN teachers t ON p.id = t.profile_id
+      WHERE first_name ILIKE ${searchTerm} OR last_name ILIKE ${searchTerm} OR phone ILIKE ${searchTerm}
+      LIMIT 5
+    `;
+
+    const groups = await sql`
+      SELECT id, name, 'group' as type, '/dashboard/groups/' || id as url
+      FROM groups
+      WHERE name ILIKE ${searchTerm}
+      LIMIT 5
+    `;
+
+    const results = [...students, ...teachers, ...groups];
+
+    return NextResponse.json({ results });
   } catch (error: any) {
-    console.error("Global Search API Error:", error);
-    return NextResponse.json({ error: "Failed to perform search" }, { status: 500 });
+    console.error("Search API Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

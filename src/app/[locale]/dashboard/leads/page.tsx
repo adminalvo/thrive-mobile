@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
-import { Plus, Phone, Calendar, Mail, MoreVertical, Search } from "lucide-react";
+import { Plus, Phone, Calendar, Mail, MoreVertical, Search, Edit2, Trash2, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -35,6 +36,19 @@ export default function LeadsPage() {
   const [showModal, setShowModal] = useState(false);
   const [newLead, setNewLead] = useState({ name: "", phone: "", source: "Instagram" });
   const [search, setSearch] = useState("");
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.role === 'super_admin';
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClick = () => setActiveMenuId(null);
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, []);
+
 
   useEffect(() => {
     fetchLeads();
@@ -85,6 +99,39 @@ export default function LeadsPage() {
     e.preventDefault();
   };
 
+  const deleteLead = async (id: string) => {
+    if (!confirm(t("confirmDelete") || "Silmək istədiyinizə əminsiniz?")) return;
+    try {
+      const res = await fetch(`/api/leads/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setLeads(prev => prev.filter(l => l.id !== id));
+        toast.success("Uğurla silindi");
+      } else toast.error("Silinmə zamanı xəta baş verdi");
+    } catch {
+      toast.error("Gözlənilməz xəta");
+    }
+  };
+
+  const updateLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLead) return;
+    try {
+      const res = await fetch(`/api/leads/${editingLead.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingLead)
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setLeads(prev => prev.map(l => l.id === updated.id ? updated : l));
+        setShowEditModal(false);
+        toast.success("Uğurla yeniləndi!");
+      } else toast.error("Yenilənmə xətası");
+    } catch {
+      toast.error("Gözlənilməz xəta");
+    }
+  };
+
   const createLead = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -123,9 +170,9 @@ export default function LeadsPage() {
           <h1 className={styles.title}>{t("title")}</h1>
           <p className={styles.subtitle}>{t("subtitle")}</p>
         </div>
-        <button className={styles.addBtn} onClick={() => setShowModal(true)}>
+        {isSuperAdmin && <button className={styles.addBtn} onClick={() => setShowModal(true)}>
           <Plus size={18} /> {t("newLead")}
-        </button>
+        </button>}
       </div>
 
       <div className={styles.toolbar}>
@@ -164,7 +211,7 @@ export default function LeadsPage() {
                   <motion.div 
                     layout
                     key={lead.id}
-                    draggable
+                    draggable={isSuperAdmin}
                     onDragStart={(e: any) => handleDragStart(e, lead.id)}
                     className={styles.card}
                     initial={{ opacity: 0 }}
@@ -172,7 +219,26 @@ export default function LeadsPage() {
                   >
                     <div className={styles.cardHeader}>
                       <span className={styles.sourceBadge}>{lead.source || "Digər"}</span>
-                      <button className={styles.moreBtn}><MoreVertical size={16} /></button>
+                      {isSuperAdmin && (
+                        <div style={{ position: "relative" }} onClick={e => e.stopPropagation()}>
+                          <button 
+                            className={styles.moreBtn} 
+                            onClick={() => setActiveMenuId(activeMenuId === lead.id ? null : lead.id)}
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                          {activeMenuId === lead.id && (
+                            <div className={styles.dropdownMenu} style={{ position: "absolute", right: 0, top: "24px", background: "#fff", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10, padding: "4px", minWidth: "120px" }}>
+                              <button onClick={() => { setEditingLead(lead); setShowEditModal(true); setActiveMenuId(null); }} style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 12px", border: "none", background: "transparent", cursor: "pointer", color: "#374151" }}>
+                                <Edit2 size={14} /> Redaktə Et
+                              </button>
+                              <button onClick={() => { deleteLead(lead.id); setActiveMenuId(null); }} style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 12px", border: "none", background: "transparent", cursor: "pointer", color: "#ef4444" }}>
+                                <Trash2 size={14} /> Sil
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <h4 className={styles.leadName}>{lead.name}</h4>
                     <div className={styles.cardInfo}>
@@ -188,6 +254,42 @@ export default function LeadsPage() {
           </div>
         ))}
       </div>
+
+      {/* Edit Lead Modal */}
+      {showEditModal && editingLead && (
+        <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2>Müştərini Redaktə Et</h2>
+              <button className={styles.closeBtn} onClick={() => setShowEditModal(false)}><X size={20}/></button>
+            </div>
+            <form onSubmit={updateLead} className={styles.form}>
+              <div className={styles.inputGroup}>
+                <label>{t("form.nameLabel")}</label>
+                <input required type="text" value={editingLead.name} onChange={e => setEditingLead({...editingLead, name: e.target.value})} />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>{t("form.phoneLabel")}</label>
+                <input required type="text" value={editingLead.phone} onChange={e => setEditingLead({...editingLead, phone: e.target.value})} />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>{t("form.sourceLabel")}</label>
+                <select value={editingLead.source || "Digər"} onChange={e => setEditingLead({...editingLead, source: e.target.value})}>
+                  <option value="Instagram">{t("form.sources.instagram")}</option>
+                  <option value="Facebook">{t("form.sources.facebook")}</option>
+                  <option value="Zəng">{t("form.sources.call")}</option>
+                  <option value="Dost Tövsiyəsi">{t("form.sources.referral")}</option>
+                  <option value="Digər">{t("form.sources.other")}</option>
+                </select>
+              </div>
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.cancelBtn} onClick={() => setShowEditModal(false)}>{c("cancel")}</button>
+                <button type="submit" className={styles.saveBtn}>{c("save")}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Lead Modal */}
       {showModal && (

@@ -10,7 +10,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     const updated = await sql`
       UPDATE leads
-      SET name = ${body.name}, phone = ${body.phone}, email = ${body.email}, source = ${body.source}, status = ${body.status}
+      SET 
+        name = COALESCE(${body.name || null}, name),
+        phone = COALESCE(${body.phone || null}, phone),
+        email = COALESCE(${body.email || null}, email),
+        source = COALESCE(${body.source || null}, source),
+        status = COALESCE(${body.status || null}, status)
       WHERE id = ${id}
       RETURNING *
     `;

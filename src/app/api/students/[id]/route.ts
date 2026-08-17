@@ -16,7 +16,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       SELECT 
         s.id,
         s.created_at,
-        s.status,
         s.program,
         s.monthly_payment,
         s.duration_months,
@@ -44,10 +43,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     // 2. Fetch FIN code / ID card from parents if exists
     let finCode = "";
     let idCardNumber = "";
+    let parentName = "";
+    let parentPhone = "";
     try {
       if (s.profile_id) {
         const parentRows = await sql`
-          SELECT fin_code, id_card_number 
+          SELECT fin_code, id_card_number, full_name, phone 
           FROM parents 
           WHERE profile_id = ${s.profile_id}
           LIMIT 1
@@ -55,6 +56,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         if (parentRows.length > 0) {
           finCode = parentRows[0].fin_code || "";
           idCardNumber = parentRows[0].id_card_number || "";
+          parentName = parentRows[0].full_name || "";
+          parentPhone = parentRows[0].phone || "";
         }
       }
     } catch {
@@ -172,12 +175,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         phone: s.phone || "",
         fin: finCode || "Qeyd edilməyib",
         idCard: idCardNumber || "Qeyd edilməyib",
-        status: s.status || "ACTIVE",
+        status: "ACTIVE",
         joinDate: s.created_at || new Date().toISOString(),
         program: s.program || "",
         monthlyPayment: s.monthly_payment || 0,
         durationMonths: s.duration_months || 0,
-        totalPrice: s.total_price || 0
+        totalPrice: s.total_price || 0,
+        parentName,
+        parentPhone
       },
       groups,
       payments,

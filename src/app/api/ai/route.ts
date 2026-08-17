@@ -6,14 +6,9 @@ import sql from "@/lib/db";
 import bcrypt from "bcrypt";
 import { sendEmail } from "@/lib/email";
 
-const geminiClient = new OpenAI({
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-  apiKey: process.env.GEMINI_API_KEY || "missing-key-during-build"
-});
-
-const fallbackClient = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY || "missing-key"
+const nvidiaClient = new OpenAI({
+  apiKey: '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',
+  baseURL: 'https://integrate.api.nvidia.com/v1',
 });
 
 // Define tools available for AI
@@ -139,21 +134,7 @@ const tools = [
       }
     }
   },
-  {
-    type: "function",
-    function: {
-      name: "verify_credentials",
-      description: "Sistem işçisinin email və şifrəsini yoxla və onun yetkisini (rolunu) gətir",
-      parameters: {
-        type: "object",
-        properties: {
-          email: { type: "string", description: "İstifadəçinin email ünvanı" },
-          password: { type: "string", description: "İstifadəçinin şifrəsi" }
-        },
-        required: ["email", "password"]
-      }
-    }
-  },
+
   {
     type: "function",
     function: {
@@ -173,29 +154,6 @@ const tools = [
 ];
 
 // Tool Executors
-async function verifyCredentials(args: any) {
-  try {
-    const { email, password } = args;
-    if (!email || !password) return { success: false, error: "Email və şifrə tələb olunur." };
-
-    const users = await sql`SELECT id, role, encrypted_password FROM auth.users WHERE email = ${email} LIMIT 1`;
-    if (users.length === 0) return { success: false, error: "Hesab tapılmadı." };
-
-    const user = users[0];
-    const isMatch = await bcrypt.compare(password, user.encrypted_password);
-    
-    if (!isMatch) return { success: false, error: "Şifrə yanlışdır." };
-
-    return { 
-      success: true, 
-      message: "Giriş təsdiqləndi.", 
-      role: user.role,
-      permissions: user.role === 'super_admin' ? 'Tam yetki (bütün əməliyyatlar)' : 'Sales, parents, student, teacher, leads and tasks, programs adding yetkiləri'
-    };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
-}
 
 async function executeSql(args: any) {
   try {
@@ -433,33 +391,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid messages format" }, { status: 400 });
     }
 
+    const { getServerSession } = require("next-auth/next");
+    const { authOptions } = require("@/lib/authOptions");
+    const session = await getServerSession(authOptions);
+    const userRole = session?.user?.role || "staff";
+
     const systemMessage = {
       role: "system",
-      content: "Sən Thrive CRM-in ağıllı və rəsmi köməkçisi ThrAIve-sən və HacTag şirkəti tərəfindən hazırlanmış dil modelisən. Sən istifadəçinin yazdığı dilə uyğun olaraq Azərbaycan, Rus və ya İngilis dillərində səlis və mehriban cavab verirsən. Söhbət əsnasında istifadəçiyə sistemdə edə biləcəyin xidmətləri (yeni müəllim/tələbə/qrup yaratmaq, maliyyə statistikası, məlumatları çəkmək və s.) təklif et. ƏN VACİB QAYDA: Sistem işçilərinin Aİ-dan sui-istifadə etməməsi üçün sən hər hansı bir əməliyyat (məlumat çəkmək, yaratmaq, SQL icra etmək) etməmişdən əvvəl istifadəçidən hesabının email ünvanını və ardınca şifrəsini soruşmalısan. 'verify_credentials' funksiyası ilə məlumatların doğruluğunu və rolunu (admin, teacher və s.) yoxladıqdan sonra yalnız onun yetkisinə uyğun əməliyyatlara icazə ver. Təsdiq olmadan heç bir SQL və ya baza əməliyyatı etmə. Şəkillər göndərildikdə onların məzmununu analiz edə bilərsən."
+      content: `Sən Thrive CRM-in ağıllı və rəsmi köməkçisi ThrAIve-sən və HacTag şirkəti tərəfindən hazırlanmış dil modelisən. Sən istifadəçinin yazdığı dilə uyğun olaraq Azərbaycan, Rus və ya İngilis dillərində səlis və mehriban cavab verirsən. Söhbət əsnasında istifadəçiyə sistemdə edə biləcəyin xidmətləri təklif et. Hazırda səninlə danışan istifadəçinin rolu: ${userRole}. Cavablarını və təkliflərini bu rola uyğun olaraq formalaşdır. Məsələn, əgər istifadəçi 'teacher', 'parent', və ya 'student'-dirsə, onlara inzibati idarəetmə təklif etmə.`
     };
 
     const finalMessages = [systemMessage, ...messages];
 
-    let usedFallback = false;
     let response: any;
 
-    // Try Primary LLM (Gemini via OpenAI SDK) with Fallback to OpenRouter (openai/gpt-4o)
     try {
-      response = await geminiClient.chat.completions.create({
-        model: "gemini-2.0-flash",
+      response = await nvidiaClient.chat.completions.create({
+        model: "meta/muse-glimmer-30b",
         messages: finalMessages as any,
         tools: tools as any,
         max_tokens: 1024,
       });
-    } catch (primaryError) {
-      console.warn("Primary AI API call failed, falling back to OpenRouter GPT-4o:", primaryError);
-      usedFallback = true;
-      response = await fallbackClient.chat.completions.create({
-        model: "openai/gpt-4o",
-        messages: finalMessages as any,
-        tools: tools as any,
-        max_tokens: 1024,
-      });
+    } catch (error) {
+      console.error("NVIDIA API call failed:", error);
+      throw error;
     }
 
     let aiMessage = response.choices[0].message;
@@ -496,8 +451,6 @@ export async function POST(req: Request) {
             result = await getStudents();
           } else if (fnName === "execute_sql") {
             result = await executeSql(args);
-          } else if (fnName === "verify_credentials") {
-            result = await verifyCredentials(args);
           } else if (fnName === "send_email") {
             result = await sendEmail(args);
           }
@@ -512,11 +465,8 @@ export async function POST(req: Request) {
       }
 
       // Call AI again with same client
-      const activeClient = usedFallback ? fallbackClient : geminiClient;
-      const activeModel = usedFallback ? "openai/gpt-4o" : "gemini-2.0-flash";
-
-      const secondResponse = await activeClient.chat.completions.create({
-        model: activeModel,
+      const secondResponse = await nvidiaClient.chat.completions.create({
+        model: "meta/muse-glimmer-30b",
         messages: finalMessages as any,
         max_tokens: 1024,
       });

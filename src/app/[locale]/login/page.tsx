@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import styles from "./page.module.css";
-import { LogIn, Mail, Lock, LayoutDashboard } from "lucide-react";
+import { LogIn, Mail, Lock, LayoutDashboard, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "@/i18n/routing";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
@@ -12,6 +12,7 @@ export default function LoginPage() {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -88,12 +89,19 @@ export default function LoginPage() {
                 <div className={styles.inputWrapper}>
                   <Lock className={styles.inputIcon} size={20} />
                   <input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"} 
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required 
                   />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ position: 'absolute', right: '1rem', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
               

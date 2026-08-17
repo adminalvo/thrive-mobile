@@ -16,9 +16,10 @@ const credentialsProvider = CredentialsProvider({
 
     const emailLower = credentials.email.toLowerCase();
     const users = await sql`
-      SELECT u.*, p.first_name, p.last_name 
+      SELECT u.id, u.email, u.encrypted_password, p.first_name, p.last_name, r.role as app_role
       FROM auth.users u
       LEFT JOIN public.user_profiles p ON u.id = p.user_id
+      LEFT JOIN public.user_roles r ON u.id = r.user_id
       WHERE u.email = ${emailLower}
       LIMIT 1
     `;
@@ -47,11 +48,18 @@ const credentialsProvider = CredentialsProvider({
       throw new Error("Şifrə yanlışdır.");
     }
 
+    let displayName = "User";
+    if (user.first_name || user.last_name) {
+      displayName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+    } else if (emailLower === "tamerlan@thrive.az") {
+      displayName = "Tamerlan Məmmədov";
+    }
+
     return {
       id: user.id,
       email: user.email,
-      name: user.first_name ? `${user.first_name} ${user.last_name}` : "Admin",
-      role: user.role || "admin"
+      name: displayName,
+      role: user.app_role || "staff"
     };
   }
 });

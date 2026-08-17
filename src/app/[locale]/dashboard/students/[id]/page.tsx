@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import ContractModal from "@/components/ContractModal";
+import { useSession } from "next-auth/react";
 
 interface StudentProfileData {
   student: {
@@ -77,9 +78,18 @@ export default function StudentDetailPage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  if (session?.user?.role === "teacher") {
+    if (typeof window !== "undefined") {
+      router.push("/dashboard");
+    }
+    return null;
+  }
+
   const resolvedParams = use(params);
   const { id } = resolvedParams;
-  const router = useRouter();
 
   const t = useTranslations("Profile");
   const c = useTranslations("Common");

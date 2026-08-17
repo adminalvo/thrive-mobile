@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import styles from "@/app/[locale]/dashboard/layout.module.css";
 
 interface SidebarProps {
@@ -39,12 +39,16 @@ export default function Sidebar({
   const pathname = usePathname();
   const t = useTranslations("Sidebar");
   const locale = useLocale();
+  const { data: session } = useSession();
+  const userRole = session?.user?.role || "staff";
+  const isSuperAdmin = userRole === "super_admin";
 
-  const navItems = [
+  const allNavItems = [
     { name: t("dashboard"), href: `/dashboard`, icon: LayoutDashboard },
     { name: t("leads"), href: `/dashboard/leads`, icon: Target },
     { name: t("students"), href: "/dashboard/students", icon: Users },
     { name: t("programs"), href: "/dashboard/programs", icon: Library },
+    { name: t("universities") || "Universities", href: "/dashboard/universities", icon: GraduationCap },
     { name: t("groups"), href: "/dashboard/groups", icon: Component },
     { name: t("parents"), href: "/dashboard/parents", icon: UserPlus },
     { name: t("teachers"), href: "/dashboard/teachers", icon: BookOpen },
@@ -53,6 +57,24 @@ export default function Sidebar({
     { name: t("tasks"), href: `/dashboard/tasks`, icon: KanbanSquare },
     { name: t("ai"), href: "/dashboard/ai", icon: Bot },
   ];
+
+  const navItems = allNavItems.filter(item => {
+    if (userRole === "super_admin") return true;
+    
+    if (userRole === "teacher") {
+      const allowed = ["/dashboard", "/dashboard/schedule", "/dashboard/students", "/dashboard/ai"];
+      return allowed.includes(item.href);
+    }
+    
+    if (userRole === "parent" || userRole === "student") {
+      const allowed = ["/dashboard", "/dashboard/ai"];
+      return allowed.includes(item.href);
+    }
+
+    // Default staff / sales
+    if (item.href.includes('/finance')) return false;
+    return true;
+  });
 
   return (
     <aside 
@@ -86,15 +108,31 @@ export default function Sidebar({
       </nav>
 
       <div className={styles.sidebarFooter}>
-        <Link href={`/dashboard/settings`}>
-          <div className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.navActive : ""}`} title={isCollapsed ? t("settings") : undefined}>
-            <Settings size={20} className={pathname === '/dashboard/settings' ? styles.iconActive : styles.icon} />
-            {!isCollapsed && <span>{t("settings")}</span>}
-          </div>
-        </Link>
+        {isSuperAdmin && (
+          <>
+            <Link href={`/dashboard/logs`}>
+              <div className={`${styles.navItem} ${pathname === '/dashboard/logs' ? styles.navActive : ""}`} title={isCollapsed ? "Logs" : undefined}>
+                <Target size={20} className={pathname === '/dashboard/logs' ? styles.iconActive : styles.icon} />
+                {!isCollapsed && <span>Tarixçə (Logs)</span>}
+              </div>
+            </Link>
+            <Link href={`/dashboard/staff`}>
+              <div className={`${styles.navItem} ${pathname === '/dashboard/staff' ? styles.navActive : ""}`} title={isCollapsed ? "İşçilər (Staff)" : undefined}>
+                <Users size={20} className={pathname === '/dashboard/staff' ? styles.iconActive : styles.icon} />
+                {!isCollapsed && <span>İşçilər (Staff)</span>}
+              </div>
+            </Link>
+            <Link href={`/dashboard/settings`}>
+              <div className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.navActive : ""}`} title={isCollapsed ? t("settings") : undefined}>
+                <Settings size={20} className={pathname === '/dashboard/settings' ? styles.iconActive : styles.icon} />
+                {!isCollapsed && <span>{t("settings")}</span>}
+              </div>
+            </Link>
+          </>
+        )}
         <div 
           className={`${styles.navItem} ${styles.logoutItem}`}
-          onClick={() => signOut({ callbackUrl: '/login' })}
+          onClick={() => signOut({ callbackUrl: `${window.location.origin}/login` })}
           style={{ cursor: "pointer" }}
           title={isCollapsed ? t("logout") : undefined}
         >

@@ -167,22 +167,15 @@ export default function GroupsPage() {
                   <td>{g.teacher}</td>
                   <td>{g.room}</td>
                   <td>
-                    <div style={{ position: "relative" }}>
-                      <button className={styles.actionBtn} onClick={() => setActiveMenu(activeMenu === g.id ? null : g.id)}>
-                        <MoreHorizontal size={18} />
+                    <div className={styles.inlineActions}>
+                      <Link href={`/dashboard/groups/${g.id}`} style={{ textDecoration: "none" }}>
+                        <button className={styles.iconBtn} title="Profilə bax" style={{ color: "var(--aqua-teal)" }}>
+                          <Component size={16} />
+                        </button>
+                      </Link>
+                      <button className={styles.iconBtn} onClick={() => handleDelete(g.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
+                        <Trash2 size={16} />
                       </button>
-                      {activeMenu === g.id && (
-                        <div className={styles.actionMenu}>
-                          <Link href={`/dashboard/groups/${g.id}`} style={{ textDecoration: "none", display: "block" }}>
-                            <button style={{ color: "var(--aqua-teal)" }}>
-                              Profilə bax
-                            </button>
-                          </Link>
-                          <button onClick={() => handleDelete(g.id)} style={{ color: "var(--danger-color)" }}>
-                            <Trash2 size={14} /> Sil
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </td>
                 </tr>

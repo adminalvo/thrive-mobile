@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../students/page.module.css";
-import { Plus, Search, Filter, MoreHorizontal, UserPlus, Trash2, X } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, UserPlus, Trash2, X, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -22,6 +22,69 @@ export default function ParentsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  
+  const [showStudentsModal, setShowStudentsModal] = useState(false);
+  const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
+  const [allStudents, setAllStudents] = useState<any[]>([]);
+  const [linkedStudents, setLinkedStudents] = useState<any[]>([]);
+  const [selectedStudentToAdd, setSelectedStudentToAdd] = useState("");
+
+  const fetchAllStudents = async () => {
+    const res = await fetch("/api/students");
+    if(res.ok) {
+      const data = await res.json();
+      setAllStudents(data);
+    }
+  };
+
+  const fetchLinkedStudents = async (parentId: string) => {
+    const res = await fetch(`/api/parents/${parentId}/students`);
+    if(res.ok) {
+      const data = await res.json();
+      setLinkedStudents(data);
+    }
+  };
+
+  const openStudentsModal = (parentId: string) => {
+    setSelectedParentId(parentId);
+    fetchAllStudents();
+    fetchLinkedStudents(parentId);
+    setShowStudentsModal(true);
+  };
+
+  const linkStudent = async () => {
+    if(!selectedStudentToAdd || !selectedParentId) return;
+    try {
+      const res = await fetch(`/api/parents/${selectedParentId}/students`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ student_id: selectedStudentToAdd })
+      });
+      if(res.ok) {
+        toast.success("Tələbə uğurla əlavə edildi");
+        fetchLinkedStudents(selectedParentId);
+        setSelectedStudentToAdd("");
+      } else toast.error("Xəta baş verdi");
+    } catch {
+      toast.error("Xəta baş verdi");
+    }
+  };
+
+  const unlinkStudent = async (studentId: string) => {
+    if(!selectedParentId) return;
+    try {
+      const res = await fetch(`/api/parents/${selectedParentId}/students?student_id=${studentId}`, {
+        method: "DELETE"
+      });
+      if(res.ok) {
+        toast.success("Tələbə silindi");
+        fetchLinkedStudents(selectedParentId);
+      } else toast.error("Xəta baş verdi");
+    } catch {
+      toast.error("Xəta baş verdi");
+    }
+  };
+
 
   useEffect(() => {
     fetchParents();
@@ -150,17 +213,10 @@ export default function ParentsPage() {
                   <td>{p.fin}</td>
                   <td>{p.idCard}</td>
                   <td>
-                    <div style={{ position: "relative" }}>
-                      <button className={styles.actionBtn} onClick={() => setActiveMenu(activeMenu === p.id ? null : p.id)}>
-                        <MoreHorizontal size={18} />
+                    <div className={styles.inlineActions}>
+                      <button className={styles.iconBtn} onClick={() => handleDelete(p.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
+                        <Trash2 size={16} />
                       </button>
-                      {activeMenu === p.id && (
-                        <div className={styles.actionMenu}>
-                          <button onClick={() => handleDelete(p.id)} style={{ color: "var(--danger-color)" }}>
-                            <Trash2 size={14} /> Sil
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </td>
                 </tr>

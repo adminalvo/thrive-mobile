@@ -33,7 +33,14 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { name, phone, email, fin, idCard, password, program, monthlyPayment, durationMonths } = data;
+    const { 
+      name, email, phone, program, monthlyPayment, durationMonths, password,
+      parentName, parentPhone, parentFin, parentIdCard
+    } = data;
+    
+    // Fallback: If old frontend sends fin/idCard directly
+    const studentFin = data.fin;
+    const studentIdCard = data.idCard;
     
     const parsedPayment = Number(monthlyPayment) || 0;
     const parsedDuration = Number(durationMonths) || 1;
@@ -89,13 +96,10 @@ export async function POST(req: Request) {
         VALUES (${studentId}, ${finalProfileId}, ${program || null}, ${parsedPayment}, ${parsedDuration}, ${totalPrice})
       `;
       
-      // If FIN or idCard is provided, try to insert/update a dummy parents record 
-      // or we can just put it directly to parents table.
-      // Assuming a generic parent record for this profile:
-      if (fin || idCard) {
+      if (parentName || parentFin || parentIdCard) {
         await tx`
-          INSERT INTO parents (id, profile_id, fin_code, id_card_number)
-          VALUES (${crypto.randomUUID()}, ${finalProfileId}, ${fin || null}, ${idCard || null})
+          INSERT INTO parents (id, profile_id, fin_code, id_card_number, full_name, phone)
+          VALUES (${crypto.randomUUID()}, ${finalProfileId}, ${parentFin || null}, ${parentIdCard || null}, ${parentName || null}, ${parentPhone || null})
           ON CONFLICT DO NOTHING
         `;
       }

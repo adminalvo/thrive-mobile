@@ -16,7 +16,7 @@ export default function ProgramsPage() {
   
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({ id: "", name: "" });
+  const [formData, setFormData] = useState({ id: "", name: "", parent_id: "" });
   const [submitting, setSubmitting] = useState(false);
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -41,13 +41,13 @@ export default function ProgramsPage() {
 
   const openAddModal = () => {
     setEditMode(false);
-    setFormData({ id: "", name: "" });
+    setFormData({ id: "", name: "", parent_id: "" });
     setShowModal(true);
   };
 
   const openEditModal = (prog: any) => {
     setEditMode(true);
-    setFormData({ id: prog.id, name: prog.name });
+    setFormData({ id: prog.id, name: prog.name, parent_id: prog.parent_id || "" });
     setShowModal(true);
     setActiveMenu(null);
   };
@@ -62,13 +62,13 @@ export default function ProgramsPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: formData.name })
+        body: JSON.stringify({ name: formData.name, parent_id: formData.parent_id || null })
       });
       
       if (res.ok) {
         toast.success(editMode ? tp("successEdit") : tp("successAdd"));
         setShowModal(false);
-        setFormData({ id: "", name: "" });
+        setFormData({ id: "", name: "", parent_id: "" });
         fetchPrograms();
       } else {
         toast.error(tp("error"));
@@ -163,34 +163,23 @@ export default function ProgramsPage() {
                         </div>
                         <div>
                           <p className={styles.userName}>{prog.name}</p>
+                          {prog.parent_id && (
+                            <p className={styles.parentName} style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                              Alt-kurs: {programs.find(p => p.id === prog.parent_id)?.name || "Bilinmir"}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </td>
-                    <td style={{ textAlign: "right", position: "relative" }}>
-                      <button 
-                        className={styles.actionBtn}
-                        onClick={() => setActiveMenu(activeMenu === prog.id ? null : prog.id)}
-                      >
-                        <MoreHorizontal size={18} />
-                      </button>
-
-                      <AnimatePresence>
-                        {activeMenu === prog.id && (
-                          <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className={styles.dropdownMenu}
-                          >
-                            <button className={styles.dropdownItem} onClick={() => openEditModal(prog)}>
-                              <Edit size={16} /> {tp("edit")}
-                            </button>
-                            <button className={`${styles.dropdownItem} ${styles.dangerItem}`} onClick={() => handleDelete(prog.id)}>
-                              <Trash2 size={16} /> {tp("delete")}
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                    <td style={{ textAlign: "right" }}>
+                      <div className={styles.inlineActions} style={{ justifyContent: "flex-end" }}>
+                        <button className={styles.iconBtn} onClick={() => openEditModal(prog)} title={tp("edit")} style={{ color: "var(--aqua-teal)" }}>
+                          <Edit size={16} />
+                        </button>
+                        <button className={styles.iconBtn} onClick={() => handleDelete(prog.id)} title={tp("delete")} style={{ color: "var(--danger-color)" }}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))
@@ -234,6 +223,20 @@ export default function ProgramsPage() {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder={tp("programNamePlaceholder")}
                   />
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label>Ana Proqram (İstəyə bağlı)</label>
+                  <select 
+                    value={formData.parent_id}
+                    onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
+                    style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#fff" }}
+                  >
+                    <option value="">Heç biri (Ana Proqram)</option>
+                    {programs.filter(p => p.id !== formData.id && !p.parent_id).map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className={styles.modalActions}>

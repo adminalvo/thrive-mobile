@@ -29,7 +29,7 @@ export default function AiChatbot() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: "Salam! Mən Thrive CRM-in ağıllı köməkçisiyəm. Sizə necə kömək edə bilərəm?" }
+    { role: "assistant", content: "Hello! I am ThrAIve, your CRM assistant. How can I help you today? Please let me know which language you prefer to continue in (English, Azerbaijani, or Russian)." }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);

@@ -73,6 +73,16 @@ export async function GET() {
         )
       `;
 
+      // 5.5 parent_students mapping
+      await tx`
+        CREATE TABLE IF NOT EXISTS parent_students (
+          parent_id UUID REFERENCES parents(id) ON DELETE CASCADE,
+          student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          PRIMARY KEY (parent_id, student_id)
+        )
+      `;
+
       // 6. programs
       await tx`
         CREATE TABLE IF NOT EXISTS programs (
@@ -120,8 +130,54 @@ export async function GET() {
           status TEXT NOT NULL DEFAULT 'NEW',
           notes TEXT,
           next_follow_up TIMESTAMPTZ,
+          created_by UUID,
           created_at TIMESTAMPTZ DEFAULT NOW(),
           updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
+      await tx`
+        DO $$ 
+        BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='leads' AND column_name='created_by') THEN
+                ALTER TABLE leads ADD COLUMN created_by UUID;
+            END IF;
+        END $$;
+      `;
+
+      // 10. attendance
+      await tx`
+        CREATE TABLE IF NOT EXISTS attendance (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          schedule_id UUID,
+          student_id UUID,
+          status TEXT NOT NULL, -- 'PRESENT', 'ABSENT', 'LATE'
+          date DATE NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
+      // 11. group_notes
+      await tx`
+        CREATE TABLE IF NOT EXISTS group_notes (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          teacher_id UUID,
+          group_id UUID,
+          content TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+
+      // 12. activity_logs
+      await tx`
+        CREATE TABLE IF NOT EXISTS activity_logs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID,
+          action TEXT NOT NULL,
+          details_az TEXT,
+          details_en TEXT,
+          details_ru TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `;
 
@@ -165,6 +221,16 @@ export async function GET() {
           message TEXT,
           type TEXT,
           is_read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+      // 13. student_notes
+      await tx`
+        CREATE TABLE IF NOT EXISTS student_notes (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          teacher_id UUID REFERENCES teachers(id) ON DELETE CASCADE,
+          student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+          content TEXT NOT NULL,
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
       `;

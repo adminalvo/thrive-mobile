@@ -6,8 +6,8 @@ import bcrypt from "bcrypt";
 export async function GET() {
   try {
     const parents = await sql`
-      SELECT p.id, p.fin_code, p.id_card_number, p.created_at, 
-             u.first_name, u.last_name, u.phone, au.email
+      SELECT p.id, p.fin_code, p.id_card_number, p.created_at, p.full_name, p.phone,
+             au.email
       FROM parents p
       LEFT JOIN user_profiles u ON p.profile_id = u.id
       LEFT JOIN auth.users au ON u.user_id = au.id
@@ -16,7 +16,7 @@ export async function GET() {
 
     const formatted = parents.map((p: any) => ({
       id: p.id,
-      name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || "N/A",
+      name: p.full_name || "N/A",
       contact: p.phone || "N/A",
       email: p.email || "N/A",
       fin: p.fin_code || "N/A",

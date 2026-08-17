@@ -151,22 +151,15 @@ export default function TeachersPage() {
                       {displayName.substring(0, 2).toUpperCase()}
                     </div>
                   </Link>
-                  <div style={{ position: "relative" }}>
-                    <button className={styles.actionBtn} onClick={() => setActiveMenu(activeMenu === teacher.id ? null : teacher.id)}>
-                      <MoreHorizontal size={18} />
+                  <div className={styles.inlineActions}>
+                    <Link href={`/dashboard/teachers/${teacher.id}`} style={{ textDecoration: "none" }}>
+                      <button className={styles.iconBtn} title="Profilə bax" style={{ color: "var(--aqua-teal)" }}>
+                        <BookOpen size={16} />
+                      </button>
+                    </Link>
+                    <button className={styles.iconBtn} onClick={() => handleDelete(teacher.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
+                      <Trash2 size={16} />
                     </button>
-                    {activeMenu === teacher.id && (
-                      <div className={styles.actionMenu}>
-                        <Link href={`/dashboard/teachers/${teacher.id}`} style={{ textDecoration: "none", display: "block" }}>
-                          <button style={{ color: "var(--aqua-teal)" }}>
-                            Profilə bax
-                          </button>
-                        </Link>
-                        <button onClick={() => handleDelete(teacher.id)} style={{ color: "var(--danger-color)" }}>
-                          <Trash2 size={14} /> Sil
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
                 <Link href={`/dashboard/teachers/${teacher.id}`} style={{ textDecoration: "none" }}>

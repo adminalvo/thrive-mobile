@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/components/AuthProvider";
 
 const nunito = Nunito({
   subsets: ["latin", "cyrillic"], // Add cyrillic for Russian support
@@ -37,10 +38,12 @@ export default async function LocaleLayout({
   return (
     <div className={nunito.variable} style={{ minHeight: "100vh" }}>
       <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster position="top-right" />
-        </NextIntlClientProvider>
+        <AuthProvider>
+          <NextIntlClientProvider messages={messages}>
+            {children}
+            <Toaster position="top-right" />
+          </NextIntlClientProvider>
+        </AuthProvider>
       </ThemeProvider>
     </div>
   );

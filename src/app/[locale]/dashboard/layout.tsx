@@ -23,11 +23,12 @@ import {
 } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationsDropdown from "@/components/NotificationsDropdown";
 import GlobalSearch from "@/components/GlobalSearch";
 import Sidebar from "@/components/Sidebar";
+import SettingsSlideover from "@/components/SettingsSlideover";
 import AiChatbot from "@/components/AiChatbot";
 
 export default function DashboardLayout({
@@ -39,10 +40,12 @@ export default function DashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("Sidebar");
+  const { data: session } = useSession();
 
   const navItems = [
     { name: t("dashboard"), href: `/dashboard`, icon: LayoutDashboard },
@@ -105,13 +108,21 @@ export default function DashboardLayout({
               </select>
             </div>
             <NotificationsDropdown />
-            <div className={styles.profile}>
+            <button 
+              className={styles.settingsBtn} 
+              onClick={() => setSettingsOpen(true)}
+              title="Settings"
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Settings size={20} />
+            </button>
+            <div className={styles.profile} onClick={() => setSettingsOpen(true)} style={{ cursor: 'pointer' }}>
               <div className={styles.avatar}>
-                <span>TA</span>
+                <span>{session?.user?.name ? session.user.name.substring(0, 2).toUpperCase() : "U"}</span>
               </div>
               <div className={styles.profileInfo}>
-                <span className={styles.profileName}>Tamerlan (Admin)</span>
-                <span className={styles.profileRole}>Super Admin</span>
+                <span className={styles.profileName}>{session?.user?.name || "User"}</span>
+                <span className={styles.profileRole} style={{textTransform: "capitalize"}}>{session?.user?.role?.replace("_", " ") || "Staff"}</span>
               </div>
             </div>
           </div>
@@ -123,6 +134,13 @@ export default function DashboardLayout({
         </main>
       </div>
       <AiChatbot />
+      
+      <SettingsSlideover 
+        isOpen={settingsOpen} 
+        onClose={() => setSettingsOpen(false)} 
+        user={session?.user} 
+        locale={locale} 
+      />
     </div>
   );
 }

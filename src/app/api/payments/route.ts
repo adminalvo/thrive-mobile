@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
         await tx`
           UPDATE invoices
-          SET status = ${newStatus}, updated_at = NOW()
+          SET status = ${newStatus}, updated_at = NOW(), lesson_time = COALESCE(${body.lessonTime || null}, lesson_time)
           WHERE id = ${invoiceId}
         `;
 

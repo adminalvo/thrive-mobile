@@ -153,7 +153,18 @@
       "unexpected": "Gözlənilməz xəta baş verdi"
     },
     "loading": "Yüklənir...",
-    "empty": "Heç bir məlumat tapılmadı."
+    "empty": "Heç bir məlumat tapılmadı.",
+    "detail": {
+      "title": "Detallı Baxış",
+      "name": "Ad/Soyad",
+      "phone": "Telefon",
+      "email": "Email",
+      "status": "Status",
+      "source": "Mənbə (Source)",
+      "notes": "Qeydlər",
+      "nextFollowUp": "Növbəti əlaqə",
+      "none": "Yoxdur"
+    }
   },
   "Students": {
     "modal": {
@@ -346,7 +357,17 @@
       "REVIEW": "Yoxlamada",
       "DONE": "Tamamlanıb"
     },
-    "unassigned": "Təyin edilməyib"
+    "unassigned": "Təyin edilməyib",
+    "detail": {
+      "title": "Detallı Baxış",
+      "taskTitle": "Başlıq",
+      "description": "Təsvir",
+      "status": "Status",
+      "priority": "Prioritet",
+      "assignee": "İcraçı",
+      "date": "Tarix",
+      "none": "Yoxdur"
+    }
   },
   "Settings": {
     "title": "Tənzimləmələr",
@@ -414,7 +435,9 @@
     "errors": {
       "unexpected": "Gözlənilməz xəta baş verdi"
     },
-    "errorDelete": "Silinmə zamanı xəta baş verdi"
+    "errorDelete": "Silinmə zamanı xəta baş verdi",
+    "successDelete": "Uğurla silindi",
+    "confirmDelete": "Silmək istədiyinizə əminsiniz?"
   },
   "NotFound": {
     "title": "Sistem Xətası: Səhifə Tapılmadı",

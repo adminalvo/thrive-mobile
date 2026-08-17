@@ -332,43 +332,43 @@ export default function LeadsPage() {
         <div className={styles.modalOverlay} onClick={() => setViewingLead(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>Detallı Baxış</h2>
+              <h2>{t("detail.title") || "Detallı Baxış"}</h2>
               <button className={styles.closeBtn} onClick={() => setViewingLead(null)}>
                 <X size={20} />
               </button>
             </div>
-            <div className={styles.form}>
-              <div style={{ marginBottom: "1rem" }}>
-                <strong>Ad/Soyad:</strong> <br />
-                <span style={{ color: "var(--text-primary)", fontSize: "1.1rem" }}>{viewingLead.name}</span>
+            <div className={styles.detailBody}>
+              <div className={styles.detailGroup}>
+                <span className={styles.detailLabel}>{t("detail.name") || "Ad/Soyad"}</span>
+                <span className={styles.detailValue} style={{ fontSize: "1.1rem", fontWeight: 500 }}>{viewingLead.name}</span>
               </div>
-              <div className={styles.rowInputs} style={{ marginBottom: "1rem" }}>
-                <div>
-                  <strong>Telefon:</strong> <br />
-                  <span style={{ color: "var(--text-primary)" }}>{viewingLead.phone}</span>
+              <div className={styles.detailRow}>
+                <div className={styles.detailGroup}>
+                  <span className={styles.detailLabel}>{t("detail.phone") || "Telefon"}</span>
+                  <span className={styles.detailValue}>{viewingLead.phone}</span>
                 </div>
-                <div>
-                  <strong>Email:</strong> <br />
-                  <span style={{ color: "var(--text-primary)" }}>{viewingLead.email || "-"}</span>
-                </div>
-              </div>
-              <div className={styles.rowInputs} style={{ marginBottom: "1rem" }}>
-                <div>
-                  <strong>Status:</strong> <br />
-                  <span style={{ color: "var(--text-primary)" }}>{t(`statuses.${viewingLead.status}`)}</span>
-                </div>
-                <div>
-                  <strong>Mənbə (Source):</strong> <br />
-                  <span style={{ color: "var(--text-primary)" }}>{viewingLead.source || "-"}</span>
+                <div className={styles.detailGroup}>
+                  <span className={styles.detailLabel}>{t("detail.email") || "Email"}</span>
+                  <span className={styles.detailValue}>{viewingLead.email || t("detail.none")}</span>
                 </div>
               </div>
-              <div style={{ marginBottom: "1rem" }}>
-                <strong>Qeydlər:</strong> <br />
-                <span style={{ color: "var(--text-primary)" }}>{viewingLead.notes || "-"}</span>
+              <div className={styles.detailRow}>
+                <div className={styles.detailGroup}>
+                  <span className={styles.detailLabel}>{t("detail.status") || "Status"}</span>
+                  <span className={styles.detailValue}>{t(`statuses.${viewingLead.status}`)}</span>
+                </div>
+                <div className={styles.detailGroup}>
+                  <span className={styles.detailLabel}>{t("detail.source") || "Mənbə"}</span>
+                  <span className={styles.detailValue}>{viewingLead.source || t("detail.none")}</span>
+                </div>
               </div>
-              <div>
-                <strong>Növbəti əlaqə:</strong> <br />
-                <span style={{ color: "var(--text-primary)" }}>{viewingLead.nextFollowUp ? new Date(viewingLead.nextFollowUp).toLocaleDateString() : "-"}</span>
+              <div className={styles.detailGroup}>
+                <span className={styles.detailLabel}>{t("detail.notes") || "Qeydlər"}</span>
+                <span className={styles.detailValue}>{viewingLead.notes || t("detail.none")}</span>
+              </div>
+              <div className={styles.detailGroup}>
+                <span className={styles.detailLabel}>{t("detail.nextFollowUp") || "Növbəti əlaqə"}</span>
+                <span className={styles.detailValue}>{viewingLead.nextFollowUp ? new Date(viewingLead.nextFollowUp).toLocaleDateString() : t("detail.none")}</span>
               </div>
             </div>
           </div>

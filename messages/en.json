@@ -153,7 +153,18 @@
       "unexpected": "An unexpected error occurred"
     },
     "loading": "Loading...",
-    "empty": "No data found."
+    "empty": "No data found.",
+    "detail": {
+      "title": "Detail View",
+      "name": "Full Name",
+      "phone": "Phone",
+      "email": "Email",
+      "status": "Status",
+      "source": "Source",
+      "notes": "Notes",
+      "nextFollowUp": "Next Follow-up",
+      "none": "None"
+    }
   },
   "Students": {
     "modal": {
@@ -345,7 +356,17 @@
       "REVIEW": "Review",
       "DONE": "Done"
     },
-    "unassigned": "Unassigned"
+    "unassigned": "Unassigned",
+    "detail": {
+      "title": "Detail View",
+      "taskTitle": "Title",
+      "description": "Description",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "date": "Date",
+      "none": "None"
+    }
   },
   "Settings": {
     "title": "Settings",
@@ -413,7 +434,9 @@
     "errors": {
       "unexpected": "An unexpected error occurred"
     },
-    "errorDelete": "An error occurred during deletion"
+    "errorDelete": "An error occurred during deletion",
+    "successDelete": "Successfully deleted",
+    "confirmDelete": "Are you sure you want to delete?"
   },
   "NotFound": {
     "title": "System Error: Page Not Found",

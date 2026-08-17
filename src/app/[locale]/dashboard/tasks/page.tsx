@@ -635,38 +635,43 @@ export default function TasksPage() {
         <div className={styles.modalOverlay} onClick={() => setViewingTask(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>Detallı Baxış</h2>
+              <h2>{t("detail.title") || "Detallı Baxış"}</h2>
               <button className={styles.closeModalBtn} onClick={() => setViewingTask(null)}>
                 <X size={20} />
               </button>
             </div>
-            <div className={styles.form}>
-              <div style={{ marginBottom: "1rem" }}>
-                <strong>Başlıq:</strong> <br />
-                <span style={{ color: "var(--white)", fontSize: "1.1rem" }}>{viewingTask.title}</span>
+            <div className={styles.detailBody}>
+              <div className={styles.detailGroup}>
+                <span className={styles.detailLabel}>{t("detail.taskTitle") || "Başlıq"}</span>
+                <span className={styles.detailValue} style={{ fontSize: "1.1rem", fontWeight: 500 }}>{viewingTask.title}</span>
               </div>
-              <div style={{ marginBottom: "1rem" }}>
-                <strong>Təsvir:</strong> <br />
-                <span style={{ color: "var(--white)" }}>{viewingTask.description || "-"}</span>
+              <div className={styles.detailGroup}>
+                <span className={styles.detailLabel}>{t("detail.description") || "Təsvir"}</span>
+                <span className={styles.detailValue}>{viewingTask.description || t("detail.none")}</span>
               </div>
-              <div className={styles.rowInputs} style={{ marginBottom: "1rem" }}>
-                <div>
-                  <strong>Status:</strong> <br />
-                  <span style={{ color: "var(--white)" }}>{t(`columns.${viewingTask.status}`)}</span>
+              <div className={styles.detailRow}>
+                <div className={styles.detailGroup}>
+                  <span className={styles.detailLabel}>{t("detail.status") || "Status"}</span>
+                  <span className={styles.detailValue}>{t(`columns.${viewingTask.status}`)}</span>
                 </div>
-                <div>
-                  <strong>Prioritet:</strong> <br />
-                  <span style={{ color: getPriorityColor(viewingTask.priority) }}>{viewingTask.priority}</span>
+                <div className={styles.detailGroup}>
+                  <span className={styles.detailLabel}>{t("detail.priority") || "Prioritet"}</span>
+                  <span className={styles.detailBadge} style={{ 
+                    color: getPriorityColor(viewingTask.priority), 
+                    backgroundColor: `${getPriorityColor(viewingTask.priority)}1A` 
+                  }}>
+                    {viewingTask.priority}
+                  </span>
                 </div>
               </div>
-              <div className={styles.rowInputs}>
-                <div>
-                  <strong>İcraçı:</strong> <br />
-                  <span style={{ color: "var(--white)" }}>{formatAssignee(viewingTask.assignee)}</span>
+              <div className={styles.detailRow}>
+                <div className={styles.detailGroup}>
+                  <span className={styles.detailLabel}>{t("detail.assignee") || "İcraçı"}</span>
+                  <span className={styles.detailValue}>{formatAssignee(viewingTask.assignee)}</span>
                 </div>
-                <div>
-                  <strong>Tarix:</strong> <br />
-                  <span style={{ color: "var(--white)" }}>{getDueDateDisplay(viewingTask) || "-"}</span>
+                <div className={styles.detailGroup}>
+                  <span className={styles.detailLabel}>{t("detail.date") || "Tarix"}</span>
+                  <span className={styles.detailValue}>{getDueDateDisplay(viewingTask) || t("detail.none")}</span>
                 </div>
               </div>
             </div>

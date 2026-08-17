@@ -9,11 +9,11 @@ export async function GET() {
         id, 
         category, 
         amount, 
-        date, 
+        expense_date AS date, 
         description, 
         created_at 
       FROM expenses
-      ORDER BY date DESC
+      ORDER BY expense_date DESC
     `;
 
     return NextResponse.json(expenses);
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     }
 
     const expense = await sql`
-      INSERT INTO expenses (category, amount, date, description)
+      INSERT INTO expenses (category, amount, expense_date, description)
       VALUES (${category}, ${amount}, ${date}, ${description || ""})
       RETURNING *
     `;

@@ -623,3 +623,13 @@
   display: flex;
   gap: 0.5rem;
 }
+
+.modalForm { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+.formGroup { display: flex; flex-direction: column; gap: 0.5rem; }
+.formGroup label { color: var(--text-secondary); font-size: 0.9rem; }
+.input, .select { background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(var(--glass-color), 0.1); padding: 0.8rem; border-radius: 8px; color: var(--white); font-family: inherit; width: 100%; }
+.input:focus, .select:focus { border-color: var(--aqua-teal); outline: none; }
+.modalActions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem; }
+.cancelBtn { background: rgba(var(--glass-color), 0.05); color: var(--text-secondary); padding: 0.8rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; }
+.cancelBtn:hover { background: rgba(var(--glass-color), 0.1); color: var(--white); }
+.submitBtn { background: var(--aqua-teal); color: var(--white); padding: 0.8rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }

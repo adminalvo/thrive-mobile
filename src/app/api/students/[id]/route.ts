@@ -146,7 +146,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const totalPaid = payments.reduce((sum, p) => sum + (Number(p.paidAmount) || 0), 0);
     const totalDebt = payments.reduce((sum, p) => sum + Math.max(0, (Number(p.amount) || 0) - (Number(p.paidAmount) || 0)), 0);
 
-    const stats = {
     const totalDue = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
     const presentCount = attendance.filter(a => a.status === "PRESENT").length;
     const totalAttendance = attendance.length;

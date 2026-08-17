@@ -121,23 +121,14 @@ export default function Sidebar({
                 {!isCollapsed && <span>Tarixçə (Logs)</span>}
               </div>
             </Link>
-            <Link href={`/dashboard/staff`}>
-              <div className={`${styles.navItem} ${pathname === '/dashboard/staff' ? styles.navActive : ""}`} title={isCollapsed ? "İşçilər (Staff)" : undefined}>
-                <Users size={20} className={pathname === '/dashboard/staff' ? styles.iconActive : styles.icon} />
-                {!isCollapsed && <span>İşçilər (Staff)</span>}
-              </div>
-            </Link>
-            <Link href={`/dashboard/settings`}>
-              <div className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.navActive : ""}`} title={isCollapsed ? t("settings") : undefined}>
-                <Settings size={20} className={pathname === '/dashboard/settings' ? styles.iconActive : styles.icon} />
-                {!isCollapsed && <span>{t("settings")}</span>}
-              </div>
-            </Link>
           </>
         )}
         <div 
           className={`${styles.navItem} ${styles.logoutItem}`}
-          onClick={() => signOut({ callbackUrl: `${window.location.origin}/login` })}
+          onClick={async () => {
+            await signOut({ redirect: false });
+            window.location.href = "/login";
+          }}
           style={{ cursor: "pointer" }}
           title={isCollapsed ? t("logout") : undefined}
         >

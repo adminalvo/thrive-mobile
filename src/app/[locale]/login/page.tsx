@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import styles from "./page.module.css";
-import { LogIn, Mail, Lock, LayoutDashboard, Eye, EyeOff } from "lucide-react";
+import { LogIn, Mail, Lock, LayoutDashboard, Eye, EyeOff, BookOpen } from "lucide-react";
 import { useRouter } from "@/i18n/routing";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
@@ -40,6 +40,7 @@ export default function LoginPage() {
       {/* Background Orbs */}
       <div className={styles.orb1}></div>
       <div className={styles.orb2}></div>
+
 
       <div className={styles.layoutWrapper}>
         {/* Left Side: Branding */}

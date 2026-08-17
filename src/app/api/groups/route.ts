@@ -5,10 +5,11 @@ import sql from "@/lib/db";
 export async function GET() {
   try {
     const groups = await sql`
-      SELECT g.id, g.name, g.room, g.created_at, p.name as program, u.email as teacher
+      SELECT g.id, g.name, g.room, g.created_at, p.name as program, 
+             COALESCE(up.first_name || ' ' || up.last_name, up.email) as teacher
       FROM groups g
       LEFT JOIN programs p ON g.program_id = p.id
-      LEFT JOIN auth.users u ON g.teacher_id = u.id
+      LEFT JOIN user_profiles up ON g.teacher_id = up.user_id OR g.teacher_id = up.id
       ORDER BY g.created_at DESC
     `;
 

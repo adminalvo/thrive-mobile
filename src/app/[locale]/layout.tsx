@@ -16,6 +16,16 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "Thrive CRM - Future of Education",
   description: "Premium CRM for Thrive Education Center.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Thrive CRM"
+  }
+};
+
+export const viewport = {
+  themeColor: "#0f172a",
 };
 
 export const dynamic = "force-dynamic";

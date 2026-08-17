@@ -49,6 +49,18 @@ export async function GET() {
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='monthly_payment') THEN
                 ALTER TABLE students ADD COLUMN monthly_payment NUMERIC(10,2);
             END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='duration_months') THEN
+                ALTER TABLE students ADD COLUMN duration_months INT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='total_price') THEN
+                ALTER TABLE students ADD COLUMN total_price NUMERIC(10,2);
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='fin_code') THEN
+                ALTER TABLE students ADD COLUMN fin_code TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='id_card_number') THEN
+                ALTER TABLE students ADD COLUMN id_card_number TEXT;
+            END IF;
         END $$;
       `;
 

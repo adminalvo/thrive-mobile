@@ -123,6 +123,12 @@ export default function StudentDetailPage({
   const [selectedParentId, setSelectedParentId] = useState("");
   const [linkingParent, setLinkingParent] = useState(false);
 
+  // Group pairing state
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [availableGroups, setAvailableGroups] = useState<any[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [linkingGroup, setLinkingGroup] = useState(false);
+
   const fetchProfile = useCallback(async () => {
     try {
       const res = await fetch(`/api/students/${id}`);
@@ -279,6 +285,58 @@ export default function StudentDetailPage({
     }
   };
 
+  const handleFetchGroups = async () => {
+    try {
+      const res = await fetch("/api/groups");
+      const list = await res.json();
+      setAvailableGroups(list);
+    } catch {
+      toast.error("Qrupları yükləmək mümkün olmadı");
+    }
+  };
+
+  const handleLinkGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedGroupId) return;
+    setLinkingGroup(true);
+    try {
+      const res = await fetch(`/api/students/${id}/groups`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ group_id: selectedGroupId })
+      });
+      if (res.ok) {
+        toast.success("Qrup uğurla əlaqələndirildi");
+        setShowGroupModal(false);
+        fetchProfile();
+      } else {
+        const errorData = await res.json();
+        toast.error(`Xəta baş verdi: ${errorData.details || errorData.error || "Unknown Error"}`);
+      }
+    } catch {
+      toast.error("Xəta baş verdi");
+    } finally {
+      setLinkingGroup(false);
+    }
+  };
+
+  const handleUnlinkGroup = async (groupId: string) => {
+    if (!confirm("Bu tələbəni qrupdan çıxarmaq istədiyinizə əminsiniz?")) return;
+    try {
+      const res = await fetch(`/api/students/${id}/groups?group_id=${groupId}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        toast.success("Qrupdan çıxarıldı");
+        fetchProfile();
+      } else {
+        toast.error("Xəta baş verdi");
+      }
+    } catch {
+      toast.error("Xəta baş verdi");
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -298,7 +356,14 @@ export default function StudentDetailPage({
     );
   }
 
-  const { student, groups, payments, attendance, stats, parents } = data as any;
+  const { student, groups, payments, attendance, stats: apiStats, parents } = data as any;
+
+  const stats = {
+    totalPaid: payments.reduce((acc: number, curr: any) => acc + (curr.paidAmount || 0), 0),
+    totalDebt: payments.reduce((acc: number, curr: any) => acc + Math.max(0, (curr.amount || 0) - (curr.paidAmount || 0)), 0),
+    attendanceRate: apiStats?.attendanceRate || "100%",
+    enrolledGroupsCount: groups.length
+  };
 
   return (
     <div className={styles.container}>
@@ -548,9 +613,20 @@ export default function StudentDetailPage({
             animate={{ opacity: 1, y: 0 }}
             className={styles.card}
           >
-            <h3 className={styles.cardTitle}>
-              <Users size={18} /> {t("groups")}
-            </h3>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 className={styles.cardTitle} style={{ margin: 0 }}>
+                <Users size={18} /> {t("groups")}
+              </h3>
+              <button 
+                className={styles.actionBtnPrimary} 
+                onClick={() => {
+                  setShowGroupModal(true);
+                  handleFetchGroups();
+                }}
+              >
+                <Plus size={16} /> Əlavə et
+              </button>
+            </div>
             {groups.length === 0 ? (
               <p className={styles.emptyState}>{t("noGroups")}</p>
             ) : (
@@ -563,6 +639,7 @@ export default function StudentDetailPage({
                       <th>{t("teacher")}</th>
                       <th>{t("room")}</th>
                       <th>{t("schedule")}</th>
+                      <th>Əməliyyat</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -577,6 +654,15 @@ export default function StudentDetailPage({
                         <td>{g.teacher}</td>
                         <td>{g.room}</td>
                         <td>{g.schedule}</td>
+                        <td>
+                          <button 
+                            onClick={() => handleUnlinkGroup(g.id)}
+                            style={{ background: "transparent", border: "none", color: "var(--danger-color)", cursor: "pointer", padding: "0.5rem", borderRadius: "8px", transition: "0.2s" }}
+                            title="Qrupdan çıxar"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -847,6 +933,48 @@ export default function StudentDetailPage({
                   <button type="button" className={styles.cancelBtn} onClick={() => setShowParentModal(false)}>Ləğv et</button>
                   <button type="submit" className={styles.saveBtn} disabled={linkingParent}>
                     {linkingParent ? "Gözləyin..." : "Əlaqələndir"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Link Group Modal */}
+      <AnimatePresence>
+        {showGroupModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowGroupModal(false)}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={styles.modal} 
+              onClick={e => e.stopPropagation()}
+            >
+              <h2>Qrupa Əlavə Et</h2>
+              <form onSubmit={handleLinkGroup} className={styles.form}>
+                <div className={styles.inputGroup}>
+                  <label>Mövcud Qruplar</label>
+                  <select 
+                    value={selectedGroupId} 
+                    onChange={e => setSelectedGroupId(e.target.value)} 
+                    required
+                    style={{ width: "100%", padding: "0.8rem", borderRadius: "8px", background: "var(--bg-color)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
+                  >
+                    <option value="">Seçin</option>
+                    {availableGroups.map(g => (
+                      <option key={g.id} value={g.id}>
+                        {g.name} ({g.program || "Ümumi"})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className={styles.modalActions}>
+                  <button type="button" className={styles.cancelBtn} onClick={() => setShowGroupModal(false)}>Ləğv et</button>
+                  <button type="submit" className={styles.saveBtn} disabled={linkingGroup}>
+                    {linkingGroup ? "Gözləyin..." : "Əlavə et"}
                   </button>
                 </div>
               </form>

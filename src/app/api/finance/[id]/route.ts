@@ -94,7 +94,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const { id } = await params;
 
     const result = await sql`
-      DELETE FROM payments
+      DELETE FROM invoices
       WHERE id = ${id}
       RETURNING id
     `;

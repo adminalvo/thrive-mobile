@@ -148,15 +148,15 @@ export async function POST(req: Request) {
           finalParentId = existingParentRecord[0].id;
         } else {
           await tx`
-            INSERT INTO parents (id, profile_id, fin_code, id_card_number, full_name, phone)
-            VALUES (${pId}, ${finalParentProfileId}, ${parentFin || null}, ${parentIdCard || null}, ${parentName || null}, ${parentPhone || null})
+            INSERT INTO parents (id, profile_id, fin_code, id_card_number)
+            VALUES (${pId}, ${finalParentProfileId}, ${parentFin || null}, ${parentIdCard || null})
           `;
         }
 
         // 5d. Link Parent to Student
         await tx`
-          INSERT INTO student_parents (student_id, parent_id)
-          VALUES (${studentId}, ${finalParentId})
+          INSERT INTO student_parents (student_id, parent_id, relation_type)
+          VALUES (${studentId}, ${finalParentId}, 'Ata')
           ON CONFLICT DO NOTHING
         `;
         

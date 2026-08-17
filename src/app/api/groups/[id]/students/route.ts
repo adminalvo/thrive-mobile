@@ -15,13 +15,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     // Check if link already exists
     const existing = await sql`
-      SELECT * FROM student_groups 
+      SELECT * FROM group_students 
       WHERE student_id = ${student_id} AND group_id = ${id}
     `;
 
     if (existing.length === 0) {
       await sql`
-        INSERT INTO student_groups (student_id, group_id)
+        INSERT INTO group_students (student_id, group_id)
         VALUES (${student_id}, ${id})
       `;
       await logAction("ADD_STUDENT_TO_GROUP", { studentId: student_id, groupId: id });
@@ -45,7 +45,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     if (!student_id) return NextResponse.json({ error: "Student ID is required" }, { status: 400 });
 
     await sql`
-      DELETE FROM student_groups 
+      DELETE FROM group_students 
       WHERE student_id = ${student_id} AND group_id = ${id}
     `;
 

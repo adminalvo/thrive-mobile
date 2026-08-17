@@ -28,9 +28,9 @@ export async function GET() {
       SELECT DISTINCT s.id, p.first_name, p.last_name, p.email, p.phone, g.name as group_name, g.id as group_id
       FROM students s
       LEFT JOIN user_profiles p ON s.profile_id = p.id
-      LEFT JOIN student_groups sg ON s.id = sg.student_id
-      LEFT JOIN groups g ON sg.group_id = g.id
-      WHERE g.teacher_id = ${userId}
+      LEFT JOIN group_students gs ON s.id = gs.student_id
+      LEFT JOIN groups g ON gs.group_id = g.id
+      WHERE g.teacher_id = ${userId} OR g.teacher_id = ${teacherId}
     `;
 
     // Get today's classes
@@ -40,7 +40,7 @@ export async function GET() {
       FROM group_schedules c
       LEFT JOIN groups g ON c.group_id = g.id
       LEFT JOIN programs pr ON g.program_id = pr.id
-      WHERE g.teacher_id = ${userId}
+      WHERE (g.teacher_id = ${userId} OR g.teacher_id = ${teacherId})
         AND c.day_of_week = EXTRACT(ISODOW FROM CURRENT_DATE)
       ORDER BY c.start_time ASC
     `;
@@ -50,7 +50,7 @@ export async function GET() {
       SELECT COUNT(*) as count
       FROM assignment_submissions s
       JOIN assignments a ON s.assignment_id = a.id
-      WHERE a.teacher_id = ${userId} AND s.status = 'SUBMITTED'
+      WHERE (a.teacher_id = ${userId} OR a.teacher_id = ${teacherId}) AND s.status = 'SUBMITTED'
     `;
     const pendingAssignments = pendingAssignmentsRes[0].count || 0;
 
@@ -58,12 +58,11 @@ export async function GET() {
     // Mocking this or calculating simply: we just count total 'ABSENT' > 3 for now as a quick risk indicator
     const lowAttendanceRes = await sql`
       SELECT s.id, up.first_name, up.last_name, COUNT(a.id) as absent_count
-      FROM students s
-      JOIN attendance a ON s.id = a.student_id
-      LEFT JOIN user_profiles up ON s.profile_id = up.id
-      JOIN student_groups sg ON s.id = sg.student_id
-      JOIN groups g ON sg.group_id = g.id
-      WHERE g.teacher_id = ${userId} AND a.status = 'ABSENT'
+      FROM attendance a
+      JOIN students s ON a.student_id = s.id
+      JOIN user_profiles up ON s.profile_id = up.id
+      JOIN groups g ON a.group_id = g.id
+      WHERE (g.teacher_id = ${userId} OR g.teacher_id = ${teacherId}) AND a.status = 'ABSENT'
       GROUP BY s.id, up.first_name, up.last_name
       HAVING COUNT(a.id) >= 3
     `;

@@ -183,7 +183,6 @@ export default function ParentsPage() {
               <th>{t("table.contact")}</th>
               <th>{t("table.fin")}</th>
               <th>{t("table.idCard")}</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -208,13 +207,6 @@ export default function ParentsPage() {
                   <td>{p.contact}</td>
                   <td>{p.fin}</td>
                   <td>{p.idCard}</td>
-                  <td>
-                    <div className={styles.inlineActions}>
-                      <button className={styles.iconBtn} onClick={() => handleDelete(p.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))
             ) : (

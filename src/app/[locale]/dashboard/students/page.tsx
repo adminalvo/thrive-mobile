@@ -233,11 +233,6 @@ export default function StudentsPage() {
                             <BookOpen size={16} />
                           </button>
                         </Link>
-                        {canEdit && (
-                          <button className={styles.iconBtn} onClick={() => handleDelete(student.id)} title="Sil" style={{ color: "var(--danger-color)" }}>
-                            <Trash2 size={16} />
-                          </button>
-                        )}
                       </div>
                     </td>
                   </motion.tr>

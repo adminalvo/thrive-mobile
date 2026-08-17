@@ -55,6 +55,13 @@ const credentialsProvider = CredentialsProvider({
       displayName = "Tamerlan Məmmədov";
     }
 
+    try {
+      const { logAction } = await import("@/lib/logger");
+      await logAction("USER_LOGIN", { email: user.email, name: displayName, timestamp: new Date().toISOString() }, user.id);
+    } catch (err) {
+      console.error("Failed to log login action:", err);
+    }
+
     return {
       id: user.id,
       email: user.email,

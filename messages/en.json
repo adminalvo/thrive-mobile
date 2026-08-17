@@ -346,6 +346,7 @@
     }
   },
   "Common": {
+    "search": "Search...",
     "active": "Active",
     "pending": "Pending",
     "inactive": "Inactive",

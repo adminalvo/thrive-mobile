@@ -161,10 +161,6 @@ export default function ParentsPage() {
           <h1 className={styles.title}>{t("title")}</h1>
           <p className={styles.subtitle}>{t("subtitle")}</p>
         </div>
-        <button className={styles.addBtn} onClick={() => setShowModal(true)}>
-          <Plus size={18} />
-          {t("newParent")}
-        </button>
       </motion.div>
 
       <div className={styles.toolbar}>
@@ -230,98 +226,6 @@ export default function ParentsPage() {
         </table>
       </div>
 
-      <AnimatePresence>
-        {showModal && (
-          <div className={styles.modalOverlay}>
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className={styles.modal}
-            >
-              <div className={styles.modalHeader}>
-                <h2>{t("newParent")}</h2>
-                <button type="button" className={styles.closeModalBtn} onClick={() => setShowModal(false)}>
-                  <X size={20} />
-                </button>
-              </div>
-              <form onSubmit={handleCreate} className={styles.form}>
-                <div className={styles.formGrid}>
-                  <div className={styles.inputGroup}>
-                    <label>Ad</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={formData.first_name}
-                      onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                    />
-                  </div>
-                  <div className={styles.inputGroup}>
-                    <label>Soyad</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={formData.last_name}
-                      onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                    />
-                  </div>
-                  <div className={styles.inputGroup}>
-                    <label>Telefon</label>
-                    <input 
-                      type="tel" 
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    />
-                  </div>
-                  <div className={styles.inputGroup}>
-                    <label>E-poçt</label>
-                    <input 
-                      type="email" 
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    />
-                  </div>
-                  <div className={styles.inputGroup}>
-                    <label>FİN Kod</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={formData.fin_code}
-                      onChange={(e) => setFormData({...formData, fin_code: e.target.value})}
-                    />
-                  </div>
-                  <div className={styles.inputGroup}>
-                    <label>Vəsiqə Nömrəsi</label>
-                    <input 
-                      type="text" 
-                      value={formData.id_card_number}
-                      onChange={(e) => setFormData({...formData, id_card_number: e.target.value})}
-                    />
-                  </div>
-                  <div className={styles.inputGroup} style={{ gridColumn: "1 / -1" }}>
-                    <label>Şifrə (Giriş üçün)</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      placeholder="Şifrə təyin edin"
-                    />
-                  </div>
-                </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>
-                    {c("cancel")}
-                  </button>
-                  <button type="submit" className={styles.saveBtn} disabled={submitting}>
-                    {submitting ? c("saving") : c("save")}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

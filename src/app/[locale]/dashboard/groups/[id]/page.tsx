@@ -98,11 +98,8 @@ export default function GroupDetailPage({
   });
 
   // Add student form
-  const [newStudentForm, setNewStudentForm] = useState({
-    name: "",
-    phone: "",
-    email: ""
-  });
+  const [selectedStudentToAdd, setSelectedStudentToAdd] = useState("");
+  const [availableStudents, setAvailableStudents] = useState<any[]>([]);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -124,8 +121,21 @@ export default function GroupDetailPage({
     }
   }, [id, t]);
 
+  const fetchAvailableStudents = async () => {
+    try {
+      const res = await fetch("/api/students");
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableStudents(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch students", e);
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
+    fetchAvailableStudents();
   }, [fetchProfile]);
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -150,19 +160,21 @@ export default function GroupDetailPage({
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedStudentToAdd) return;
     try {
-      const res = await fetch("/api/students", {
+      const res = await fetch(`/api/groups/${id}/students`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newStudentForm)
+        body: JSON.stringify({ student_id: selectedStudentToAdd })
       });
       if (res.ok) {
         toast.success(t("addStudent"));
         setShowAddStudentModal(false);
-        setNewStudentForm({ name: "", phone: "", email: "" });
+        setSelectedStudentToAdd("");
         fetchProfile();
       } else {
-        toast.error("Xəta baş verdi");
+        const errorData = await res.json();
+        toast.error(`Xəta baş verdi: ${errorData.details || errorData.error || "Məlumatsız xəta"}`);
       }
     } catch {
       toast.error("Xəta baş verdi");
@@ -576,37 +588,24 @@ export default function GroupDetailPage({
               <h2>{t("addStudent")}</h2>
               <form onSubmit={handleAddStudent} className={styles.form}>
                 <div className={styles.inputGroup}>
-                  <label>{t("fullName")}</label>
-                  <input 
-                    type="text" 
+                  <label>Tələbə Seçin</label>
+                  <select 
                     required 
-                    value={newStudentForm.name} 
-                    onChange={e => setNewStudentForm({...newStudentForm, name: e.target.value})} 
-                  />
-                </div>
-                <div className={styles.inputGroup}>
-                  <label>{t("phone")}</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={newStudentForm.phone} 
-                    onChange={e => setNewStudentForm({...newStudentForm, phone: e.target.value})} 
-                  />
-                </div>
-                <div className={styles.inputGroup}>
-                  <label>{t("email")}</label>
-                  <input 
-                    type="email" 
-                    value={newStudentForm.email} 
-                    onChange={e => setNewStudentForm({...newStudentForm, email: e.target.value})} 
-                  />
+                    value={selectedStudentToAdd} 
+                    onChange={e => setSelectedStudentToAdd(e.target.value)} 
+                  >
+                    <option value="">-- Tələbə Seç --</option>
+                    {availableStudents.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.email || s.phone})</option>
+                    ))}
+                  </select>
                 </div>
                 <div className={styles.modalActions}>
                   <button type="button" className={styles.cancelBtn} onClick={() => setShowAddStudentModal(false)}>
                     {c("cancel")}
                   </button>
-                  <button type="submit" className={styles.saveBtn}>
-                    {t("addStudent")}
+                  <button type="submit" className={styles.saveBtn} disabled={!selectedStudentToAdd}>
+                    {c("save")}
                   </button>
                 </div>
               </form>

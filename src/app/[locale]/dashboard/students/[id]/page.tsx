@@ -265,10 +265,8 @@ export default function StudentDetailPage({
   const handleUnlinkParent = async (parentId: string) => {
     if (!confirm("Bu valideyni silmək istədiyinizə əminsiniz?")) return;
     try {
-      const res = await fetch(`/api/students/${id}/parents`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parent_id: parentId })
+      const res = await fetch(`/api/students/${id}/parents?parent_id=${parentId}`, {
+        method: "DELETE"
       });
       if (res.ok) {
         toast.success("Valideyn silindi");

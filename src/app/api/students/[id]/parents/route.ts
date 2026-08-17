@@ -39,8 +39,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const { id } = await params;
     if (!id) return NextResponse.json({ error: "Student ID is required" }, { status: 400 });
 
-    const body = await req.json();
-    const { parent_id } = body;
+    const { searchParams } = new URL(req.url);
+    const parent_id = searchParams.get("parent_id");
 
     if (!parent_id) return NextResponse.json({ error: "Parent ID is required" }, { status: 400 });
 

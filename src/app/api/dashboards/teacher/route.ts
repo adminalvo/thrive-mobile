@@ -25,7 +25,7 @@ export async function GET() {
     
     // Get students assigned to this teacher's groups
     const students = await sql`
-      SELECT DISTINCT s.id, p.first_name, p.last_name, p.email, p.phone, g.name as group_name
+      SELECT DISTINCT s.id, p.first_name, p.last_name, p.email, p.phone, g.name as group_name, g.id as group_id
       FROM students s
       LEFT JOIN user_profiles p ON s.profile_id = p.id
       LEFT JOIN student_groups sg ON s.id = sg.student_id
@@ -51,7 +51,8 @@ export async function GET() {
         name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Tələbə",
         email: s.email || "",
         phone: s.phone || "",
-        group: s.group_name || ""
+        group: s.group_name || "",
+        groupId: s.group_id
       })),
       todayClasses: classes.map((c: any) => ({
         id: c.id,

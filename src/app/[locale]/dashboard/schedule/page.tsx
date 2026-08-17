@@ -179,73 +179,85 @@ export default function SchedulePage() {
         </button>
       </div>
 
-      <div className={styles.scheduleGrid}>
+      <div className={styles.tableContainer}>
         {loading ? (
           <div className={styles.loading}>{c("loading")}</div>
         ) : groups.length === 0 ? (
           <div className={styles.empty}>{c("empty")}</div>
         ) : (
-          groups.map(group => (
-            <motion.div
-              key={group.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={styles.groupCard}
-            >
-              <div className={styles.cardHeader}>
-                <h3>{group.name}</h3>
-                <span className={styles.badge}>{group.language || "AZ"}</span>
-              </div>
-
-              <div className={styles.cardInfo}>
-                <div className={styles.infoItem}>
-                  <BookOpen size={16} className={styles.icon} />
-                  <span>{group.program?.name || "Proqram seçilməyib"}</span>
-                </div>
-                <div className={styles.infoItem}>
-                  <Users size={16} className={styles.icon} />
-                  <span>
-                    {group._count?.students || 0} / {group.maxCapacity || 15} Tələbə
-                  </span>
-                </div>
-              </div>
-
-              <div className={styles.schedulesList}>
-                {group.schedules && group.schedules.length > 0 ? (
-                  group.schedules.map(sch => {
-                    const dayNum = sch.dayOfWeek || sch.day_of_week || 1;
-                    const startTime = sch.startTime || sch.start_time || "";
-                    const endTime = sch.endTime || sch.end_time || "";
-                    const room = sch.room || group.room;
-
-                    return (
-                      <div key={sch.id} className={styles.scheduleItem}>
-                        <div>
-                          <div className={styles.scheduleDay}>{getDayName(dayNum)}</div>
-                          <div className={styles.scheduleTime}>
-                            <Clock size={14} /> {startTime} - {endTime}
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Qrup & Proqram</th>
+                <th>Həftənin Günü</th>
+                <th>Saat</th>
+                <th>Otaq</th>
+                <th style={{ textAlign: "right" }}>Əməliyyat</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.flatMap(group => 
+                (group.schedules && group.schedules.length > 0) ? group.schedules.map((sch: any) => {
+                  const dayNum = sch.dayOfWeek || sch.day_of_week || 1;
+                  const startTime = sch.startTime || sch.start_time || "";
+                  const endTime = sch.endTime || sch.end_time || "";
+                  const room = sch.room || group.room || "-";
+                  
+                  return (
+                    <motion.tr
+                      key={sch.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={styles.tableRow}
+                    >
+                      <td>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <div style={{ background: "rgba(76, 162, 181, 0.1)", padding: "0.4rem", borderRadius: "8px", color: "var(--aqua-teal)" }}>
+                            <BookOpen size={16} />
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 600, color: "var(--white)", fontSize: "0.95rem" }}>{group.name}</div>
+                            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{group.program?.name || "Proqram seçilməyib"}</div>
                           </div>
                         </div>
-
-                        <div className={styles.scheduleDetails}>
-                          {room && <div className={styles.room}>Otaq: {room}</div>}
-                          <button
-                            className={styles.deleteScheduleBtn}
-                            title="Cədvəli Sil"
-                            onClick={() => handleDeleteSchedule(sch.id, group.id)}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                      </td>
+                      <td>
+                        <span style={{ background: "rgba(255,255,255,0.05)", padding: "0.3rem 0.6rem", borderRadius: "6px", fontSize: "0.85rem", color: "var(--text-primary)" }}>
+                          {getDayName(dayNum)}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                          <Clock size={14} /> {startTime} - {endTime}
                         </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className={styles.noSchedule}>{t("noSchedule")}</div>
-                )}
-              </div>
-            </motion.div>
-          ))
+                      </td>
+                      <td>
+                        <span style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>{room}</span>
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        <button
+                          className={styles.deleteScheduleBtn}
+                          title="Cədvəli Sil"
+                          onClick={() => handleDeleteSchedule(sch.id, group.id)}
+                          style={{ display: "inline-flex", background: "transparent", border: "none", color: "var(--danger-color)", padding: "0.4rem", cursor: "pointer", borderRadius: "6px" }}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </motion.tr>
+                  );
+                }) : []
+              )}
+              
+              {groups.flatMap(g => g.schedules || []).length === 0 && (
+                 <tr>
+                   <td colSpan={5} style={{ textAlign: "center", padding: "2rem", color: "var(--text-secondary)" }}>
+                     {t("noSchedule")}
+                   </td>
+                 </tr>
+              )}
+            </tbody>
+          </table>
         )}
       </div>
 

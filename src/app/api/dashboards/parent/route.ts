@@ -26,6 +26,7 @@ export async function GET() {
     let children = [];
     let classes = [];
     let payments = [];
+    let attendance = [];
 
     if (parentId) {
       // Get children
@@ -66,6 +67,18 @@ export async function GET() {
           ORDER BY p.created_at DESC
           LIMIT 10
         `;
+
+        // Get attendance for these children
+        attendance = await sql`
+          SELECT a.id, a.date, a.status, a.notes, g.name as group_name, up.first_name as student_name
+          FROM attendance a
+          LEFT JOIN groups g ON a.group_id = g.id
+          LEFT JOIN students s ON a.student_id = s.id
+          LEFT JOIN user_profiles up ON s.profile_id = up.id
+          WHERE a.student_id IN ${sql(studentIds)}
+          ORDER BY a.date DESC
+          LIMIT 15
+        `;
       }
     }
 
@@ -90,6 +103,13 @@ export async function GET() {
         status: p.status,
         date: new Date(p.created_at).toLocaleDateString(),
         studentName: p.student_name || "Tələbə"
+      })),
+      attendance: attendance.map((a: any) => ({
+        id: a.id,
+        date: new Date(a.date).toLocaleDateString("az-AZ"),
+        status: a.status,
+        group: a.group_name,
+        studentName: a.student_name || "Tələbə"
       }))
     });
   } catch (error) {

@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "@/app/[locale]/dashboard/page.module.css";
-import { Users, Calendar, MoreVertical, MessageSquare } from "lucide-react";
+import { Users, Calendar, MoreVertical, MessageSquare, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
@@ -14,6 +14,10 @@ export default function TeacherDashboard() {
   const [todayClasses, setTodayClasses] = useState<any[]>([]);
   const [noteStudentId, setNoteStudentId] = useState<string | null>(null);
   const [noteContent, setNoteContent] = useState("");
+
+  const [attendanceModal, setAttendanceModal] = useState<{studentId: string, groupId: string, name: string} | null>(null);
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
+  const [attendanceStatus, setAttendanceStatus] = useState("PRESENT");
 
   useEffect(() => {
     fetch("/api/dashboards/teacher")
@@ -38,6 +42,30 @@ export default function TeacherDashboard() {
         alert(c("success") || "Uğurla göndərildi");
         setNoteContent("");
         setNoteStudentId(null);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const markAttendance = async () => {
+    if (!attendanceModal) return;
+    try {
+      const res = await fetch("/api/teacher/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId: attendanceModal.studentId,
+          groupId: attendanceModal.groupId,
+          date: attendanceDate,
+          status: attendanceStatus
+        })
+      });
+      if (res.ok) {
+        alert(c("success") || "Davamiyyət qeyd edildi");
+        setAttendanceModal(null);
+      } else {
+        alert("Xəta baş verdi. Zəhmət olmasa bir daha yoxlayın.");
       }
     } catch (err) {
       console.error(err);
@@ -99,7 +127,7 @@ export default function TeacherDashboard() {
                   <th>{t("table.student")}</th>
                   <th>{t("table.group")}</th>
                   <th>Əlaqə</th>
-                  <th>Qeyd Göndər</th>
+                  <th style={{textAlign: "right"}}>Əməliyyatlar</th>
                 </tr>
               </thead>
               <tbody>
@@ -108,14 +136,25 @@ export default function TeacherDashboard() {
                     <td className={styles.studentName}>{student.name}</td>
                     <td className={styles.studentGroup}>{student.group}</td>
                     <td className={styles.studentDate}>{student.phone || student.email}</td>
-                    <td>
-                      <button 
-                        onClick={() => setNoteStudentId(student.id)}
-                        className={styles.iconBtn} 
-                        style={{ color: "var(--aqua-teal)", background: "rgba(76, 162, 181, 0.1)" }}
-                      >
-                        <MessageSquare size={16} />
-                      </button>
+                    <td style={{textAlign: "right"}}>
+                      <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+                        <button 
+                          onClick={() => setAttendanceModal({ studentId: student.id, groupId: student.groupId, name: student.name })}
+                          className={styles.iconBtn} 
+                          style={{ color: "#10b981", background: "rgba(16, 185, 129, 0.1)" }}
+                          title="Davamiyyət"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                        <button 
+                          onClick={() => setNoteStudentId(student.id)}
+                          className={styles.iconBtn} 
+                          style={{ color: "var(--aqua-teal)", background: "rgba(76, 162, 181, 0.1)" }}
+                          title="Qeyd Göndər"
+                        >
+                          <MessageSquare size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )) : (
@@ -178,8 +217,48 @@ export default function TeacherDashboard() {
         </div>
       )}
 
-      {/* New placeholders for Attendance and Group Note modals */}
-      {/* TODO: Implement full UI for Attendance and Group Notes */}
+      {/* Attendance Modal */}
+      {attendanceModal && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex",
+          alignItems: "center", justifyContent: "center"
+        }}>
+          <div style={{
+            background: "var(--bg-card, #111)", padding: "2rem", borderRadius: "12px", width: "400px", maxWidth: "90%"
+          }}>
+            <h3 style={{ marginBottom: "1rem" }}>Davamiyyət: {attendanceModal.name}</h3>
+            
+            <div style={{ marginBottom: "1rem" }}>
+              <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>Tarix</label>
+              <input 
+                type="date" 
+                value={attendanceDate}
+                onChange={(e) => setAttendanceDate(e.target.value)}
+                style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px" }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label style={{ display: "block", marginBottom: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>Status</label>
+              <select 
+                value={attendanceStatus}
+                onChange={(e) => setAttendanceStatus(e.target.value)}
+                style={{ width: "100%", padding: "0.8rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "8px" }}
+              >
+                <option value="PRESENT" style={{ background: "var(--bg-dark)" }}>İştirak edib</option>
+                <option value="ABSENT" style={{ background: "var(--bg-dark)" }}>Qaib</option>
+                <option value="LATE" style={{ background: "var(--bg-dark)" }}>Gecikib</option>
+              </select>
+            </div>
+
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
+              <button onClick={() => setAttendanceModal(null)} style={{ padding: "0.5rem 1rem", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>Ləğv et</button>
+              <button onClick={markAttendance} style={{ padding: "0.5rem 1rem", background: "#10b981", border: "none", color: "#fff", cursor: "pointer", borderRadius: "4px" }}>Yadda Saxla</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

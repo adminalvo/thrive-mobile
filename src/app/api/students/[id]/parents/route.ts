@@ -21,16 +21,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     if (existing.length === 0) {
       await sql`
-        INSERT INTO student_parents (student_id, parent_id)
-        VALUES (${id}, ${parent_id})
+        INSERT INTO student_parents (student_id, parent_id, relation_type)
+        VALUES (${id}, ${parent_id}, 'Ata')
       `;
       await logAction("LINK_PARENT", { studentId: id, parentId: parent_id });
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Link Parent Error:", error);
-    return NextResponse.json({ error: "Failed to link parent" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to link parent", details: error?.message || String(error) }, { status: 500 });
   }
 }
 

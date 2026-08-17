@@ -248,11 +248,12 @@ export default function StudentDetailPage({
         body: JSON.stringify({ parent_id: selectedParentId })
       });
       if (res.ok) {
-        toast.success("Valideyn əlavə edildi");
+        toast.success("Valideyn uğurla əlaqələndirildi");
         setShowParentModal(false);
         fetchProfile();
       } else {
-        toast.error("Xəta baş verdi");
+        const errorData = await res.json();
+        toast.error(`Xəta baş verdi: ${errorData.details || errorData.error || "Unknown Error"}`);
       }
     } catch {
       toast.error("Xəta baş verdi");

@@ -23,12 +23,13 @@ export default async function middleware(req: NextRequest) {
   }
 
   // API Route Protection
-  if (isApiRoute && !req.nextUrl.pathname.startsWith('/api/auth') && !req.nextUrl.pathname.startsWith('/api/unlock')) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (isApiRoute) {
+    if (!req.nextUrl.pathname.startsWith('/api/auth') && !req.nextUrl.pathname.startsWith('/api/unlock')) {
+      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      if (!token) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
-    // We can also let the individual API routes handle role-specific checks
     return NextResponse.next();
   }
 

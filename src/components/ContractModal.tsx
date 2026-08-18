@@ -64,7 +64,8 @@ export default function ContractModal({ invoice, onClose }: ContractModalProps) 
       filename:     `Tədris_Müqaviləsi_${studentName.replace(/\s+/g, '_')}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['css', 'legacy'], avoid: ['h2', 'h3', 'h4', 'p', 'tr', 'ul', 'li', 'table'] }
     };
     
     html2pdf().set(opt).from(element).save();
@@ -160,7 +161,6 @@ export default function ContractModal({ invoice, onClose }: ContractModalProps) 
               <p style={{ textAlign: "justify", marginBottom: "0.5rem" }}>4.4. İcraçının səbəbindən keçirilməyən dərs əvəzlənir. Proqram İcraçının səbəbindən dayandırıldıqda, keçirilməmiş xidmətlərə aid ödənilmiş məbləğ Sifarişçiyə qaytarılır.</p>
               <p style={{ textAlign: "justify", marginBottom: "1rem" }}>4.5. İcraçı Tələbənin sağlamlığı və təhlükəsizliyi ilə bağlı əvvəlcədən yazılı bildirilmiş və tədris prosesinə aid məlumatları təşkilati imkanlar və qanunvericilik çərçivəsində nəzərə alır.</p>
 
-              <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
 
               <h4 style={{ fontWeight: "bold", marginBottom: "0.5rem" }}>5. TƏLİMDƏN İMTİNA VƏ ÖDƏNİŞİN QAYTARILMASI</h4>
               <p style={{ textAlign: "justify", marginBottom: "0.5rem" }}>5.1. Tələbə qeydiyyatdan keçdikdən sonra proqramda iştirak etməkdən imtina etdikdə və hələ ilk dərsdə iştirak etmədikdə, ödənilmiş məbləğ tam şəkildə geri qaytarılır.</p>
@@ -208,10 +208,6 @@ export default function ContractModal({ invoice, onClose }: ContractModalProps) 
               <p style={{ textAlign: "justify", marginBottom: "0.5rem" }}>12.2. Hər hansı müddəanın etibarsız hesab edilməsi digər müddəaların etibarlılığına təsir etmir.</p>
               <p style={{ textAlign: "justify", marginBottom: "0.5rem" }}>12.3. Müqavilə və Əlavə 1 birlikdə vahid sənəd təşkil edir. Ziddiyyət olduqda, konkret proqram və ödəniş şərtləri üzrə Əlavə 1 tətbiq edilir.</p>
               <p style={{ textAlign: "justify", marginBottom: "1rem" }}>12.4. Müqavilə Azərbaycan dilində, eyni hüquqi qüvvəyə malik iki nüsxədə tərtib olunur və hər Tərəfə bir nüsxə verilir.</p>
-
-
-              <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
-
 
               <h2 style={{ textAlign: "center", marginBottom: "0.5rem", fontSize: "14pt", fontWeight: "bold" }}>
                 ƏLAVƏ 1<br/>PROQRAM VƏ ÖDƏNİŞ ŞƏRTLƏRİ

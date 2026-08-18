@@ -7,7 +7,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const { id } = await params;
     const body = await req.json();
 
-    const existingRes = await sql`SELECT * FROM payments WHERE id = ${id}`;
+    const existingRes = await sql`SELECT * FROM invoices WHERE id = ${id}`;
     if (existingRes.length === 0) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
@@ -34,16 +34,23 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const paymentMethod = body.payment_method || body.paymentMethod || current.payment_method || "CASH";
 
     const updated = await sql`
-      UPDATE payments
+      UPDATE invoices
       SET 
         amount = ${amount},
-        paid_amount = ${paid_amount},
         status = ${status},
-        due_date = ${dueDate},
-        payment_method = ${paymentMethod}
+        due_date = ${dueDate}
       WHERE id = ${id}
       RETURNING *
     `;
+
+    // Also update payments if paid_amount changed
+    if (paid_amount > Number(current.paid_amount || 0)) {
+      const diff = paid_amount - Number(current.paid_amount || 0);
+      await sql`
+        INSERT INTO payments (invoice_id, student_id, amount, payment_method, payment_date, created_at)
+        VALUES (${id}, ${current.student_id}, ${diff}, ${paymentMethod}, NOW(), NOW())
+      `;
+    }
 
     const p = updated[0];
 
@@ -93,8 +100,11 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   try {
     const { id } = await params;
 
+    // Delete associated payments first (if no cascade)
+    await sql`DELETE FROM payments WHERE invoice_id = ${id}`;
+
     const result = await sql`
-      DELETE FROM payments
+      DELETE FROM invoices
       WHERE id = ${id}
       RETURNING id
     `;

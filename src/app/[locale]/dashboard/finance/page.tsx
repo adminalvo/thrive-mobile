@@ -471,7 +471,7 @@ export default function FinancePage() {
                       </td>
                       <td className={styles.actionsCell}>
                         <div className={styles.actions}>
-                          <button className={styles.iconBtn} onClick={() => setSelectedInvoice(inv)} title="Fakturaya bax">
+                          <button className={styles.actionBtn} onClick={() => setSelectedInvoice(inv)} title="Fakturaya bax">
                             <FileText size={16} />
                           </button>
                           {canCreate && inv.status !== 'PAID' && (
@@ -483,7 +483,7 @@ export default function FinancePage() {
                             </button>
                           )}
                           {canCreate && (
-                            <button className={`${styles.iconBtn} ${styles.dangerIcon}`} onClick={() => handleDeletePayment(inv.id)} title="Sil">
+                            <button className={`${styles.actionBtn} ${styles.dangerIcon}`} onClick={() => handleDeletePayment(inv.id)} title="Sil">
                               <Trash2 size={16} />
                             </button>
                           )}
@@ -542,7 +542,7 @@ export default function FinancePage() {
                     <td style={{ color: "var(--gray-300)" }}>{exp.description || "-"}</td>
                     <td className={styles.amountError}>{exp.amount} ₼</td>
                     <td className={styles.actions}>
-                      <button className={`${styles.iconBtn} ${styles.dangerIcon}`} onClick={() => handleDeleteExpense(exp.id)} title="Sil">
+                      <button className={`${styles.actionBtn} ${styles.dangerIcon}`} onClick={() => handleDeleteExpense(exp.id)} title="Sil">
                         <Trash2 size={16} />
                       </button>
                     </td>

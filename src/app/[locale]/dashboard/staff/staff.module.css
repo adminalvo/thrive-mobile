@@ -196,7 +196,7 @@
 }
 
 .modalLarge {
-  background: var(--surface-dark);
+  background: #1f2937;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   width: 700px;
@@ -346,7 +346,7 @@
 }
 
 .modalBox {
-  background: var(--surface-dark);
+  background: #1f2937;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   width: 500px;
@@ -380,5 +380,10 @@
 
 .input:focus, .select:focus {
   border-color: var(--aqua-teal);
+}
+
+.select option {
+  background: #1f2937;
+  color: #fff;
 }
 

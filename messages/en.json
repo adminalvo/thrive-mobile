@@ -482,7 +482,13 @@
     },
     "errorDelete": "An error occurred during deletion",
     "successDelete": "Successfully deleted",
-    "confirmDelete": "Are you sure you want to delete?"
+    "successUpdate": "Successfully updated",
+    "confirmDelete": "Are you sure you want to delete?",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "close": "Close",
+    "add": "Add"
   },
   "NotFound": {
     "title": "System Error: Page Not Found",

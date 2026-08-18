@@ -483,7 +483,13 @@
     },
     "errorDelete": "Silinmə zamanı xəta baş verdi",
     "successDelete": "Uğurla silindi",
-    "confirmDelete": "Silmək istədiyinizə əminsiniz?"
+    "successUpdate": "Uğurla yeniləndi",
+    "confirmDelete": "Silmək istədiyinizə əminsiniz?",
+    "edit": "Redaktə et",
+    "delete": "Sil",
+    "view": "Bax",
+    "close": "Bağla",
+    "add": "Əlavə et"
   },
   "NotFound": {
     "title": "Sistem Xətası: Səhifə Tapılmadı",

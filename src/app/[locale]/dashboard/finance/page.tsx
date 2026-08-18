@@ -214,6 +214,17 @@ export default function FinancePage() {
     } catch (e) {}
   };
 
+  const handleDeleteExpense = async (id: string) => {
+    if (!confirm(c("confirmDelete") || "Bu xərci silmək istədiyinizə əminsiniz?")) return;
+    try {
+      const res = await fetch(`/api/finance/expenses/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setExpenses(prev => prev.filter(exp => exp.id !== id));
+        toast.success(c("successDelete") || "Uğurla silindi");
+      }
+    } catch (e) {}
+  };
+
   const handleAddExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -445,6 +456,7 @@ export default function FinancePage() {
                   <th>{t("modal.category") || "Kateqoriya"}</th>
                   <th>{t("modal.description") || "Təsvir"}</th>
                   <th>{t("modal.amount") || "Məbləğ"}</th>
+                  <th style={{ width: "80px", textAlign: "right" }}>Əməliyyatlar</th>
                 </tr>
               </thead>
               <tbody>
@@ -456,10 +468,15 @@ export default function FinancePage() {
                     </td>
                     <td style={{ color: "var(--gray-300)" }}>{exp.description || "-"}</td>
                     <td className={styles.amountError}>{exp.amount} ₼</td>
+                    <td className={styles.actions}>
+                      <button className={`${styles.iconBtn} ${styles.dangerIcon}`} onClick={() => handleDeleteExpense(exp.id)} title="Sil">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {filteredExpenses.length === 0 && (
-                  <tr><td colSpan={4} className={styles.emptyState}>Tapılmadı</td></tr>
+                  <tr><td colSpan={5} className={styles.emptyState}>Tapılmadı</td></tr>
                 )}
               </tbody>
             </table>

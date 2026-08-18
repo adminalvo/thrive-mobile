@@ -35,7 +35,8 @@ export async function POST(req: Request) {
     const data = await req.json();
     const { 
       name, email, phone, program, monthlyPayment, durationMonths, password,
-      parentName, parentPhone, parentFin, parentIdCard, parentEmail, parentPassword
+      parentName, parentPhone, parentFin, parentIdCard, parentEmail, parentPassword, parentAddress,
+      studentDob, studentAddress, contractDetails
     } = data;
     
     // Fallback: If old frontend sends fin/idCard directly
@@ -93,8 +94,15 @@ export async function POST(req: Request) {
 
       // 3. Create student record
       await tx`
-        INSERT INTO students (id, profile_id, program, monthly_payment, duration_months, total_price, fin_code, id_card_number)
-        VALUES (${studentId}, ${finalProfileId}, ${program || null}, ${parsedPayment}, ${parsedDuration}, ${totalPrice}, ${studentFin || null}, ${studentIdCard || null})
+        INSERT INTO students (
+          id, profile_id, program, monthly_payment, duration_months, total_price, 
+          fin_code, id_card_number, dob, address, contract_details
+        )
+        VALUES (
+          ${studentId}, ${finalProfileId}, ${program || null}, ${parsedPayment}, 
+          ${parsedDuration}, ${totalPrice}, ${studentFin || null}, ${studentIdCard || null},
+          ${studentDob || null}, ${studentAddress || null}, ${contractDetails ? JSON.stringify(contractDetails) : '{}'}
+        )
       `;
       
       // 4. Optionally create user_roles record
@@ -149,8 +157,8 @@ export async function POST(req: Request) {
           finalParentId = existingParentRecord[0].id;
         } else {
           await tx`
-            INSERT INTO parents (id, profile_id, fin_code, id_card_number)
-            VALUES (${pId}, ${finalParentProfileId}, ${parentFin || null}, ${parentIdCard || null})
+            INSERT INTO parents (id, profile_id, fin_code, id_card_number, address)
+            VALUES (${pId}, ${finalParentProfileId}, ${parentFin || null}, ${parentIdCard || null}, ${parentAddress || null})
           `;
         }
 

@@ -240,9 +240,28 @@
       "thu": "Thursday",
       "fri": "Friday",
       "sat": "Saturday",
-      "sun": "Sunday"
+      "sun": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
     },
-    "noSchedule": "No schedule set"
+    "noSchedule": "No schedule set",
+    "modal": {
+      "addTitle": "Add Schedule to Group",
+      "selectGroup": "Select Group",
+      "selectGroupPlaceholder": "Select group...",
+      "dayOfWeek": "Day of Week",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "room": "Room",
+      "roomPlaceholder": "Ex: Room 204 or Lab A",
+      "cancel": "Cancel",
+      "save": "Save Schedule"
+    }
   },
   "Groups": {
     "modal": {
@@ -283,7 +302,7 @@
     "modal": {
       "newInvoice": "New Invoice",
       "student": "Student",
-      "amount": "Amount (₼)",
+      "amount": "Amount",
       "dueDate": "Due Date",
       "status": "Status",
       "statusPaid": "Paid",
@@ -294,14 +313,25 @@
       "cancel": "Cancel",
       "save": "Create",
       "create": "Create",
-      "newExpense": "New Expense",
-      "category": "Category"
+      "newExpense": "Add New Expense",
+      "category": "Category",
+      "acceptPayment": "Accept Payment",
+      "paidAmount": "Paid Amount",
+      "paymentMethod": "Payment Method",
+      "cash": "Cash",
+      "card": "Card",
+      "transfer": "Transfer",
+      "confirm": "Confirm",
+      "selectStudentPlaceholder": "Select...",
+      "totalAmount": "Total Amount",
+      "initialPayment": "Initial Payment",
+      "date": "Date"
     },
     "title": "Finance & Payments",
     "subtitle": "Track student payments, invoices, and debtors.",
     "newInvoice": "New Invoice",
     "monthlyIncome": "Monthly Income",
-    "totalDebt": "Total Debt (Pending)",
+    "totalDebt": "Expected (Debts)",
     "search": "Search by student name or invoice number...",
     "table": {
       "invoice": "Invoice",
@@ -318,7 +348,23 @@
       "PARTIAL": "Partial",
       "PENDING": "Pending"
     },
-    "searchPlaceholder": "Search..."
+    "searchPlaceholder": "Search...",
+    "categories": {
+      "salaries": "Salaries",
+      "office": "Office expenses",
+      "taxes": "Taxes",
+      "marketing": "Marketing & Ads",
+      "other": "Other"
+    },
+    "totalIncome": "Total Income",
+    "totalExpense": "Total Expense",
+    "last6Months": "Last 6 Months Stats",
+    "incomes": "Incomes",
+    "expenses": "Expenses",
+    "searchExpensePlaceholder": "Search expenses...",
+    "paidAmount": "Paid",
+    "debt": "Debt",
+    "action": "Action"
   },
   "Contract": {
     "title": "Electronic Contract & Invoice",

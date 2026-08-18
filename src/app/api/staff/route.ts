@@ -40,7 +40,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { email, password, firstName, lastName, phone, role } = await req.json();
+    const { email, password, firstName, lastName, phone, role, permissions } = await req.json();
 
     if (!email || !password || !firstName || !role) {
       return NextResponse.json({ error: "Eksik məlumatlar" }, { status: 400 });
@@ -71,6 +71,25 @@ export async function POST(req: Request) {
         INSERT INTO user_roles (user_id, role, is_active)
         VALUES (${userId}, ${role}, true)
       `;
+
+      if (permissions && typeof permissions === 'object') {
+        const modules = Object.keys(permissions);
+        for (const mod of modules) {
+          const p = permissions[mod];
+          await tx`
+            INSERT INTO user_permissions (
+              user_id, module_name, can_view, can_create, can_edit, can_delete, can_export
+            ) VALUES (
+              ${userId}, ${mod}, 
+              ${p.view || false}, 
+              ${p.create || false}, 
+              ${p.edit || false}, 
+              ${p.delete || false}, 
+              ${p.export || false}
+            )
+          `;
+        }
+      }
     });
 
     return NextResponse.json({ success: true, userId }, { status: 201 });

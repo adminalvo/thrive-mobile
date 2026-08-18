@@ -25,22 +25,22 @@
 .addBtn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: var(--aqua-teal);
+  gap: 0.6rem;
+  background: linear-gradient(135deg, var(--aqua-teal), #0d9488);
   color: var(--white);
   border: none;
   padding: 0.8rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(76, 162, 181, 0.3);
+  box-shadow: 0 4px 15px rgba(76, 162, 181, 0.2);
 }
 
 .addBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(76, 162, 181, 0.5);
+  box-shadow: 0 6px 20px rgba(76, 162, 181, 0.4);
 }
 
 .statsRow {
@@ -304,20 +304,23 @@
 }
 
 .closeModalBtn {
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
 }
 
 .closeModalBtn:hover {
-  color: var(--text-primary);
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: rotate(90deg);
 }
 
 .infoBox {
@@ -552,10 +555,13 @@
 }
 
 .dangerIcon {
-  color: #ef4444;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
 }
 .dangerIcon:hover {
+  color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
 }
 
 .boldAmount {

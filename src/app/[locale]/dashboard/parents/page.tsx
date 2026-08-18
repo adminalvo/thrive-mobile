@@ -237,7 +237,7 @@ export default function ParentsPage() {
                   <td>{p.fin}</td>
                   <td>{p.idCard}</td>
                   <td>
-                    <div className={styles.actionMenu} style={{ display: "flex", gap: "0.75rem" }}>
+                    <div className={styles.actionMenu} style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.75rem" }}>
                       <button className={styles.iconBtn} onClick={() => {
                         setEditData({ id: p.id, fin_code: p.fin, id_card_number: p.idCard });
                         setShowEditModal(true);

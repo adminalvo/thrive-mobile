@@ -276,7 +276,7 @@ export default function SchedulePage() {
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>Qrupa Dərs Cədvəli Əlavə Et</h2>
+              <h2>{t("modal.addTitle") || "Qrupa Dərs Cədvəli Əlavə Et"}</h2>
               <button className={styles.closeModalBtn} onClick={() => setShowModal(false)}>
                 <X size={20} />
               </button>
@@ -284,7 +284,7 @@ export default function SchedulePage() {
 
             <form onSubmit={handleAddScheduleSubmit} className={styles.form}>
               <div className={styles.inputGroup}>
-                <label>Qrup Seçin *</label>
+                <label>{t("modal.selectGroup") || "Qrup Seçin"} *</label>
                 <select
                   required
                   value={formData.groupId}
@@ -298,7 +298,7 @@ export default function SchedulePage() {
                     });
                   }}
                 >
-                  <option value="">Qrup seçin...</option>
+                  <option value="">{t("modal.selectGroupPlaceholder") || "Qrup seçin..."}</option>
                   {groups.map(g => (
                     <option key={g.id} value={g.id}>
                       {g.name} ({g.program?.name || "Proqram yoxdur"})
@@ -308,25 +308,25 @@ export default function SchedulePage() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Həftənin Günü *</label>
+                <label>{t("modal.dayOfWeek") || "Həftənin Günü"} *</label>
                 <select
                   required
                   value={formData.dayOfWeek}
                   onChange={e => setFormData({ ...formData, dayOfWeek: e.target.value })}
                 >
-                  <option value="1">1 - Bazar ertəsi (Monday)</option>
-                  <option value="2">2 - Çərşənbə axşamı (Tuesday)</option>
-                  <option value="3">3 - Çərşənbə (Wednesday)</option>
-                  <option value="4">4 - Cümə axşamı (Thursday)</option>
-                  <option value="5">5 - Cümə (Friday)</option>
-                  <option value="6">6 - Şənbə (Saturday)</option>
-                  <option value="7">7 - Bazar (Sunday)</option>
+                  <option value="1">1 - {t("days.monday") || "Bazar ertəsi"}</option>
+                  <option value="2">2 - {t("days.tuesday") || "Çərşənbə axşamı"}</option>
+                  <option value="3">3 - {t("days.wednesday") || "Çərşənbə"}</option>
+                  <option value="4">4 - {t("days.thursday") || "Cümə axşamı"}</option>
+                  <option value="5">5 - {t("days.friday") || "Cümə"}</option>
+                  <option value="6">6 - {t("days.saturday") || "Şənbə"}</option>
+                  <option value="7">7 - {t("days.sunday") || "Bazar"}</option>
                 </select>
               </div>
 
               <div className={styles.rowInputs}>
                 <div className={styles.inputGroup}>
-                  <label>Başlama Saatı *</label>
+                  <label>{t("modal.startTime") || "Başlama Saatı"} *</label>
                   <input
                     required
                     type="time"
@@ -336,7 +336,7 @@ export default function SchedulePage() {
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label>Bitmə Saatı *</label>
+                  <label>{t("modal.endTime") || "Bitmə Saatı"} *</label>
                   <input
                     required
                     type="time"
@@ -347,10 +347,10 @@ export default function SchedulePage() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Otaq</label>
+                <label>{t("modal.room") || "Otaq"}</label>
                 <input
                   type="text"
-                  placeholder="Məs: Otaq 204 və ya Lab A"
+                  placeholder={t("modal.roomPlaceholder") || "Məs: Otaq 204 və ya Lab A"}
                   value={formData.room}
                   onChange={e => setFormData({ ...formData, room: e.target.value })}
                 />
@@ -362,10 +362,10 @@ export default function SchedulePage() {
                   className={styles.cancelBtn}
                   onClick={() => setShowModal(false)}
                 >
-                  Ləğv et
+                  {t("modal.cancel") || "Ləğv et"}
                 </button>
                 <button type="submit" className={styles.saveBtn}>
-                  Cədvəli Yadda Saxla
+                  {t("modal.save") || "Cədvəli Yadda Saxla"}
                 </button>
               </div>
             </form>

@@ -240,9 +240,28 @@
       "thu": "Cümə axşamı",
       "fri": "Cümə",
       "sat": "Şənbə",
-      "sun": "Bazar"
+      "sun": "Bazar",
+      "monday": "Bazar ertəsi",
+      "tuesday": "Çərşənbə axşamı",
+      "wednesday": "Çərşənbə",
+      "thursday": "Cümə axşamı",
+      "friday": "Cümə",
+      "saturday": "Şənbə",
+      "sunday": "Bazar"
     },
-    "noSchedule": "Cədvəl təyin edilməyib"
+    "noSchedule": "Cədvəl təyin edilməyib",
+    "modal": {
+      "addTitle": "Qrupa Dərs Cədvəli Əlavə Et",
+      "selectGroup": "Qrup Seçin",
+      "selectGroupPlaceholder": "Qrup seçin...",
+      "dayOfWeek": "Həftənin Günü",
+      "startTime": "Başlama Saatı",
+      "endTime": "Bitmə Saatı",
+      "room": "Otaq",
+      "roomPlaceholder": "Məs: Otaq 204 və ya Lab A",
+      "cancel": "Ləğv et",
+      "save": "Cədvəli Yadda Saxla"
+    }
   },
   "Groups": {
     "modal": {
@@ -283,7 +302,7 @@
     "modal": {
       "newInvoice": "Yeni Faktura",
       "student": "Tələbə",
-      "amount": "Məbləğ (₼)",
+      "amount": "Məbləğ",
       "dueDate": "Ödəniş Tarixi",
       "status": "Status",
       "statusPaid": "Ödənildi",
@@ -294,14 +313,25 @@
       "cancel": "Ləğv et",
       "save": "Yarat",
       "create": "Yarat",
-      "newExpense": "Yeni Xərc",
-      "category": "Kateqoriya"
+      "newExpense": "Yeni Xərc Əlavə Et",
+      "category": "Kateqoriya",
+      "acceptPayment": "Ödəniş Qəbulu",
+      "paidAmount": "Ödənilən Məbləğ",
+      "paymentMethod": "Ödəniş Metodu",
+      "cash": "Nağd",
+      "card": "Kart",
+      "transfer": "Köçürmə",
+      "confirm": "Təsdiqlə",
+      "selectStudentPlaceholder": "Seçin...",
+      "totalAmount": "Ümumi Məbləğ",
+      "initialPayment": "İlkin Ödəniş",
+      "date": "Tarix"
     },
     "title": "Maliyyə və Ödənişlər",
     "subtitle": "Tələbə ödənişlərini, fakturaları və borcluları izləyin.",
     "newInvoice": "Yeni Faktura",
     "monthlyIncome": "Aylıq Gəlir",
-    "totalDebt": "Ümumi Borc (Gözləyən)",
+    "totalDebt": "Gözlənilən (Borclar)",
     "search": "Tələbə adı və ya faktura nömrəsi ilə axtar...",
     "desc3": "Hesabatlarınızı ixrac etmək üçün 'İxrac' bölməsindən istifadə edin.",
     "table": {
@@ -319,7 +349,23 @@
       "PARTIAL": "Qismən",
       "PENDING": "Gecikir"
     },
-    "searchPlaceholder": "Axtarış..."
+    "searchPlaceholder": "Axtarış...",
+    "categories": {
+      "salaries": "Maaşlar",
+      "office": "Ofis xərcləri",
+      "taxes": "Vergilər",
+      "marketing": "Reklam və Marketinq",
+      "other": "Digər"
+    },
+    "totalIncome": "Ümumi Gəlir",
+    "totalExpense": "Ümumi Xərc",
+    "last6Months": "Son 6 Ayın Statistikası",
+    "incomes": "Gəlirlər",
+    "expenses": "Xərclər",
+    "searchExpensePlaceholder": "Xərclərdə axtarış...",
+    "paidAmount": "Ödənilib",
+    "debt": "Borc",
+    "action": "Əməliyyat"
   },
   "Contract": {
     "title": "Elektron Müqavilə və Faktura",

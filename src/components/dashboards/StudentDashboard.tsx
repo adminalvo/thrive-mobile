@@ -16,6 +16,8 @@ export default function StudentDashboard() {
   const [exams, setExams] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [performance, setPerformance] = useState<{averageScore: number}>({ averageScore: 0 });
+  const [contractUrl, setContractUrl] = useState<string | null>(null);
+  const [uploadingContract, setUploadingContract] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [submitAssignmentModal, setSubmitAssignmentModal] = useState<any>(null);
@@ -43,6 +45,34 @@ export default function StudentDashboard() {
     }
   };
 
+  const handleContractUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingContract(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/student/contract", {
+        method: "POST",
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContractUrl(data.url);
+        alert("Müqavilə uğurla yükləndi!");
+      } else {
+        alert("Faylı yükləmək mümkün olmadı");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Şəbəkə xətası");
+    } finally {
+      setUploadingContract(false);
+    }
+  };
+
   useEffect(() => {
     fetch("/api/dashboards/student")
       .then(res => res.json())
@@ -54,6 +84,7 @@ export default function StudentDashboard() {
           setExams(data.exams || []);
           setAssignments(data.assignments || []);
           setPerformance(data.performance || { averageScore: 0 });
+          setContractUrl(data.contractUrl || null);
         }
         setLoading(false);
       });
@@ -100,6 +131,41 @@ export default function StudentDashboard() {
           >{t("solveNow")}</button>
         </motion.div>
       )}
+
+      {/* Contract Upload Banner */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        style={{ background: "var(--surface-dark)", border: "1px solid var(--border-color)", borderRadius: "16px", padding: "1.5rem 2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div style={{ background: "rgba(16, 185, 129, 0.1)", padding: "12px", borderRadius: "12px", color: "#10b981" }}>
+            <FileText size={24} />
+          </div>
+          <div>
+            <h2 style={{ margin: "0 0 0.3rem 0", fontSize: "1.2rem", color: "var(--text-primary)" }}>Müqavilə</h2>
+            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+              {contractUrl ? "Müqaviləniz sistemə yüklənib. Təşəkkür edirik." : "Təhsil müqavilənizi imzalayıb sistemə yükləyin."}
+            </p>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: "10px" }}>
+          {contractUrl && (
+            <a 
+              href={contractUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ background: "var(--card-bg)", color: "var(--text-primary)", border: "1px solid var(--border-color)", padding: "0.6rem 1.2rem", borderRadius: "8px", textDecoration: "none", fontWeight: "500", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+            >
+              Bax
+            </a>
+          )}
+          <label style={{ background: "var(--primary-color)", color: "#fff", padding: "0.6rem 1.2rem", borderRadius: "8px", fontWeight: "500", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+            {uploadingContract ? "Yüklənir..." : contractUrl ? "Yenidən Yüklə" : "Yüklə"}
+            <input type="file" accept="image/*,.pdf" onChange={handleContractUpload} style={{ display: "none" }} disabled={uploadingContract} />
+          </label>
+        </div>
+      </motion.div>
 
       {/* Stats */}
       <div className={styles.statsGrid}>

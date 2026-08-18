@@ -309,8 +309,8 @@
 }
 
 .inputGroup select option {
-  background: var(--bg-dark);
-  color: var(--white);
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .rowInputs {

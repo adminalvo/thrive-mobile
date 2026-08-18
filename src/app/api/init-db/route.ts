@@ -61,6 +61,15 @@ export async function GET() {
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='id_card_number') THEN
                 ALTER TABLE students ADD COLUMN id_card_number TEXT;
             END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='dob') THEN
+                ALTER TABLE students ADD COLUMN dob DATE;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='address') THEN
+                ALTER TABLE students ADD COLUMN address TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='students' AND column_name='contract_details') THEN
+                ALTER TABLE students ADD COLUMN contract_details JSONB DEFAULT '{}'::jsonb;
+            END IF;
         END $$;
       `;
 
@@ -81,8 +90,18 @@ export async function GET() {
           profile_id UUID,
           fin_code TEXT,
           id_card_number TEXT,
+          address TEXT,
           created_at TIMESTAMPTZ DEFAULT NOW()
         )
+      `;
+
+      await tx`
+        DO $$ 
+        BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='parents' AND column_name='address') THEN
+                ALTER TABLE parents ADD COLUMN address TEXT;
+            END IF;
+        END $$;
       `;
 
       // 5.5 parent_students mapping

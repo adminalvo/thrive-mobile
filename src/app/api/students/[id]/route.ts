@@ -20,6 +20,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         s.monthly_payment,
         s.duration_months,
         s.total_price,
+        s.signed_contract_url,
         p.id as profile_id,
         p.first_name,
         p.last_name,
@@ -168,7 +169,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         program: s.program || "",
         monthlyPayment: s.monthly_payment || 0,
         durationMonths: s.duration_months || 0,
-        totalPrice: s.total_price || 0
+        totalPrice: s.total_price || 0,
+        signedContractUrl: s.signed_contract_url || null
       },
       parents: parentsList,
       groups,

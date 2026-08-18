@@ -337,13 +337,25 @@ export default function StudentDetailPage({
     }
   };
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <p className={styles.emptyState}>{t("loading")}</p>
-      </div>
-    );
-  }
+  const handleToggleStatus = async () => {
+    if (!data?.student) return;
+    try {
+      const res = await fetch(`/api/students/${data.student.id}/toggle-status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (res.ok) {
+        toast.success(c("successUpdate") || "Uğurla yeniləndi");
+        fetchProfile();
+      } else {
+        toast.error("Statusu yeniləmək mümkün olmadı");
+      }
+    } catch (error) {
+      toast.error("Gözlənilməz xəta");
+    }
+  };
+
+  if (loading) return <div className={styles.loading}>{c("loading")}</div>;
 
   if (!data) {
     return (
@@ -386,9 +398,23 @@ export default function StudentDetailPage({
             <h1>{student.name}</h1>
             <div className={styles.metaRow}>
               <span className={styles.idBadge}>ID: {student?.id ? String(student.id).substring(0, 8) : ""}</span>
-              <span className={student.status === "ACTIVE" ? styles.statusActive : styles.statusInactive}>
-                <CheckCircle size={14} /> {student.status === "ACTIVE" ? c("active") : c("inactive")}
+              <span className={(student.status || "").toUpperCase() === "ACTIVE" ? styles.statusActive : styles.statusInactive}>
+                <CheckCircle size={14} /> {(student.status || "").toUpperCase() === "ACTIVE" ? c("active") : c("inactive")}
               </span>
+              <button 
+                onClick={handleToggleStatus} 
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(var(--glass-color), 0.2)",
+                  padding: "0.2rem 0.5rem",
+                  borderRadius: "6px",
+                  color: "var(--text-secondary)",
+                  cursor: "pointer",
+                  fontSize: "0.8rem"
+                }}
+              >
+                {(student.status || "").toUpperCase() === "ACTIVE" ? "Deaktiv et" : "Aktiv et"}
+              </button>
               <span className={styles.idBadge}>
                 {t("joinDate")}: {student?.joinDate ? new Date(student.joinDate).toLocaleDateString() : "-"}
               </span>
@@ -407,11 +433,22 @@ export default function StudentDetailPage({
               amount: student.totalPrice || payments[0]?.amount || 0,
               status: payments[0]?.status || "PAID",
               createdAt: student.joinDate,
-              student: student // Pass the entire student object which contains program, idCard, fin, monthlyPayment, durationMonths
+              student: student 
             })}
           >
             <Printer size={16} /> {t("printContract")}
           </button>
+          {student.signedContractUrl && (
+            <a 
+              href={student.signedContractUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.actionBtnSecondary}
+              style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
+            >
+              <FileText size={16} /> İmzalı Müqavilə
+            </a>
+          )}
           <button className={styles.actionBtnSecondary} onClick={() => setShowEditModal(true)}>
             <Edit size={16} /> {t("editProfile")}
           </button>

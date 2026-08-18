@@ -58,6 +58,7 @@ export default function FinancePage() {
   
   const [searchIncome, setSearchIncome] = useState("");
   const [searchExpense, setSearchExpense] = useState("");
+  const [timeFilter, setTimeFilter] = useState("all"); // 1month, 6month, 1year, all
 
   // Modals state
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -111,46 +112,96 @@ export default function FinancePage() {
     }
   };
 
-  const calculateTotalIncome = () => invoices.reduce((t, i) => t + (Number(i.paidAmount) || 0), 0);
-  const calculateTotalDebt = () => invoices.filter(i => i.status !== "PAID").reduce((t, i) => t + Math.max(0, (Number(i.amount) || 0) - (Number(i.paidAmount) || 0)), 0);
-  const calculateTotalExpenses = () => expenses.reduce((t, e) => t + (Number(e.amount) || 0), 0);
+  const timeFilteredInvoices = useMemo(() => {
+    if (timeFilter === "all") return invoices;
+    const now = new Date();
+    const limit = new Date();
+    if (timeFilter === "1month") limit.setMonth(now.getMonth() - 1);
+    if (timeFilter === "6month") limit.setMonth(now.getMonth() - 6);
+    if (timeFilter === "1year") limit.setFullYear(now.getFullYear() - 1);
+    
+    return invoices.filter(inv => {
+      const d = new Date(inv.date || inv.createdAt || 0);
+      return d >= limit;
+    });
+  }, [invoices, timeFilter]);
+
+  const timeFilteredExpenses = useMemo(() => {
+    if (timeFilter === "all") return expenses;
+    const now = new Date();
+    const limit = new Date();
+    if (timeFilter === "1month") limit.setMonth(now.getMonth() - 1);
+    if (timeFilter === "6month") limit.setMonth(now.getMonth() - 6);
+    if (timeFilter === "1year") limit.setFullYear(now.getFullYear() - 1);
+    
+    return expenses.filter(exp => {
+      const d = new Date(exp.date || 0);
+      return d >= limit;
+    });
+  }, [expenses, timeFilter]);
+
+  const calculateTotalIncome = () => timeFilteredInvoices.reduce((t, i) => t + (Number(i.paidAmount) || 0), 0);
+  const calculateTotalDebt = () => timeFilteredInvoices.filter(i => i.status !== "PAID").reduce((t, i) => t + Math.max(0, (Number(i.amount) || 0) - (Number(i.paidAmount) || 0)), 0);
+  const calculateTotalExpenses = () => timeFilteredExpenses.reduce((t, e) => t + (Number(e.amount) || 0), 0);
   
   const chartData = useMemo(() => {
     const months = ["Yan", "Fev", "Mar", "Apr", "May", "İyn", "İyl", "Avq", "Sen", "Okt", "Noy", "Dek"];
     const curMonth = new Date().getMonth();
     const data = [];
     
+    // Group dynamically
+    const incomesByMonth: Record<number, number> = {};
+    const expensesByMonth: Record<number, number> = {};
+
+    timeFilteredInvoices.forEach(inv => {
+      const d = new Date(inv.date || inv.createdAt || 0);
+      const mKey = d.getFullYear() * 12 + d.getMonth();
+      incomesByMonth[mKey] = (incomesByMonth[mKey] || 0) + (Number(inv.paidAmount) || 0);
+    });
+
+    timeFilteredExpenses.forEach(exp => {
+      const d = new Date(exp.date || 0);
+      const mKey = d.getFullYear() * 12 + d.getMonth();
+      expensesByMonth[mKey] = (expensesByMonth[mKey] || 0) + (Number(exp.amount) || 0);
+    });
+
     for (let i = 5; i >= 0; i--) {
       let m = curMonth - i;
-      if (m < 0) m += 12;
+      let yOffset = 0;
+      if (m < 0) {
+        m += 12;
+        yOffset = -1;
+      }
+      const y = new Date().getFullYear() + yOffset;
+      const mKey = y * 12 + m;
       
       data.push({
         name: months[m],
-        Gəlir: Math.floor(Math.random() * 2000) + 1000,
-        Xərc: Math.floor(Math.random() * 1000) + 200
+        Gəlir: incomesByMonth[mKey] || 0,
+        Xərc: expensesByMonth[mKey] || 0
       });
     }
     return data;
-  }, [invoices, expenses]);
+  }, [timeFilteredInvoices, timeFilteredExpenses]);
 
   const filteredInvoices = useMemo(() => {
-    if (!searchIncome.trim()) return invoices;
+    if (!searchIncome.trim()) return timeFilteredInvoices;
     const term = searchIncome.toLowerCase().trim();
-    return invoices.filter(inv => {
+    return timeFilteredInvoices.filter(inv => {
       const name = (inv.studentName || "").toLowerCase();
       return name.includes(term) || (inv.id || "").includes(term) || String(inv.amount).includes(term);
     });
-  }, [invoices, searchIncome]);
+  }, [timeFilteredInvoices, searchIncome]);
 
   const filteredExpenses = useMemo(() => {
-    if (!searchExpense.trim()) return expenses;
+    if (!searchExpense.trim()) return timeFilteredExpenses;
     const term = searchExpense.toLowerCase().trim();
-    return expenses.filter(exp => 
+    return timeFilteredExpenses.filter(exp => 
       (exp.category || "").toLowerCase().includes(term) || 
       (exp.description || "").toLowerCase().includes(term) ||
       String(exp.amount).includes(term)
     );
-  }, [expenses, searchExpense]);
+  }, [timeFilteredExpenses, searchExpense]);
 
   // Handlers
   const handleCreateInvoiceSubmit = async (e: React.FormEvent) => {
@@ -265,9 +316,31 @@ export default function FinancePage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>{t("title")}</h1>
-          <p className={styles.subtitle}>{t("subtitle")}</p>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+          <div>
+            <h1 className={styles.title}>{t("title")}</h1>
+            <p className={styles.subtitle}>{t("subtitle")}</p>
+          </div>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <span style={{ color: "var(--gray-300)", fontSize: "0.9rem" }}>Dövr:</span>
+            <select 
+              value={timeFilter} 
+              onChange={e => setTimeFilter(e.target.value)}
+              style={{
+                background: "var(--card-bg)",
+                color: "var(--text-color)",
+                border: "1px solid var(--border-color)",
+                padding: "8px 12px",
+                borderRadius: "8px",
+                outline: "none"
+              }}
+            >
+              <option value="1month">Son 1 Ay</option>
+              <option value="6month">Son 6 Ay</option>
+              <option value="1year">Son 1 İl</option>
+              <option value="all">Bütün dövr</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -279,7 +352,7 @@ export default function FinancePage() {
               <ArrowDownRight size={24} />
             </div>
             <div>
-              <h3>Ümumi Gəlir</h3>
+              <h3>{t("totalIncome") || "Ümumi Gəlir"}</h3>
               <p className={styles.amount}>{calculateTotalIncome().toLocaleString()} ₼</p>
             </div>
           </div>
@@ -289,7 +362,7 @@ export default function FinancePage() {
               <ArrowUpRight size={24} />
             </div>
             <div>
-              <h3>Ümumi Xərc</h3>
+              <h3>{t("totalExpense") || "Ümumi Xərc"}</h3>
               <p className={styles.amountError}>{calculateTotalExpenses().toLocaleString()} ₼</p>
             </div>
           </div>
@@ -299,14 +372,14 @@ export default function FinancePage() {
               <AlertCircle size={24} />
             </div>
             <div>
-              <h3>Gözlənilən (Borclar)</h3>
+              <h3>{t("totalDebt") || "Gözlənilən (Borclar)"}</h3>
               <p className={styles.amountWarning}>{calculateTotalDebt().toLocaleString()} ₼</p>
             </div>
           </div>
         </div>
 
         <div className={styles.chartContainer} style={{ marginBottom: '2rem' }}>
-          <h3 style={{ marginBottom: '1rem', color: 'var(--white)', fontWeight: 600 }}>Son 6 Ayın Statistikası</h3>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--white)', fontWeight: 600 }}>{t("last6Months") || "Son 6 Ayın Statistikası"}</h3>
           <div className={styles.chartWrapper}>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -335,7 +408,7 @@ export default function FinancePage() {
       {/* INCOME SECTION */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent} style={{ marginBottom: '2rem' }}>
         <h2 style={{ color: 'var(--white)', fontSize: '1.4rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <ArrowDownRight size={22} color="#10b981" /> Gəlirlər
+          <ArrowDownRight size={22} color="#10b981" /> {t("incomes") || "Gəlirlər"}
         </h2>
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>
@@ -369,11 +442,11 @@ export default function FinancePage() {
                   <th>ID</th>
                   <th>{t("modal.student") || "Tələbə"}</th>
                   <th>{t("modal.amount") || "Məbləğ"}</th>
-                  <th>Ödənilib</th>
-                  <th>Borc</th>
+                  <th>{t("paidAmount") || "Ödənilib"}</th>
+                  <th>{t("debt") || "Borc"}</th>
                   <th>{t("modal.dueDate") || "Tarix"}</th>
                   <th>{t("modal.status") || "Status"}</th>
-                  <th style={{ textAlign: 'right' }}>Əməliyyat</th>
+                  <th style={{ textAlign: 'right' }}>{t("action") || "Əməliyyat"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -428,14 +501,14 @@ export default function FinancePage() {
       {/* EXPENSES SECTION */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.tabContent}>
         <h2 style={{ color: 'var(--white)', fontSize: '1.4rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <ArrowUpRight size={22} color="#ef4444" /> Xərclər
+          <ArrowUpRight size={22} color="#ef4444" /> {t("expenses") || "Xərclər"}
         </h2>
         <div className={styles.toolbar}>
           <div className={styles.searchBox}>
             <Search size={18} className={styles.icon} />
             <input 
               type="text" 
-              placeholder="Xərclərdə axtarış..."
+              placeholder={t("searchExpensePlaceholder") || "Xərclərdə axtarış..."}
               value={searchExpense}
               onChange={e => setSearchExpense(e.target.value)}
             />
@@ -499,29 +572,29 @@ export default function FinancePage() {
           <div className={styles.modalOverlay} onClick={() => setPaymentModalInvoice(null)}>
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className={styles.modal} onClick={e => e.stopPropagation()}>
               <div className={styles.modalHeader}>
-                <h2>Ödəniş Qəbulu</h2>
-                <button className={styles.closeBtn} onClick={() => setPaymentModalInvoice(null)}><X size={20}/></button>
+                <h2>{t("modal.acceptPayment") || "Ödəniş Qəbulu"}</h2>
+                <button className={styles.closeModalBtn} onClick={() => setPaymentModalInvoice(null)}><X size={20}/></button>
               </div>
               <form onSubmit={handleProcessPaymentSubmit} className={styles.modalForm}>
                 <div className={styles.paymentSummary}>
-                  <div>Tələbə: <strong>{paymentModalInvoice.studentName}</strong></div>
-                  <div>Qalıq Borc: <strong style={{color:'#ef4444'}}>{Math.max(0, Number(paymentModalInvoice.amount) - Number(paymentModalInvoice.paidAmount))} ₼</strong></div>
+                  <div>{t("modal.student") || "Tələbə"}: <strong>{paymentModalInvoice.studentName}</strong></div>
+                  <div>{t("debt") || "Qalıq Borc"}: <strong style={{color:'#ef4444'}}>{Math.max(0, Number(paymentModalInvoice.amount) - Number(paymentModalInvoice.paidAmount))} ₼</strong></div>
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Ödənilən Məbləğ (₼)</label>
+                  <label>{t("modal.paidAmount") || "Ödənilən Məbləğ"} (₼)</label>
                   <input type="number" required min="1" step="0.01" value={paymentForm.amount} onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})} className={styles.input} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Ödəniş Metodu</label>
+                  <label>{t("modal.paymentMethod") || "Ödəniş Metodu"}</label>
                   <select value={paymentForm.paymentMethod} onChange={e => setPaymentForm({...paymentForm, paymentMethod: e.target.value})} className={styles.select}>
-                    <option value="CASH">Nağd</option>
-                    <option value="CARD">Kart</option>
-                    <option value="TRANSFER">Köçürmə</option>
+                    <option value="CASH">{t("modal.cash") || "Nağd"}</option>
+                    <option value="CARD">{t("modal.card") || "Kart"}</option>
+                    <option value="TRANSFER">{t("modal.transfer") || "Köçürmə"}</option>
                   </select>
                 </div>
                 <div className={styles.modalActions}>
                   <button type="button" className={styles.cancelBtn} onClick={() => setPaymentModalInvoice(null)}>{t("modal.cancel") || c("cancel")}</button>
-                  <button type="submit" className={styles.submitBtn}>Təsdiqlə</button>
+                  <button type="submit" className={styles.submitBtn}>{t("modal.confirm") || "Təsdiqlə"}</button>
                 </div>
               </form>
             </motion.div>
@@ -536,22 +609,22 @@ export default function FinancePage() {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className={styles.modal} onClick={e => e.stopPropagation()}>
               <div className={styles.modalHeader}>
                 <h2>{t("modal.newInvoice")}</h2>
-                <button className={styles.closeBtn} onClick={() => setShowCreateModal(false)}><X size={20}/></button>
+                <button className={styles.closeModalBtn} onClick={() => setShowCreateModal(false)}><X size={20}/></button>
               </div>
               <form onSubmit={handleCreateInvoiceSubmit} className={styles.modalForm}>
                 <div className={styles.formGroup}>
                   <label>{t("modal.student") || "Tələbə"}</label>
                   <select required value={createForm.studentId} onChange={e => setCreateForm({...createForm, studentId: e.target.value})} className={styles.select}>
-                    <option value="">Seçin...</option>
+                    <option value="">{t("modal.selectStudentPlaceholder") || "Seçin..."}</option>
                     {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Ümumi Məbləğ (₼)</label>
+                  <label>{t("modal.totalAmount") || "Ümumi Məbləğ"} (₼)</label>
                   <input type="number" required min="1" step="0.01" value={createForm.amount} onChange={e => setCreateForm({...createForm, amount: e.target.value})} className={styles.input} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>İlkin Ödəniş (₼)</label>
+                  <label>{t("modal.initialPayment") || "İlkin Ödəniş"} (₼)</label>
                   <input type="number" min="0" step="0.01" value={createForm.paidAmount} onChange={e => setCreateForm({...createForm, paidAmount: e.target.value})} className={styles.input} />
                 </div>
                 <div className={styles.formGroup}>
@@ -575,25 +648,25 @@ export default function FinancePage() {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className={styles.modal} onClick={e => e.stopPropagation()}>
               <div className={styles.modalHeader}>
                 <h2>{t("modal.newExpense") || "Yeni Xərc Əlavə Et"}</h2>
-                <button className={styles.closeBtn} onClick={() => setShowExpenseModal(false)}><X size={20}/></button>
+                <button className={styles.closeModalBtn} onClick={() => setShowExpenseModal(false)}><X size={20}/></button>
               </div>
               <form onSubmit={handleAddExpenseSubmit} className={styles.modalForm}>
                 <div className={styles.formGroup}>
                   <label>{t("modal.category") || "Kateqoriya"}</label>
                   <select required value={expenseForm.category} onChange={e => setExpenseForm({...expenseForm, category: e.target.value})} className={styles.select}>
-                    <option value="Maaşlar">Maaşlar</option>
-                    <option value="Ofis xərcləri">Ofis xərcləri</option>
-                    <option value="Vergilər">Vergilər</option>
-                    <option value="Reklam">Reklam və Marketinq</option>
-                    <option value="Digər">Digər</option>
+                    <option value="Maaşlar">{t("categories.salaries") || "Maaşlar"}</option>
+                    <option value="Ofis xərcləri">{t("categories.office") || "Ofis xərcləri"}</option>
+                    <option value="Vergilər">{t("categories.taxes") || "Vergilər"}</option>
+                    <option value="Reklam">{t("categories.marketing") || "Reklam və Marketinq"}</option>
+                    <option value="Digər">{t("categories.other") || "Digər"}</option>
                   </select>
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Məbləğ (₼)</label>
+                  <label>{t("modal.amount") || "Məbləğ"} (₼)</label>
                   <input type="number" required min="1" step="0.01" value={expenseForm.amount} onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} className={styles.input} />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Tarix</label>
+                  <label>{t("modal.date") || "Tarix"}</label>
                   <input type="date" required value={expenseForm.date} onChange={e => setExpenseForm({...expenseForm, date: e.target.value})} className={styles.input} />
                 </div>
                 <div className={styles.formGroup}>

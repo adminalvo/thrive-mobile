@@ -41,6 +41,7 @@ export default function StaffPage() {
     password: "",
     role: "staff"
   });
+  const [addPermissions, setAddPermissions] = useState<any>({});
   const [addingStaff, setAddingStaff] = useState(false);
 
   const modules = ["students", "finance", "groups", "tasks", "staff", "settings", "teachers", "parents"];
@@ -160,13 +161,14 @@ export default function StaffPage() {
       const res = await fetch("/api/staff", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(addForm)
+        body: JSON.stringify({ ...addForm, permissions: addPermissions })
       });
       if (res.ok) {
         toast.success(t("save"));
         setShowAddModal(false);
         fetchStaff();
         setAddForm({ firstName: "", lastName: "", email: "", phone: "", password: "", role: "staff" });
+        setAddPermissions({});
       } else {
         const data = await res.json();
         toast.error(data.error || "Xəta baş verdi");
@@ -389,7 +391,51 @@ export default function StaffPage() {
                   <option value="sales">{t("sales")}</option>
                 </select>
               </div>
-              <div className={styles.modalFooter}>
+              <div className={styles.formGroup} style={{ gridColumn: "1 / -1" }}>
+                <h3 style={{ marginBottom: "1rem", fontSize: "1rem", fontWeight: "600" }}>İcazələr</h3>
+                <div className={styles.permTable}>
+                  <div className={styles.permHeader}>
+                    <div className={styles.modName}>Modul</div>
+                    <div className={styles.chkWrap}>Bax</div>
+                    <div className={styles.chkWrap}>Yarat</div>
+                    <div className={styles.chkWrap}>Düzəliş</div>
+                    <div className={styles.chkWrap}>Sil</div>
+                    <div className={styles.chkWrap}>Export</div>
+                  </div>
+                  <div className={styles.permBody}>
+                    {modules.map(mod => {
+                      const p = addPermissions[mod] || {};
+                      const handleAddPermChange = (modName: string, key: string, val: boolean) => {
+                        setAddPermissions((prev: any) => ({
+                          ...prev,
+                          [modName]: { ...prev[modName], [key]: val }
+                        }));
+                      };
+                      return (
+                        <div key={mod} className={styles.permRow}>
+                          <div className={styles.modName}>{mod.charAt(0).toUpperCase() + mod.slice(1)}</div>
+                          <div className={styles.chkWrap}>
+                            <input type="checkbox" checked={p.view || false} onChange={e => handleAddPermChange(mod, 'view', e.target.checked)} />
+                          </div>
+                          <div className={styles.chkWrap}>
+                            <input type="checkbox" checked={p.create || false} onChange={e => handleAddPermChange(mod, 'create', e.target.checked)} />
+                          </div>
+                          <div className={styles.chkWrap}>
+                            <input type="checkbox" checked={p.edit || false} onChange={e => handleAddPermChange(mod, 'edit', e.target.checked)} />
+                          </div>
+                          <div className={styles.chkWrap}>
+                            <input type="checkbox" checked={p.delete || false} onChange={e => handleAddPermChange(mod, 'delete', e.target.checked)} />
+                          </div>
+                          <div className={styles.chkWrap}>
+                            <input type="checkbox" checked={p.export || false} onChange={e => handleAddPermChange(mod, 'export', e.target.checked)} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              <div className={styles.modalFooter} style={{ gridColumn: "1 / -1" }}>
                 <button type="button" className={styles.cancelBtn} onClick={() => setShowAddModal(false)}>{t("cancel")}</button>
                 <button type="submit" className={styles.saveBtn} disabled={addingStaff}>
                   {addingStaff ? t("saving") : t("save")}

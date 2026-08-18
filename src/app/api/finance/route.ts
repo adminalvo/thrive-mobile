@@ -20,12 +20,21 @@ export async function GET() {
         pr.phone,
         pr.email,
         pa.full_name as parent_name,
+        pa.address as parent_address,
+        pa.fin_code as parent_fin,
+        pa.id_card_number as parent_id_card,
+        s.contract_details,
+        s.dob as student_dob,
+        s.address as student_address,
+        s.fin_code as student_fin,
+        s.id_card_number as student_id_card,
         COALESCE((SELECT SUM(amount) FROM payments WHERE invoice_id = i.id), 0) AS paid_amount
       FROM invoices i
       LEFT JOIN auth.users u ON i.student_id = u.id
       LEFT JOIN user_profiles pr ON pr.user_id = u.id OR i.student_id = pr.id
       LEFT JOIN students s ON s.profile_id = pr.id OR i.student_id = s.id
-      LEFT JOIN parents pa ON pa.profile_id = s.profile_id
+      LEFT JOIN parent_students ps ON ps.student_id = s.id
+      LEFT JOIN parents pa ON pa.id = ps.parent_id OR pa.profile_id = s.profile_id
       ORDER BY i.created_at DESC
     `;
 
@@ -55,7 +64,16 @@ export async function GET() {
           id: resolvedStudentId,
           name: studentName,
           phone: i.phone || "Qeyd edilməyib",
-          email: i.email || ""
+          email: i.email || "",
+          dob: i.student_dob || "",
+          address: i.student_address || "",
+          fin: i.student_fin || "",
+          idCard: i.student_id_card || "",
+          parentName: i.parent_name || "Qeyd edilməyib",
+          parentAddress: i.parent_address || "",
+          parentFin: i.parent_fin || "",
+          parentIdCard: i.parent_id_card || "",
+          contractDetails: typeof i.contract_details === 'string' ? JSON.parse(i.contract_details || '{}') : (i.contract_details || {})
         }
       };
     });

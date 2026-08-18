@@ -15,7 +15,7 @@ export async function GET() {
 
     // Get student ID
     const studentRes = await sql`
-      SELECT s.id, p.first_name, p.last_name 
+      SELECT s.id, p.first_name, p.last_name, s.signed_contract_url
       FROM students s
       JOIN user_profiles p ON s.profile_id = p.id
       WHERE p.user_id = ${userId}
@@ -149,7 +149,8 @@ export async function GET() {
       })),
       performance: {
         averageScore: avgScore
-      }
+      },
+      contractUrl: studentRes[0].signed_contract_url || null
     });
 
   } catch (error) {

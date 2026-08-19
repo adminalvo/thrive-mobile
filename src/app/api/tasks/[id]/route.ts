@@ -2,11 +2,15 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import { logAction } from "@/lib/logger";
+import { checkApiPermission } from "@/lib/auth-utils";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await req.json();
+
+    const authCheck = await checkApiPermission('tasks', 'update');
+    if (!authCheck.authorized) return authCheck.error;
 
     const existingRes = await sql`SELECT * FROM kanban_tasks WHERE id = ${id}`;
     if (existingRes.length === 0) {
@@ -53,6 +57,9 @@ export const PATCH = PUT;
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    
+    const authCheck = await checkApiPermission('tasks', 'delete');
+    if (!authCheck.authorized) return authCheck.error;
 
     const result = await sql`
       DELETE FROM kanban_tasks 

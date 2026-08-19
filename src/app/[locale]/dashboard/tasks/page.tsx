@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
+import { apiFetch } from "@/lib/apiClient";
 
 interface KanbanTask {
   id: string;
@@ -72,7 +73,7 @@ export default function TasksPage() {
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch("/api/tasks");
+      const res = await apiFetch("/api/tasks");
       if (res.ok) {
         const data = await res.json();
         setTasks(data);
@@ -88,7 +89,7 @@ export default function TasksPage() {
 
   const fetchStaff = async () => {
     try {
-      const res = await fetch("/api/staff");
+      const res = await apiFetch("/api/staff");
       if (res.ok) {
         const data = await res.json();
         setStaffUsers(data);
@@ -144,7 +145,7 @@ export default function TasksPage() {
     setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: newStatus } : t)));
 
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
+      const res = await apiFetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
@@ -198,7 +199,7 @@ export default function TasksPage() {
     }
 
     try {
-      const res = await fetch("/api/tasks", {
+      const res = await apiFetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -233,7 +234,7 @@ export default function TasksPage() {
     }
 
     try {
-      const res = await fetch(`/api/tasks/${editingTask.id}`, {
+      const res = await apiFetch(`/api/tasks/${editingTask.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -263,9 +264,7 @@ export default function TasksPage() {
   const handleDeleteTask = async (taskId: string) => {
     setActiveMenuTaskId(null);
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "DELETE"
-      });
+      const res = await apiFetch(`/api/tasks/${taskId}`, { method: "DELETE" });
 
       if (res.ok) {
         setTasks(prev => prev.filter(t => t.id !== taskId));

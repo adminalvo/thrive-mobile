@@ -10,6 +10,33 @@
   align-items: flex-end;
 }
 
+.headerInner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filterLabel {
+  color: var(--gray-300);
+  font-size: 0.9rem;
+}
+
+.filterSelect {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  border-radius: 8px;
+  outline: none;
+}
+
 .title {
   font-size: 1.8rem;
   font-weight: 700;

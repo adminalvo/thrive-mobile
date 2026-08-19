@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import ContractModal from "@/components/ContractModal";
 import { useTranslations } from "next-intl";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { apiFetch } from "@/lib/apiClient";
 
 interface Invoice {
   id: string;
@@ -97,9 +98,9 @@ export default function FinancePage() {
     setLoading(true);
     try {
       const [invRes, expRes, stuRes] = await Promise.all([
-        fetch("/api/finance"),
-        fetch("/api/finance/expenses"),
-        fetch("/api/students")
+        apiFetch("/api/finance"),
+        apiFetch("/api/finance/expenses"),
+        apiFetch("/api/students")
       ]);
       
       if (invRes.ok) setInvoices(await invRes.json());
@@ -209,7 +210,7 @@ export default function FinancePage() {
     if (!createForm.studentId) return toast.error("Tələbə seçin");
     
     try {
-      const res = await fetch("/api/finance", {
+      const res = await apiFetch("/api/finance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -234,7 +235,7 @@ export default function FinancePage() {
     e.preventDefault();
     if (!paymentModalInvoice) return;
     try {
-      const res = await fetch("/api/payments", {
+      const res = await apiFetch("/api/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -257,7 +258,7 @@ export default function FinancePage() {
   const handleDeletePayment = async (id: string) => {
     if (!confirm(c("confirmDelete") || "Bu fakturanı silmək istədiyinizə əminsiniz?")) return;
     try {
-      const res = await fetch(`/api/finance/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/finance/${id}`, { method: "DELETE" });
       if (res.ok) {
         setInvoices(prev => prev.filter(inv => inv.id !== id));
         toast.success(c("successDelete") || "Uğurla silindi");
@@ -268,7 +269,7 @@ export default function FinancePage() {
   const handleDeleteExpense = async (id: string) => {
     if (!confirm(c("confirmDelete") || "Bu xərci silmək istədiyinizə əminsiniz?")) return;
     try {
-      const res = await fetch(`/api/finance/expenses/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/finance/expenses/${id}`, { method: "DELETE" });
       if (res.ok) {
         setExpenses(prev => prev.filter(exp => exp.id !== id));
         toast.success(c("successDelete") || "Uğurla silindi");
@@ -279,7 +280,7 @@ export default function FinancePage() {
   const handleAddExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/finance/expenses", {
+      const res = await apiFetch("/api/finance/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -316,24 +317,17 @@ export default function FinancePage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+        <div className={styles.headerInner}>
           <div>
             <h1 className={styles.title}>{t("title")}</h1>
             <p className={styles.subtitle}>{t("subtitle")}</p>
           </div>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <span style={{ color: "var(--gray-300)", fontSize: "0.9rem" }}>Dövr:</span>
+          <div className={styles.filterGroup}>
+            <span className={styles.filterLabel}>Dövr:</span>
             <select 
               value={timeFilter} 
               onChange={e => setTimeFilter(e.target.value)}
-              style={{
-                background: "var(--card-bg)",
-                color: "var(--text-color)",
-                border: "1px solid var(--border-color)",
-                padding: "8px 12px",
-                borderRadius: "8px",
-                outline: "none"
-              }}
+              className={styles.filterSelect}
             >
               <option value="1month">Son 1 Ay</option>
               <option value="6month">Son 6 Ay</option>

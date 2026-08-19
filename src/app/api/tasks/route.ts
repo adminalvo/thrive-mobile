@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import { logAction } from "@/lib/logger";
+import { checkApiPermission } from "@/lib/auth-utils";
 
 
 export async function GET() {
@@ -20,6 +21,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const authCheck = await checkApiPermission('tasks', 'create');
+    if (!authCheck.authorized) return authCheck.error;
+
     const body = await req.json();
     const { 
       title, 

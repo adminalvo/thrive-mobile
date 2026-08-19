@@ -1,11 +1,15 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { checkApiPermission } from "@/lib/auth-utils";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await req.json();
+
+    const authCheck = await checkApiPermission('finance', 'update');
+    if (!authCheck.authorized) return authCheck.error;
 
     const existingRes = await sql`SELECT * FROM invoices WHERE id = ${id}`;
     if (existingRes.length === 0) {
@@ -98,6 +102,9 @@ export const PATCH = PUT;
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const authCheck = await checkApiPermission('finance', 'delete');
+    if (!authCheck.authorized) return authCheck.error;
+
     const { id } = await params;
 
     // Delete associated payments first (if no cascade)

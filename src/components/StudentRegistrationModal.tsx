@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./StudentRegistrationModal.module.css";
 import { X, Check } from "lucide-react";
 import toast from "react-hot-toast";
@@ -8,17 +8,8 @@ type Props = {
   onSuccess: () => void;
 };
 
-// Available programs mapping or options. You could fetch this from DB, but keeping it hardcoded if it was hardcoded before.
-const PROGRAM_OPTIONS = [
-  "English Language",
-  "Russian Language",
-  "General Math",
-  "IT & Programming",
-  "Design & Arts",
-  "Pre-School"
-];
-
 export default function StudentRegistrationModal({ onClose, onSuccess }: Props) {
+  const [programsList, setProgramsList] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     // Student Details
     name: "",
@@ -37,6 +28,17 @@ export default function StudentRegistrationModal({ onClose, onSuccess }: Props) 
   });
 
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/programs")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setProgramsList(data);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -144,20 +146,21 @@ export default function StudentRegistrationModal({ onClose, onSuccess }: Props) 
               <p className={styles.sectionSubtitle}>Birdən çox proqram seçə bilərsiniz</p>
               
               <div className={styles.programGrid}>
-                {PROGRAM_OPTIONS.map(prog => (
-                  <label key={prog} className={`${styles.programCard} ${formData.programs.includes(prog) ? styles.programActive : ''}`}>
+                {programsList.map(prog => (
+                  <label key={prog.id} className={`${styles.programCard} ${formData.programs.includes(prog.name) ? styles.programActive : ''}`}>
                     <input 
                       type="checkbox" 
-                      checked={formData.programs.includes(prog)}
-                      onChange={() => handleProgramToggle(prog)}
+                      checked={formData.programs.includes(prog.name)}
+                      onChange={() => handleProgramToggle(prog.name)}
                       style={{ display: 'none' }}
                     />
                     <div className={styles.checkboxIcon}>
-                      {formData.programs.includes(prog) && <Check size={16} />}
+                      {formData.programs.includes(prog.name) && <Check size={16} />}
                     </div>
-                    <span>{prog}</span>
+                    <span>{prog.name}</span>
                   </label>
                 ))}
+                {programsList.length === 0 && <p style={{color: 'var(--text-muted)'}}>Heç bir proqram tapılmadı.</p>}
               </div>
             </div>
 

@@ -14,7 +14,7 @@
 }
 
 .modal {
-  background: var(--card-bg);
+  background: #0f172a;
   border: 1px solid var(--border-color);
   border-radius: 12px;
   width: 100%;

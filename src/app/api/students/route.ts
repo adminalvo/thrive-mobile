@@ -72,8 +72,20 @@ export async function POST(req: Request) {
         finalUserId = existingUser[0].id;
       } else {
         await tx`
-          INSERT INTO auth.users (id, email, role, aud, encrypted_password)
-          VALUES (${userId}, ${emailToUse}, 'authenticated', 'authenticated', ${hashedPassword})
+          INSERT INTO auth.users (id, instance_id, email, role, aud, encrypted_password, raw_app_meta_data, raw_user_meta_data, email_confirmed_at, created_at, updated_at)
+          VALUES (
+            ${userId}, 
+            '00000000-0000-0000-0000-000000000000', 
+            ${emailToUse}, 
+            'authenticated', 
+            'authenticated', 
+            ${hashedPassword},
+            '{"provider":"email","providers":["email"]}',
+            '{}',
+            NOW(),
+            NOW(),
+            NOW()
+          )
         `;
       }
 
@@ -125,8 +137,20 @@ export async function POST(req: Request) {
           finalParentUserId = existingParentUser[0].id;
         } else {
           await tx`
-            INSERT INTO auth.users (id, email, role, aud, encrypted_password)
-            VALUES (${pUserId}, ${pEmail}, 'authenticated', 'authenticated', ${hashedParentPassword})
+            INSERT INTO auth.users (id, instance_id, email, role, aud, encrypted_password, raw_app_meta_data, raw_user_meta_data, email_confirmed_at, created_at, updated_at)
+            VALUES (
+              ${pUserId}, 
+              '00000000-0000-0000-0000-000000000000', 
+              ${pEmail}, 
+              'authenticated', 
+              'authenticated', 
+              ${hashedParentPassword},
+              '{"provider":"email","providers":["email"]}',
+              '{}',
+              NOW(),
+              NOW(),
+              NOW()
+            )
           `;
         }
 

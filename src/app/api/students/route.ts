@@ -34,18 +34,16 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
     const { 
-      name, email, phone, program, monthlyPayment, durationMonths, password,
-      parentName, parentPhone, parentFin, parentIdCard, parentEmail, parentPassword, parentAddress,
-      studentDob, studentAddress, contractDetails
+      name, email, phone, programs, password,
+      parentName, parentPhone, parentEmail, parentPassword
     } = data;
     
-    // Fallback: If old frontend sends fin/idCard directly
-    const studentFin = data.fin;
-    const studentIdCard = data.idCard;
+    // Convert array of programs to comma-separated string for DB storage
+    const programStr = Array.isArray(programs) ? programs.join(", ") : (data.program || "");
     
-    const parsedPayment = Number(monthlyPayment) || 0;
-    const parsedDuration = Number(durationMonths) || 1;
-    const totalPrice = parsedPayment * parsedDuration;
+    const parsedPayment = 0;
+    const parsedDuration = 1;
+    const totalPrice = 0;
     
     const hashedPassword = password ? await bcrypt.hash(password, 10) : await bcrypt.hash("123456", 10);
     const hashedParentPassword = parentPassword ? await bcrypt.hash(parentPassword, 10) : await bcrypt.hash("123456", 10);
@@ -99,9 +97,9 @@ export async function POST(req: Request) {
           fin_code, id_card_number, dob, address, contract_details
         )
         VALUES (
-          ${studentId}, ${finalProfileId}, ${program || null}, ${parsedPayment}, 
-          ${parsedDuration}, ${totalPrice}, ${studentFin || null}, ${studentIdCard || null},
-          ${studentDob || null}, ${studentAddress || null}, ${contractDetails ? JSON.stringify(contractDetails) : '{}'}
+          ${studentId}, ${finalProfileId}, ${programStr || null}, ${parsedPayment}, 
+          ${parsedDuration}, ${totalPrice}, null, null,
+          null, null, '{}'
         )
       `;
       
@@ -113,7 +111,7 @@ export async function POST(req: Request) {
       `;
 
       // 5. Parent Auto-Creation & Pairing
-      if (parentName || parentFin || parentIdCard || parentEmail) {
+      if (parentName || parentEmail || parentPhone) {
         const pEmail = parentEmail || `${studentId.substring(0,8)}@parent.thrive.az`;
         const pUserId = crypto.randomUUID();
         const pProfileId = crypto.randomUUID();
@@ -158,7 +156,7 @@ export async function POST(req: Request) {
         } else {
           await tx`
             INSERT INTO parents (id, profile_id, fin_code, id_card_number, address)
-            VALUES (${pId}, ${finalParentProfileId}, ${parentFin || null}, ${parentIdCard || null}, ${parentAddress || null})
+            VALUES (${pId}, ${finalParentProfileId}, null, null, null)
           `;
         }
 

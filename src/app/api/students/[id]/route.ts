@@ -228,14 +228,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           WHERE id = ${profileId}
         `;
       }
-      
-      if (data.fin || data.idCard) {
+      if (data.programs) {
+        const programStr = Array.isArray(data.programs) ? data.programs.join(", ") : data.programs;
         await sql`
-          UPDATE parents
-          SET 
-            fin_code = COALESCE(${data.fin || null}, fin_code),
-            id_card_number = COALESCE(${data.idCard || null}, id_card_number)
-          WHERE profile_id = ${profileId}
+          UPDATE students
+          SET program = ${programStr}
+          WHERE id = ${id}
         `;
       }
     }

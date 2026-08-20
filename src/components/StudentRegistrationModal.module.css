@@ -170,7 +170,7 @@
 }
 
 .nextBtnContainer,
-.modalActions {
+.modalFooter {
   margin-top: 2rem;
   display: flex;
   justify-content: flex-end;
@@ -197,7 +197,7 @@
 }
 
 .nextBtn,
-.saveBtn {
+.submitBtn {
   padding: 0.75rem 1.5rem;
   background: var(--aqua-teal);
   color: #000;
@@ -210,16 +210,85 @@
 }
 
 .nextBtn:hover,
-.saveBtn:hover {
+.submitBtn:hover {
   background: #4cd6b3;
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(100, 255, 218, 0.3);
 }
 
-.saveBtn:disabled {
+.submitBtn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
   transform: none;
+}
+
+.sectionBlock {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.sectionSubtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.programGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.programCard {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.programCard:hover {
+  border-color: rgba(100, 255, 218, 0.5);
+  background: rgba(100, 255, 218, 0.05);
+}
+
+.programActive {
+  border-color: var(--aqua-teal);
+  background: rgba(100, 255, 218, 0.1);
+}
+
+.checkboxIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bg-color);
+  background: var(--bg-color);
+  transition: all 0.2s;
+}
+
+.programActive .checkboxIcon {
+  background: var(--aqua-teal);
+  border-color: var(--aqua-teal);
+  color: #000;
 }
 
 @media (max-width: 768px) {

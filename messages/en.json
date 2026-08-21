@@ -262,7 +262,10 @@
       "roomPlaceholder": "Ex: Room 204 or Lab A",
       "cancel": "Cancel",
       "save": "Save Schedule"
-    }
+    },
+    "allPrograms": "All Programs",
+    "allTeachers": "All Teachers",
+    "allRooms": "All Rooms"
   },
   "Groups": {
     "modal": {

@@ -262,7 +262,10 @@
       "roomPlaceholder": "Напр: Каб. 204 или Лаб. А",
       "cancel": "Отмена",
       "save": "Сохранить"
-    }
+    },
+    "allPrograms": "Все программы",
+    "allTeachers": "Все преподаватели",
+    "allRooms": "Все аудитории"
   },
   "Groups": {
     "modal": {

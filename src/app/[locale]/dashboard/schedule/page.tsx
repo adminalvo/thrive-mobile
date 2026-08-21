@@ -338,7 +338,7 @@ export default function SchedulePage() {
         <div className={styles.filterGroup}>
           <div className={styles.filterSelectWrapper}>
             <select value={selectedProgram} onChange={e => setSelectedProgram(e.target.value)}>
-              <option value="all">All Programs</option>
+              <option value="all">{t("allPrograms")}</option>
               {Array.from(new Set(groups.map(g => g.program?.name).filter(Boolean))).map(p => (
                 <option key={p as string} value={p as string}>{p as string}</option>
               ))}
@@ -347,7 +347,7 @@ export default function SchedulePage() {
           </div>
           <div className={styles.filterSelectWrapper}>
             <select value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)}>
-              <option value="all">All Teachers</option>
+              <option value="all">{t("allTeachers")}</option>
               {Array.from(new Set(groups.map(g => g.teacher).filter(Boolean))).map(t => (
                 <option key={t as string} value={t as string}>{t as string}</option>
               ))}
@@ -356,7 +356,7 @@ export default function SchedulePage() {
           </div>
           <div className={styles.filterSelectWrapper}>
             <select value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
-              <option value="all">All Rooms</option>
+              <option value="all">{t("allRooms")}</option>
               {Array.from(new Set(groups.flatMap(g => [g.room, ...g.schedules.map(s => s.room)]).filter(Boolean))).map(r => (
                 <option key={r as string} value={r as string}>Room {r as string}</option>
               ))}
@@ -488,10 +488,17 @@ export default function SchedulePage() {
               <h3 className={styles.panelTitle}>Class Details</h3>
               {selectedClass ? (
                 <div>
-                  <div className={styles.detailsHeader}>
-                    <h2 className={styles.detailsTitle}>{selectedClass.group.name}</h2>
-                    <p className={styles.detailsSubtitle}>{selectedClass.group.program?.name} • {selectedClass.group.teacher || "Təyin edilməyib"}</p>
-                  </div>
+                  <div className={styles.detailsHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <h3 className={styles.detailsTitle}>{selectedClass.group.name}</h3>
+                <p className={styles.detailsSubtitle}>{selectedClass.group.program?.name || "Program"} • {selectedClass.group.teacher || "Təyin edilməyib"}</p>
+              </div>
+              {canEdit && (
+                <button onClick={openEditScheduleModal} style={{ background: "var(--aqua-teal, #00C4B5)", color: "#fff", border: "none", padding: "0.4rem 1rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500 }}>
+                  Düzəliş Et
+                </button>
+              )}
+            </div>
                   
                   <div className={styles.detailsGrid}>
                     <div>

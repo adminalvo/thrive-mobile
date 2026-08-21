@@ -262,7 +262,10 @@
       "roomPlaceholder": "Məs: Otaq 204 və ya Lab A",
       "cancel": "Ləğv et",
       "save": "Cədvəli Yadda Saxla"
-    }
+    },
+    "allPrograms": "Bütün Proqramlar",
+    "allTeachers": "Bütün Müəllimlər",
+    "allRooms": "Bütün Otaqlar"
   },
   "Groups": {
     "modal": {

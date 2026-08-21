@@ -67,7 +67,7 @@ export default function SchedulePage() {
 
   const fetchSchedules = async () => {
     try {
-      const res = await fetch("/api/schedules");
+      const res = await fetch(`/api/schedules?_t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         setGroups(data);
@@ -219,7 +219,7 @@ export default function SchedulePage() {
     { num: 7, name: t("sunday"), date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 6)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) }
   ];
 
-  const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+  const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
 
   // Filter out classes for the calendar grid
   const renderClassesForDay = (dayNum: number) => {

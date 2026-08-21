@@ -627,3 +627,57 @@
   background-color: #1e1e2d;
   color: #FFFFFF;
 }
+
+
+.filterSelectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filterSelectWrapper svg {
+  position: absolute;
+  right: 0.8rem;
+  pointer-events: none;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.filterSelectWrapper:hover svg {
+  color: var(--text-primary);
+}
+
+.filterSelectWrapper select {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.5rem 2.2rem 0.5rem 1rem;
+  border-radius: 20px;
+  color: var(--text-primary, #fff);
+  font-size: 0.85rem;
+  font-weight: 500;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  min-width: 150px;
+  transition: all 0.2s ease;
+  outline: none;
+  backdrop-filter: blur(8px);
+}
+
+.filterSelectWrapper select:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.filterSelectWrapper select:focus {
+  border-color: var(--aqua-teal, #00C4B5);
+  box-shadow: 0 0 0 1px var(--aqua-teal, #00C4B5);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.filterSelectWrapper select option {
+  background-color: #1a1a2e;
+  color: #fff;
+  padding: 10px;
+}

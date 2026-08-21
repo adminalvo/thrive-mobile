@@ -45,7 +45,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     let parentsList: any[] = [];
     try {
       const parentRows = await sql`
-        SELECT p.id, p.full_name as name, p.phone, au.email, p.fin_code as fin, p.id_card_number as idCard
+        SELECT p.id, up.first_name || ' ' || up.last_name as name, up.phone, au.email, p.fin_code as fin, p.id_card_number as idCard
         FROM parents p
         JOIN student_parents sp ON p.id = sp.parent_id
         LEFT JOIN user_profiles up ON p.profile_id = up.id
@@ -228,14 +228,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           WHERE id = ${profileId}
         `;
       }
-      if (data.programs) {
-        const programStr = Array.isArray(data.programs) ? data.programs.join(", ") : data.programs;
-        await sql`
-          UPDATE students
-          SET program = ${programStr}
-          WHERE id = ${id}
-        `;
-      }
+      
+      const programStr = data.program !== undefined ? data.program : (Array.isArray(data.programs) ? data.programs.join(", ") : data.programs);
+      
+      await sql`
+        UPDATE students
+        SET 
+          program = COALESCE(${programStr || null}, program),
+          fin_code = COALESCE(${data.fin || null}, fin_code),
+          id_card_number = COALESCE(${data.idCard || null}, id_card_number)
+        WHERE id = ${id}
+      `;
     }
 
     await logAction("UPDATE_STUDENT", { studentId: id, updates: data });

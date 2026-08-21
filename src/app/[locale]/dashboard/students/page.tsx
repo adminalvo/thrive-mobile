@@ -28,21 +28,15 @@ export default function StudentsPage() {
   });
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-
   const filteredStudents = useMemo(() => {
     const term = search.trim().toLowerCase();
     return students.filter(student => {
       const displayName = (student.name || student.user?.name || "").toLowerCase();
       const phone = (student.phone || "").toLowerCase();
       const fin = (student.fin || "").toLowerCase();
-
-      const matchesSearch = !term || displayName.includes(term) || phone.includes(term) || fin.includes(term);
-      const matchesStatus = statusFilter === "ALL" || !statusFilter || student.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
+      return !term || displayName.includes(term) || phone.includes(term) || fin.includes(term);
     });
-  }, [students, search, statusFilter]);
+  }, [students, search]);
 
   useEffect(() => {
     fetchStudents();
@@ -106,18 +100,6 @@ export default function StudentsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className={styles.filterBox}>
-          <Filter size={18} className={styles.filterIcon} />
-          <select 
-            className={styles.filterSelect}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="ALL">{t("filter.all")}</option>
-            <option value="ACTIVE">{c("active")} (ACTIVE)</option>
-            <option value="FROZEN">{c("inactive")} (FROZEN)</option>
-          </select>
-        </div>
       </div>
 
       <div className={styles.tableContainer}>
@@ -140,7 +122,6 @@ export default function StudentsPage() {
                 <th>{t("table.name")}</th>
                 <th>{t("table.contact")}</th>
                 <th>{t("table.group")}</th>
-                <th>{t("table.status")}</th>
                 <th>{t("table.enrollDate")}</th>
                 <th></th>
               </tr>
@@ -190,12 +171,6 @@ export default function StudentsPage() {
                       ) : (
                         <span className={styles.groupBadge}>{student.group || "Əsas Qrup"}</span>
                       )}
-                    </td>
-                    <td>
-                      <span className={`${styles.statusBadge} ${student.status === 'ACTIVE' ? styles.statusActive : styles.statusFrozen}`}>
-                        {student.status === 'ACTIVE' ? <UserCheck size={14}/> : <UserX size={14}/>}
-                        {student.status === 'ACTIVE' ? c("active") : c("inactive")}
-                      </span>
                     </td>
                     <td className={styles.date}>{displayDate}</td>
                     <td>

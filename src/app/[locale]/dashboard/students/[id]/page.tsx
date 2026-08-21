@@ -26,7 +26,6 @@ import { Link, useRouter } from "@/i18n/routing";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
-import ContractModal from "@/components/ContractModal";
 import { useSession } from "next-auth/react";
 
 interface StudentProfileData {
@@ -108,7 +107,9 @@ export default function StudentDetailPage({
     name: "",
     phone: "",
     email: "",
-    fin: ""
+    fin: "",
+    program: "",
+    idCard: ""
   });
 
   // New payment state
@@ -139,7 +140,9 @@ export default function StudentDetailPage({
           name: json.student.name || "",
           phone: json.student.phone || "",
           email: json.student.email || "",
-          fin: json.student.fin || ""
+          fin: json.student.fin || "",
+          program: json.student.program || "",
+          idCard: json.student.idCard || ""
         });
       } else {
         toast.error(t("notFound"));
@@ -337,24 +340,6 @@ export default function StudentDetailPage({
     }
   };
 
-  const handleToggleStatus = async () => {
-    if (!data?.student) return;
-    try {
-      const res = await fetch(`/api/students/${data.student.id}/toggle-status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" }
-      });
-      if (res.ok) {
-        toast.success(c("successUpdate") || "Uğurla yeniləndi");
-        fetchProfile();
-      } else {
-        toast.error("Statusu yeniləmək mümkün olmadı");
-      }
-    } catch (error) {
-      toast.error("Gözlənilməz xəta");
-    }
-  };
-
   if (loading) return <div className={styles.loading}>{c("loading")}</div>;
 
   if (!data) {
@@ -398,23 +383,6 @@ export default function StudentDetailPage({
             <h1>{student.name}</h1>
             <div className={styles.metaRow}>
               <span className={styles.idBadge}>ID: {student?.id ? String(student.id).substring(0, 8) : ""}</span>
-              <span className={(student.status || "").toUpperCase() === "ACTIVE" ? styles.statusActive : styles.statusInactive}>
-                <CheckCircle size={14} /> {(student.status || "").toUpperCase() === "ACTIVE" ? c("active") : c("inactive")}
-              </span>
-              <button 
-                onClick={handleToggleStatus} 
-                style={{
-                  background: "transparent",
-                  border: "1px solid rgba(var(--glass-color), 0.2)",
-                  padding: "0.2rem 0.5rem",
-                  borderRadius: "6px",
-                  color: "var(--text-secondary)",
-                  cursor: "pointer",
-                  fontSize: "0.8rem"
-                }}
-              >
-                {(student.status || "").toUpperCase() === "ACTIVE" ? "Deaktiv et" : "Aktiv et"}
-              </button>
               <span className={styles.idBadge}>
                 {t("joinDate")}: {student?.joinDate ? new Date(student.joinDate).toLocaleDateString() : "-"}
               </span>
@@ -426,29 +394,6 @@ export default function StudentDetailPage({
           <button className={styles.actionBtnPrimary} onClick={() => setShowPaymentModal(true)}>
             <DollarSign size={16} /> {t("addPayment")}
           </button>
-          <button 
-            className={styles.actionBtnSecondary} 
-            onClick={() => setSelectedInvoice({
-              id: payments[0]?.id || student.id || "INV-001",
-              amount: student.totalPrice || payments[0]?.amount || 0,
-              status: payments[0]?.status || "PAID",
-              createdAt: student.joinDate,
-              student: student 
-            })}
-          >
-            <Printer size={16} /> {t("printContract")}
-          </button>
-          {student.signedContractUrl && (
-            <a 
-              href={student.signedContractUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={styles.actionBtnSecondary}
-              style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
-            >
-              <FileText size={16} /> İmzalı Müqavilə
-            </a>
-          )}
           <button className={styles.actionBtnSecondary} onClick={() => setShowEditModal(true)}>
             <Edit size={16} /> {t("editProfile")}
           </button>
@@ -568,6 +513,10 @@ export default function StudentDetailPage({
             </h3>
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>{t("program") || "Proqram"}</span>
+                <span className={styles.infoValue} style={{fontWeight: "bold", color: "var(--primary-color)"}}>{student.program || "—"}</span>
+              </div>
+              <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>{t("fullName")}</span>
                 <span className={styles.infoValue}>{student.name}</span>
               </div>
@@ -625,9 +574,9 @@ export default function StudentDetailPage({
                     <div>
                       <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "1.1rem" }}>{p.name}</h4>
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Phone size={14} /> {p.phone || "Qeyd edilməyib"}</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Mail size={14} /> {p.email || "Qeyd edilməyib"}</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><FileText size={14} /> FIN: {p.fin || "Qeyd edilməyib"}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Phone size={14} /> {p.phone || c("notSpecified") || "Qeyd edilməyib"}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><Mail size={14} /> {p.email || c("notSpecified") || "Qeyd edilməyib"}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}><FileText size={14} /> FIN: {p.fin || c("notSpecified") || "Qeyd edilməyib"}</span>
                       </div>
                     </div>
                     <button 
@@ -751,19 +700,6 @@ export default function StudentDetailPage({
                         <td>
                           <div style={{ display: "flex", gap: "0.5rem" }}>
                             <button 
-                              className={styles.actionBtnSecondary} 
-                              style={{ padding: "0.4rem 0.8rem", fontSize: "0.8rem" }}
-                              onClick={() => setSelectedInvoice({
-                                id: p.id,
-                                amount: p.amount,
-                                status: p.status,
-                                createdAt: p.date,
-                                student: { name: student.name, phone: student.phone }
-                              })}
-                            >
-                              <Printer size={14} /> {t("printContract")}
-                            </button>
-                            <button 
                               className={styles.actionBtnDanger} 
                               style={{ padding: "0.4rem", fontSize: "0.8rem" }}
                               onClick={() => handleDeletePayment(p.id)}
@@ -842,30 +778,57 @@ export default function StudentDetailPage({
             >
               <h2>{t("editProfile")}</h2>
               <form onSubmit={handleEditSubmit} className={styles.form}>
-                <div className={styles.inputGroup}>
-                  <label>{t("fullName")}</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={editForm.name} 
-                    onChange={e => setEditForm({...editForm, name: e.target.value})} 
-                  />
-                </div>
-                <div className={styles.inputGroup}>
-                  <label>{t("phone")}</label>
-                  <input 
-                    type="text" 
-                    value={editForm.phone} 
-                    onChange={e => setEditForm({...editForm, phone: e.target.value})} 
-                  />
-                </div>
-                <div className={styles.inputGroup}>
-                  <label>{t("email")}</label>
-                  <input 
-                    type="email" 
-                    value={editForm.email} 
-                    onChange={e => setEditForm({...editForm, email: e.target.value})} 
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className={styles.inputGroup}>
+                    <label>{t("fullName")}</label>
+                    <input 
+                      type="text" 
+                      value={editForm.name} 
+                      onChange={e => setEditForm({...editForm, name: e.target.value})} 
+                      required 
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>{t("phone")}</label>
+                    <input 
+                      type="text" 
+                      value={editForm.phone} 
+                      onChange={e => setEditForm({...editForm, phone: e.target.value})} 
+                      required 
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>{t("email")}</label>
+                    <input 
+                      type="email" 
+                      value={editForm.email} 
+                      onChange={e => setEditForm({...editForm, email: e.target.value})} 
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>{t("program") || "Proqram"}</label>
+                    <input 
+                      type="text" 
+                      value={editForm.program} 
+                      onChange={e => setEditForm({...editForm, program: e.target.value})} 
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>FIN</label>
+                    <input 
+                      type="text" 
+                      value={editForm.fin} 
+                      onChange={e => setEditForm({...editForm, fin: e.target.value})} 
+                    />
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>{t("idCard") || "Ş.V. seriyası"}</label>
+                    <input 
+                      type="text" 
+                      value={editForm.idCard} 
+                      onChange={e => setEditForm({...editForm, idCard: e.target.value})} 
+                    />
+                  </div>
                 </div>
                 <div className={styles.modalActions}>
                   <button type="button" className={styles.cancelBtn} onClick={() => setShowEditModal(false)}>
@@ -927,14 +890,6 @@ export default function StudentDetailPage({
           </div>
         )}
       </AnimatePresence>
-
-      {/* Contract & Invoice Modal */}
-      {selectedInvoice && (
-        <ContractModal 
-          invoice={selectedInvoice} 
-          onClose={() => setSelectedInvoice(null)} 
-        />
-      )}
 
       {/* Link Parent Modal */}
       <AnimatePresence>

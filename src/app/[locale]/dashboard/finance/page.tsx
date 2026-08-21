@@ -6,7 +6,6 @@ import { CreditCard, AlertCircle, CheckCircle, Search, FileText, Plus, X, Dollar
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import ContractModal from "@/components/ContractModal";
 import { useTranslations } from "next-intl";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { apiFetch } from "@/lib/apiClient";
@@ -465,9 +464,6 @@ export default function FinancePage() {
                       </td>
                       <td className={styles.actionsCell}>
                         <div className={styles.actions}>
-                          <button className={styles.actionBtn} onClick={() => setSelectedInvoice(inv)} title="Fakturaya bax">
-                            <FileText size={16} />
-                          </button>
                           {canCreate && inv.status !== 'PAID' && (
                             <button className={styles.payBtn} onClick={() => {
                               setPaymentModalInvoice(inv);
@@ -550,15 +546,6 @@ export default function FinancePage() {
           )}
         </div>
       </motion.div>
-
-      {/* Invoice Detail Modal */}
-      {selectedInvoice && (
-        <ContractModal 
-          isOpen={true} 
-          onClose={() => setSelectedInvoice(null)} 
-          student={selectedInvoice.student} 
-        />
-      )}
 
       {/* Payment Modal */}
       <AnimatePresence>

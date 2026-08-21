@@ -174,7 +174,9 @@ export default function SchedulePage() {
     { num: 2, name: "Tuesday", date: "25 Aug" },
     { num: 3, name: "Wednesday", date: "26 Aug" },
     { num: 4, name: "Thursday", date: "27 Aug" },
-    { num: 5, name: "Friday", date: "28 Aug" }
+    { num: 5, name: "Friday", date: "28 Aug" },
+    { num: 6, name: "Saturday", date: "29 Aug" },
+    { num: 7, name: "Sunday", date: "30 Aug" }
   ];
 
   const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
@@ -269,7 +271,7 @@ export default function SchedulePage() {
         <div className={styles.headerActions}>
           <div className={styles.dateSelector} style={{ userSelect: "none" }} onClick={() => setCurrentDateOffset(p => p === 0 ? 1 : 0)}>
             <Calendar size={16} />
-            {new Date(new Date().setDate(new Date().getDate() + currentDateOffset * 7)).toLocaleDateString("en-GB", {day: "numeric", month: "short"})} - {new Date(new Date().setDate(new Date().getDate() + currentDateOffset * 7 + 4)).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}, 2026
+            {new Date(new Date().setDate(new Date().getDate() + currentDateOffset * 7)).toLocaleDateString("en-GB", {day: "numeric", month: "short"})} - {new Date(new Date().setDate(new Date().getDate() + currentDateOffset * 7 + 6)).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}, 2026
             <ChevronDown size={14} />
           </div>
           {canEdit && (

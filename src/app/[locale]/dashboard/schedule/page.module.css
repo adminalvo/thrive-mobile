@@ -146,7 +146,7 @@
 .calendarHeader {
   display: grid;
   grid-template-columns: 60px repeat(5, 1fr);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .timeSpacer {
@@ -223,11 +223,12 @@
 
 .daysColumns {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   position: relative;
 }
 
 .dayColumn {
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
   position: relative;
   border-right: 1px solid rgba(255, 255, 255, 0.03);
 }
@@ -334,7 +335,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
   transition: background 0.2s;
 }

@@ -504,6 +504,7 @@
 }
 
 .modal {
+  color-scheme: dark;
   background: var(--bg-color);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
@@ -608,7 +609,7 @@
 .saveBtn:hover {
   filter: brightness(1.1);
 }
-\n.inputGroup select option { background-color: #1e1e2d; color: #fff; }\n
+\n.inputGroup select option { background-color: #1e1e2d !important; color: #fff !important; }\n
 .nativeSelect {
   background-color: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);

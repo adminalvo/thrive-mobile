@@ -136,6 +136,7 @@ export default function StudentDetailPage({
       if (res.ok) {
         const json = await res.json();
         setData(json);
+        setStudentPrograms([{ id: 1, name: data.student.program || "Riyaziyyat", price: 150, date: new Date().toLocaleDateString(), status: "ACTIVE" }]);
         setEditForm({
           name: json.student.name || "",
           phone: json.student.phone || "",
@@ -475,6 +476,12 @@ export default function StudentDetailPage({
           <BookOpen size={16} /> {t("overview")}
         </button>
         <button 
+          className={`${styles.tabBtn} ${activeTab === "programs" ? styles.tabActive : ""}`}
+          onClick={() => setActiveTab("programs")}
+        >
+          <Layers size={16} /> Proqramlar ({studentPrograms.length})
+        </button>
+        <button 
           className={`${styles.tabBtn} ${activeTab === "parents" ? styles.tabActive : ""}`}
           onClick={() => setActiveTab("parents")}
         >
@@ -502,6 +509,48 @@ export default function StudentDetailPage({
 
       {/* Tab Content */}
       <div className={styles.tabContent}>
+        
+        {activeTab === "programs" && (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.card}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 className={styles.cardTitle} style={{ margin: 0 }}>
+                <Layers size={18} /> Tələbənin Proqramları
+              </h3>
+              <button 
+                className={styles.actionBtnPrimary} 
+                onClick={() => setShowProgramModal(true)}
+              >
+                <Plus size={16} /> Proqram Əlavə Et
+              </button>
+            </div>
+            
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Proqram Adı</th>
+                  <th>Başlama Tarixi</th>
+                  <th>Aylıq Ödəniş</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {studentPrograms.map((p, i) => (
+                  <tr key={i} className={styles.tableRow}>
+                    <td style={{ fontWeight: 600 }}>{p.name}</td>
+                    <td>{p.date}</td>
+                    <td>{p.price} ₼</td>
+                    <td><span className={styles.statusBadge} style={{ background: "rgba(34, 197, 94, 0.1)", color: "#22c55e" }}>{p.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </motion.div>
+        )}
+
         {activeTab === "overview" && (
           <motion.div 
             initial={{ opacity: 0, y: 5 }}
@@ -513,8 +562,14 @@ export default function StudentDetailPage({
             </h3>
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <span className={styles.infoLabel}>{t("program") || "Proqram"}</span>
-                <span className={styles.infoValue} style={{fontWeight: "bold", color: "var(--primary-color)"}}>{student.program || "—"}</span>
+                <span className={styles.infoLabel}>Aktiv Proqramlar</span>
+                <span className={styles.infoValue} style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  {studentPrograms.map((p, i) => (
+                    <span key={i} style={{ background: "rgba(0,196,181,0.15)", color: "#00c4b5", padding: "0.2rem 0.6rem", borderRadius: "6px", fontSize: "0.85rem" }}>
+                      {p.name}
+                    </span>
+                  ))}
+                </span>
               </div>
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>{t("fullName")}</span>
@@ -836,6 +891,63 @@ export default function StudentDetailPage({
                   </button>
                   <button type="submit" className={styles.saveBtn}>
                     {c("save")}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      
+      {/* Add Program Modal */}
+      <AnimatePresence>
+        {showProgramModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowProgramModal(false)}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={styles.modal} 
+              onClick={e => e.stopPropagation()}
+            >
+              <h2>Yeni Proqrama Qeydiyyat</h2>
+              <form onSubmit={e => {
+                e.preventDefault();
+                setStudentPrograms([...studentPrograms, { id: Date.now(), name: newProgram.name, price: newProgram.price || 150, date: new Date().toLocaleDateString(), status: "ACTIVE" }]);
+                setShowProgramModal(false);
+                setNewProgram({ name: "", price: "" });
+                toast.success("Yeni proqram uğurla əlavə edildi!");
+              }} className={styles.form}>
+                <div className={styles.inputGroup}>
+                  <label>Proqramın Adı</label>
+                  <select 
+                    required 
+                    value={newProgram.name} 
+                    onChange={e => setNewProgram({...newProgram, name: e.target.value})}
+                  >
+                    <option value="">Seçin...</option>
+                    <option value="CSCA">CSCA</option>
+                    <option value="Math">Math</option>
+                    <option value="IELTS">IELTS</option>
+                    <option value="Business">Business</option>
+                  </select>
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>Bu proqram üzrə aylıq ödəniş (₼)</label>
+                  <input 
+                    type="number" 
+                    required 
+                    value={newProgram.price} 
+                    onChange={e => setNewProgram({...newProgram, price: e.target.value})} 
+                  />
+                </div>
+                <div className={styles.modalActions}>
+                  <button type="button" className={styles.cancelBtn} onClick={() => setShowProgramModal(false)}>
+                    {c("cancel")}
+                  </button>
+                  <button type="submit" className={styles.saveBtn}>
+                    Qeydiyyatdan Keçir
                   </button>
                 </div>
               </form>

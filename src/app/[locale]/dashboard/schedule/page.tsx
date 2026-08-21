@@ -495,7 +495,7 @@ export default function SchedulePage() {
               </div>
               {canEdit && (
                 <button onClick={openEditScheduleModal} style={{ background: "var(--aqua-teal, #00C4B5)", color: "#fff", border: "none", padding: "0.4rem 1rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500 }}>
-                  Düzəliş Et
+                  {t("edit")}
                 </button>
               )}
             </div>

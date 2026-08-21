@@ -61,10 +61,10 @@ export default function SettingsPage() {
       if (res.ok) {
         toast.success(t("success"));
       } else {
-        toast.error(data.error || "Xəta baş verdi");
+        toast.error(data.error || t("error"));
       }
     } catch (e) {
-      toast.error("Xəta baş verdi");
+      toast.error(t("error"));
     } finally {
       setSaving(false);
     }
@@ -72,11 +72,11 @@ export default function SettingsPage() {
 
   const handleSaveSecurity = async () => {
     if (securityData.new_password !== securityData.confirm_password) {
-      toast.error("Yeni şifrə təkrarı ilə uyğun deyil");
+      toast.error(t("security.passMismatch"));
       return;
     }
     if (securityData.new_password.length < 6) {
-      toast.error("Şifrə ən azı 6 simvol olmalıdır");
+      toast.error(t("security.passShort"));
       return;
     }
     
@@ -99,7 +99,7 @@ export default function SettingsPage() {
         toast.error(data.error || "Xəta baş verdi");
       }
     } catch (e) {
-      toast.error("Xəta baş verdi");
+      toast.error(t("error"));
     } finally {
       setSaving(false);
     }
@@ -147,7 +147,7 @@ export default function SettingsPage() {
             <div className={styles.panel}>
               <h2>{t("profile.title")}</h2>
               <div className={styles.formGroup}>
-                <label>Ad</label>
+                <label>{t("profile.firstName")}</label>
                 <input 
                   type="text" 
                   value={profileData.first_name} 
@@ -155,7 +155,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className={styles.formGroup}>
-                <label>Soyad</label>
+                <label>{t("profile.lastName")}</label>
                 <input 
                   type="text" 
                   value={profileData.last_name} 

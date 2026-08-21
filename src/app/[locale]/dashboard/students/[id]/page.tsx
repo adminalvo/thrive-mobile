@@ -95,7 +95,12 @@ export default function StudentDetailPage({
 
   const [data, setData] = useState<StudentProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "groups" | "payments" | "attendance" | "parents">("overview");
+  const [showProgramModal, setShowProgramModal] = useState(false);
+  const [newProgram, setNewProgram] = useState({ name: "", price: "" });
+  const [studentPrograms, setStudentPrograms] = useState<any[]>([
+    { id: 1, name: "CSCA", price: 150, date: new Date().toLocaleDateString(), status: "ACTIVE" }
+  ]);
+  const [activeTab, setActiveTab] = useState<"overview" | "groups" | "payments" | "attendance" | "parents" | "programs">("overview");
 
   // Modals state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -136,7 +141,7 @@ export default function StudentDetailPage({
       if (res.ok) {
         const json = await res.json();
         setData(json);
-        setStudentPrograms([{ id: 1, name: data.student.program || "Riyaziyyat", price: 150, date: new Date().toLocaleDateString(), status: "ACTIVE" }]);
+        setStudentPrograms([{ id: 1, name: json.student.program || "Riyaziyyat", price: 150, date: new Date().toLocaleDateString(), status: "ACTIVE" }]);
         setEditForm({
           name: json.student.name || "",
           phone: json.student.phone || "",

@@ -428,7 +428,9 @@
       "title": "Profil Məlumatları",
       "name": "Ad və Soyad",
       "email": "Email",
-      "role": "Vəzifə / Rol"
+      "role": "Vəzifə / Rol",
+      "firstName": "Ad",
+      "lastName": "Soyad"
     },
     "notifications": {
       "title": "Bildiriş Seçimləri",
@@ -440,7 +442,9 @@
       "title": "Təhlükəsizlik",
       "oldPass": "Köhnə Şifrə",
       "newPass": "Yeni Şifrə",
-      "newPassConfirm": "Yeni Şifrə (Təkrar)"
+      "newPassConfirm": "Yeni Şifrə (Təkrar)",
+      "passMismatch": "Yeni şifrə təkrarı ilə uyğun deyil",
+      "passShort": "Şifrə ən azı 6 simvol olmalıdır"
     },
     "system": {
       "title": "Sistem Tənzimləmələri",
@@ -464,7 +468,8 @@
       "p1": "Thrive CRM, Thrive Education Center tərəfindən hazırlanmış CRM sistemidir. Sistem daxilində qeydiyyat edilmiş hər kəs müəyyənləşdirilmiş funksiyaları istifadə edə, ödənişlərini izləyə və s. əhatəli funksiyaları istifadə edə bilər.",
       "p2": "Əlavə olaraq AI ilə gücləndirilmiş bu sistem HacTag tərəfindən dizayn edilmişdir.",
       "copyright": "© 2026 Thrive Education Center. Bütün hüquqlar qorunur."
-    }
+    },
+    "error": "Xəta baş verdi"
   },
   "Common": {
     "search": "Axtar...",

@@ -427,7 +427,9 @@
       "title": "Profile Information",
       "name": "Full Name",
       "email": "Email",
-      "role": "Role"
+      "role": "Role",
+      "firstName": "First Name",
+      "lastName": "Last Name"
     },
     "notifications": {
       "title": "Notification Preferences",
@@ -439,7 +441,9 @@
       "title": "Security",
       "oldPass": "Old Password",
       "newPass": "New Password",
-      "newPassConfirm": "New Password (Confirm)"
+      "newPassConfirm": "New Password (Confirm)",
+      "passMismatch": "New password does not match confirm password",
+      "passShort": "Password must be at least 6 characters"
     },
     "system": {
       "title": "System Settings",
@@ -463,7 +467,8 @@
       "p1": "Thrive CRM is a CRM system developed by Thrive Education Center. Anyone registered in the system can use the defined functions, track their payments, and use comprehensive features.",
       "p2": "Additionally, this AI-powered system was designed by HacTag.",
       "copyright": "© 2026 Thrive Education Center. All rights reserved."
-    }
+    },
+    "error": "An error occurred"
   },
   "Common": {
     "search": "Search...",

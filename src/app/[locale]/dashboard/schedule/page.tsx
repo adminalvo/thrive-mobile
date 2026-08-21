@@ -47,6 +47,7 @@ export default function SchedulePage() {
   const [selectedProgram, setSelectedProgram] = useState("all");
   const [selectedTeacher, setSelectedTeacher] = useState("all");
   const [selectedRoom, setSelectedRoom] = useState("all");
+  const [currentDateOffset, setCurrentDateOffset] = useState(0);
 
   const [selectedClass, setSelectedClass] = useState<any>(null);
 
@@ -183,7 +184,12 @@ export default function SchedulePage() {
     return groups.flatMap(g => {
       if (selectedProgram !== "all" && g.program?.name !== selectedProgram) return [];
       
-      const daySchedules = (g.schedules || []).filter(s => s.dayOfWeek === dayNum);
+      const daySchedules = (g.schedules || []).filter(s => {
+        if (s.dayOfWeek !== dayNum) return false;
+        if (selectedTeacher !== "all" && (g.teacher !== selectedTeacher)) return false;
+        if (selectedRoom !== "all" && (s.room || g.room) !== selectedRoom) return false;
+        return true;
+      });
       
       return daySchedules.map(s => {
         const { top, height } = calculateTopAndHeight(s.startTime, s.endTime);
@@ -218,9 +224,9 @@ export default function SchedulePage() {
           <p className={styles.subtitle}>View and manage all classes and sessions</p>
         </div>
         <div className={styles.headerActions}>
-          <div className={styles.dateSelector}>
+          <div className={styles.dateSelector} style={{ userSelect: "none" }} onClick={() => setCurrentDateOffset(p => p === 0 ? 1 : 0)}>
             <Calendar size={16} />
-            24 Aug - 28 Aug, 2026
+            {new Date(new Date().setDate(new Date().getDate() + currentDateOffset * 7)).toLocaleDateString("en-GB", {day: "numeric", month: "short"})} - {new Date(new Date().setDate(new Date().getDate() + currentDateOffset * 7 + 4)).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}, 2026
             <ChevronDown size={14} />
           </div>
           {canEdit && (
@@ -233,18 +239,24 @@ export default function SchedulePage() {
 
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
-          <div className={styles.filterSelect}>
-            <span>All Programs</span>
-            <ChevronDown size={14} />
-          </div>
-          <div className={styles.filterSelect}>
-            <span>All Teachers</span>
-            <ChevronDown size={14} />
-          </div>
-          <div className={styles.filterSelect}>
-            <span>All Rooms</span>
-            <ChevronDown size={14} />
-          </div>
+          <select className={styles.nativeSelect} value={selectedProgram} onChange={e => setSelectedProgram(e.target.value)}>
+            <option value="all">All Programs</option>
+            {Array.from(new Set(groups.map(g => g.program?.name).filter(Boolean))).map(p => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+          <select className={styles.nativeSelect} value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)}>
+            <option value="all">All Teachers</option>
+            {Array.from(new Set(groups.map(g => g.teacher).filter(Boolean))).map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <select className={styles.nativeSelect} value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
+            <option value="all">All Rooms</option>
+            {Array.from(new Set(groups.flatMap(g => [g.room, ...g.schedules.map(s => s.room)]).filter(Boolean))).map(r => (
+              <option key={r} value={r}>Room {r}</option>
+            ))}
+          </select>
         </div>
         
         <div className={styles.viewToggle}>
@@ -258,35 +270,86 @@ export default function SchedulePage() {
         <div className={styles.loading}>Yüklənir...</div>
       ) : (
         <>
-          <div className={styles.calendarWrapper}>
-            <div className={styles.calendarHeader}>
-              <div className={styles.timeSpacer}></div>
-              {days.map(d => (
-                <div key={d.num} className={styles.dayHeader}>
-                  <div className={styles.dayName}>{d.name}</div>
-                  <div className={styles.dayDate}>{d.date}</div>
-                </div>
-              ))}
-            </div>
-            
-            <div className={styles.calendarGrid}>
-              <div className={styles.timeColumn}>
-                {hours.map(h => (
-                  <div key={h} className={styles.timeLabel}>
-                    {h}
-                  </div>
-                ))}
-              </div>
-              
-              <div className={styles.daysColumns}>
+          {view === "week" && (
+            <div className={styles.calendarWrapper}>
+              <div className={styles.calendarHeader}>
+                <div className={styles.timeSpacer}></div>
                 {days.map(d => (
-                  <div key={d.num} className={styles.dayColumn}>
-                    {renderClassesForDay(d.num)}
+                  <div key={d.num} className={styles.dayHeader}>
+                    <div className={styles.dayName}>{d.name}</div>
+                    <div className={styles.dayDate}>{d.date}</div>
                   </div>
                 ))}
               </div>
+              <div className={styles.calendarGrid}>
+                <div className={styles.timeColumn}>
+                  {hours.map(h => (
+                    <div key={h} className={styles.timeLabel}>{h}</div>
+                  ))}
+                </div>
+                <div className={styles.daysColumns}>
+                  {days.map(d => (
+                    <div key={d.num} className={styles.dayColumn}>
+                      {renderClassesForDay(d.num)}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {view === "day" && (
+            <div className={styles.calendarWrapper}>
+              <div className={styles.calendarHeader} style={{ gridTemplateColumns: "60px 1fr" }}>
+                <div className={styles.timeSpacer}></div>
+                <div className={styles.dayHeader}>
+                  <div className={styles.dayName}>{days[0].name}</div>
+                  <div className={styles.dayDate}>{days[0].date}</div>
+                </div>
+              </div>
+              <div className={styles.calendarGrid} style={{ gridTemplateColumns: "60px 1fr" }}>
+                <div className={styles.timeColumn}>
+                  {hours.map(h => (
+                    <div key={h} className={styles.timeLabel}>{h}</div>
+                  ))}
+                </div>
+                <div className={styles.daysColumns} style={{ gridTemplateColumns: "1fr" }}>
+                  <div className={styles.dayColumn}>
+                    {renderClassesForDay(1)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {view === "list" && (
+            <div className={styles.panel} style={{ marginBottom: "2rem" }}>
+              <div className={styles.upcomingList}>
+                {groups.flatMap(g => g.schedules.map(s => ({ group: g, schedule: s })))
+                  .filter(({ group, schedule }) => {
+                    if (selectedProgram !== "all" && group.program?.name !== selectedProgram) return false;
+                    if (selectedTeacher !== "all" && group.teacher !== selectedTeacher) return false;
+                    if (selectedRoom !== "all" && (schedule.room || group.room) !== selectedRoom) return false;
+                    return true;
+                  })
+                  .sort((a, b) => a.schedule.dayOfWeek - b.schedule.dayOfWeek || a.schedule.startTime.localeCompare(b.schedule.startTime))
+                  .map((item, idx) => (
+                    <div key={item.schedule.id || idx} className={styles.upcomingRow} onClick={() => setSelectedClass(item)}>
+                      <div className={styles.statusDot} style={{ backgroundColor: "rgba(255,255,255,0.2)" }}></div>
+                      <div>
+                        <div className={styles.rowTitle}>{item.group.name}</div>
+                        <div className={styles.rowSubtitle}>{item.group.program?.name || "Program"}</div>
+                      </div>
+                      <div className={styles.rowText}><Clock size={14} /> {days.find(d => d.num === item.schedule.dayOfWeek)?.name} {item.schedule.startTime}</div>
+                      <div className={styles.rowText}><User size={14} /> {item.group.teacher || "Təyin edilməyib"}</div>
+                      <div className={styles.rowText}>Room {item.schedule.room || item.group.room || "TBA"}</div>
+                    </div>
+                  ))
+                }
+                {groups.length === 0 && <div className={styles.emptyState}>No schedules found</div>}
+              </div>
+            </div>
+          )}
 
           <div className={styles.panels}>
             <div className={styles.panel}>

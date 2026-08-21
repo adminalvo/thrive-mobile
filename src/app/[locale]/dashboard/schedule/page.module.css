@@ -600,3 +600,21 @@
 .saveBtn:hover {
   filter: brightness(1.1);
 }
+\n.inputGroup select option { background-color: #1e1e2d; color: #fff; }\n
+.nativeSelect {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.5rem 2rem 0.5rem 1rem;
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-size: 0.85rem;
+  appearance: none;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 14px;
+}
+.nativeSelect option {
+  background-color: #1e1e2d;
+  color: #FFFFFF;
+}

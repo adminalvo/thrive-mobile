@@ -50,6 +50,8 @@ export default function SchedulePage() {
   const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     groupId: "",
@@ -80,6 +82,8 @@ export default function SchedulePage() {
   };
 
   const openAddScheduleModal = () => {
+    setIsEditing(false);
+    setEditId(null);
     const targetGroupId = groups[0]?.id || "";
     const targetGroup = groups.find(g => g.id === targetGroupId);
     setFormData({
@@ -91,6 +95,23 @@ export default function SchedulePage() {
     });
     setShowModal(true);
   };
+
+  
+  const openEditScheduleModal = () => {
+    if (!selectedClass) return;
+    setIsEditing(true);
+    setEditId(selectedClass.schedule.id);
+    setFormData({
+      groupId: selectedClass.group.id,
+      dayOfWeek: selectedClass.schedule.dayOfWeek.toString(),
+      startTime: selectedClass.schedule.startTime,
+      endTime: selectedClass.schedule.endTime,
+      room: selectedClass.schedule.room || ""
+    });
+    setSelectedClass(null);
+    setShowModal(true);
+  };
+
 
   const handleAddScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,8 +125,11 @@ export default function SchedulePage() {
     }
 
     try {
-      const res = await fetch("/api/schedules", {
-        method: "POST",
+      const url = isEditing && editId ? `/api/schedules/${editId}` : "/api/schedules";
+      const method = isEditing && editId ? "PUT" : "POST";
+      
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           group_id: formData.groupId,
@@ -117,22 +141,32 @@ export default function SchedulePage() {
       });
 
       if (res.ok) {
-        const newSchedule = await res.json();
+        const returnedSchedule = await res.json();
+        
+        const newSchedule = {
+          ...returnedSchedule,
+          dayOfWeek: returnedSchedule.day_of_week || returnedSchedule.dayOfWeek,
+          startTime: returnedSchedule.start_time || returnedSchedule.startTime,
+          endTime: returnedSchedule.end_time || returnedSchedule.endTime,
+        };
+
         setGroups(prev =>
           prev.map(g => {
+            const filteredSchedules = (g.schedules || []).filter(s => s.id !== editId);
+            
             if (g.id === formData.groupId) {
-              const updatedSchedules = [...(g.schedules || []), newSchedule].sort(
+              const updatedSchedules = [...filteredSchedules, newSchedule].sort(
                 (a, b) => a.dayOfWeek - b.dayOfWeek || a.startTime.localeCompare(b.startTime)
               );
               return { ...g, schedules: updatedSchedules };
             }
-            return g;
+            return { ...g, schedules: filteredSchedules };
           })
         );
         setShowModal(false);
-        toast.success("Cədvəl uğurla əlavə edildi");
+        toast.success(isEditing ? "Cədvəl uğurla yeniləndi" : "Cədvəl uğurla əlavə edildi");
       } else {
-        toast.error("Cədvəl əlavə etmək mümkün olmadı");
+        toast.error(isEditing ? "Cədvəli yeniləmək mümkün olmadı" : "Cədvəl əlavə etmək mümkün olmadı");
       }
     } catch (error) {
       toast.error("Gözlənilməz xəta baş verdi");

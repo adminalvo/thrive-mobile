@@ -181,38 +181,81 @@ export default function SchedulePage() {
 
   // Filter out classes for the calendar grid
   const renderClassesForDay = (dayNum: number) => {
-    return groups.flatMap(g => {
+    const allValidClasses = groups.flatMap(g => {
       if (selectedProgram !== "all" && g.program?.name !== selectedProgram) return [];
-      
       const daySchedules = (g.schedules || []).filter(s => {
         if (s.dayOfWeek !== dayNum) return false;
         if (selectedTeacher !== "all" && (g.teacher !== selectedTeacher)) return false;
         if (selectedRoom !== "all" && (s.room || g.room) !== selectedRoom) return false;
         return true;
       });
+      return daySchedules.map(s => ({ group: g, schedule: s }));
+    });
+
+    allValidClasses.sort((a, b) => timeToMinutes(a.schedule.startTime) - timeToMinutes(b.schedule.startTime));
+
+    const placedClasses: any[] = [];
+    allValidClasses.forEach(item => {
+      const startM = timeToMinutes(item.schedule.startTime);
+      const endM = timeToMinutes(item.schedule.endTime);
       
-      return daySchedules.map(s => {
-        const { top, height } = calculateTopAndHeight(s.startTime, s.endTime);
-        const color = getColorClass(g.program?.name || "");
-        
-        return (
+      const overlaps = placedClasses.filter(p => p.startM < endM && p.endM > startM);
+      let column = 0;
+      while(overlaps.some(o => o.column === column)) {
+         column++;
+      }
+      
+      placedClasses.push({ ...item, startM, endM, column });
+    });
+    
+    const clusters: any[] = [];
+    let currentCluster: any[] = [];
+    let currentClusterEnd = 0;
+    
+    placedClasses.forEach(p => {
+       if (currentCluster.length === 0) {
+          currentCluster.push(p);
+          currentClusterEnd = p.endM;
+       } else {
+          if (p.startM < currentClusterEnd) {
+             currentCluster.push(p);
+             currentClusterEnd = Math.max(currentClusterEnd, p.endM);
+          } else {
+             clusters.push(currentCluster);
+             currentCluster = [p];
+             currentClusterEnd = p.endM;
+          }
+       }
+    });
+    if(currentCluster.length > 0) clusters.push(currentCluster);
+    
+    return clusters.flatMap(cluster => {
+       const maxCol = Math.max(...cluster.map(c => c.column)) + 1;
+       return cluster.map(item => {
+         const { top, height } = calculateTopAndHeight(item.schedule.startTime, item.schedule.endTime);
+         const color = getColorClass(item.group.program?.name || "");
+         
+         const width = `calc(${100 / maxCol}% - 4px)`;
+         const left = `calc(${item.column * (100 / maxCol)}% + 2px)`;
+         
+         return (
           <div 
-            key={s.id} 
+            key={item.schedule.id} 
             className={`${styles.scheduleCard} ${color}`}
-            style={{ top, height }}
-            onClick={() => setSelectedClass({ group: g, schedule: s })}
+            style={{ top, height, width, left }}
+            onClick={() => setSelectedClass({ group: item.group, schedule: item.schedule })}
           >
             <div className={styles.cardHeader}>
-              <h4 className={styles.cardTitle}>{g.name}</h4>
+              <h4 className={styles.cardTitle}>{item.group.name}</h4>
             </div>
-            <div className={styles.cardProgram}>{g.program?.name || "No Program"}</div>
+            <div className={styles.cardProgram}>{item.group.program?.name || "No Program"}</div>
             <div className={styles.cardFooter}>
-              <span className={styles.cardTime}>{s.startTime} - {s.endTime}</span>
-              <span>• {g.teacher || "Təyin edilməyib"}</span>
+              <span className={styles.cardTime}>{item.schedule.startTime} - {item.schedule.endTime}</span>
+              <span>• {item.group.teacher || "Təyin edilməyib"}</span>
             </div>
           </div>
-        );
-      });
+         );
+       });
     });
   };
 
@@ -239,24 +282,33 @@ export default function SchedulePage() {
 
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
-          <select className={styles.nativeSelect} value={selectedProgram} onChange={e => setSelectedProgram(e.target.value)}>
-            <option value="all">All Programs</option>
-            {Array.from(new Set(groups.map(g => g.program?.name).filter(Boolean))).map(p => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-          <select className={styles.nativeSelect} value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)}>
-            <option value="all">All Teachers</option>
-            {Array.from(new Set(groups.map(g => g.teacher).filter(Boolean))).map(t => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-          <select className={styles.nativeSelect} value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
-            <option value="all">All Rooms</option>
-            {Array.from(new Set(groups.flatMap(g => [g.room, ...g.schedules.map(s => s.room)]).filter(Boolean))).map(r => (
-              <option key={r} value={r}>Room {r}</option>
-            ))}
-          </select>
+          <div className={styles.filterSelectWrapper}>
+            <select value={selectedProgram} onChange={e => setSelectedProgram(e.target.value)}>
+              <option value="all">All Programs</option>
+              {Array.from(new Set(groups.map(g => g.program?.name).filter(Boolean))).map(p => (
+                <option key={p as string} value={p as string}>{p as string}</option>
+              ))}
+            </select>
+            <ChevronDown size={16} />
+          </div>
+          <div className={styles.filterSelectWrapper}>
+            <select value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)}>
+              <option value="all">All Teachers</option>
+              {Array.from(new Set(groups.map(g => g.teacher).filter(Boolean))).map(t => (
+                <option key={t as string} value={t as string}>{t as string}</option>
+              ))}
+            </select>
+            <ChevronDown size={16} />
+          </div>
+          <div className={styles.filterSelectWrapper}>
+            <select value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
+              <option value="all">All Rooms</option>
+              {Array.from(new Set(groups.flatMap(g => [g.room, ...g.schedules.map(s => s.room)]).filter(Boolean))).map(r => (
+                <option key={r as string} value={r as string}>Room {r as string}</option>
+              ))}
+            </select>
+            <ChevronDown size={16} />
+          </div>
         </div>
         
         <div className={styles.viewToggle}>

@@ -27,6 +27,7 @@ export async function GET() {
         g.name,
         g.room,
         p.name as program_name,
+        COALESCE(up.first_name || ' ' || up.last_name, 'Təyin edilməyib') as teacher_name,
         COALESCE(
           (
             SELECT json_agg(
@@ -49,6 +50,8 @@ export async function GET() {
         ) as schedules
       FROM groups g
       LEFT JOIN programs p ON g.program_id = p.id
+      LEFT JOIN teachers t ON g.teacher_id = t.id
+      LEFT JOIN user_profiles up ON t.profile_id = up.id
       ORDER BY g.name ASC
     `;
 
@@ -56,6 +59,7 @@ export async function GET() {
       id: g.id,
       name: g.name,
       room: g.room || "N/A",
+      teacher: g.teacher_name,
       language: "AZ",
       maxCapacity: 15,
       _count: { students: 0 },

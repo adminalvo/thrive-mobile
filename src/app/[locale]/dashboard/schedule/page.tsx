@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
-import { Plus, Clock, Users, BookOpen, X, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { Plus, ChevronDown, Calendar, Clock, User, UserCheck, Search, BookOpen, X, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
@@ -11,20 +12,17 @@ import { useSession } from "next-auth/react";
 interface ScheduleItem {
   id: string;
   groupId?: string;
-  group_id?: string;
   dayOfWeek: number;
-  day_of_week?: number;
   startTime: string;
-  start_time?: string;
   endTime: string;
-  end_time?: string;
-  room?: string | null;
+  room?: string;
 }
 
 interface GroupWithSchedule {
   id: string;
   name: string;
   room?: string;
+  teacher?: string;
   language?: string;
   maxCapacity?: number;
   _count?: { students: number };
@@ -44,7 +42,14 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  // Form State
+  // Filters
+  const [view, setView] = useState("week");
+  const [selectedProgram, setSelectedProgram] = useState("all");
+  const [selectedTeacher, setSelectedTeacher] = useState("all");
+  const [selectedRoom, setSelectedRoom] = useState("all");
+
+  const [selectedClass, setSelectedClass] = useState<any>(null);
+
   const [formData, setFormData] = useState({
     groupId: "",
     dayOfWeek: "1",
@@ -73,21 +78,8 @@ export default function SchedulePage() {
     }
   };
 
-  const getDayName = (day: number) => {
-    const days = [
-      t("days.mon"),
-      t("days.tue"),
-      t("days.wed"),
-      t("days.thu"),
-      t("days.fri"),
-      t("days.sat"),
-      t("days.sun")
-    ];
-    return days[day - 1] || "Bilinmir";
-  };
-
-  const openAddScheduleModal = (defaultGroupId?: string) => {
-    const targetGroupId = defaultGroupId || (groups[0]?.id || "");
+  const openAddScheduleModal = () => {
+    const targetGroupId = groups[0]?.id || "";
     const targetGroup = groups.find(g => g.id === targetGroupId);
     setFormData({
       groupId: targetGroupId,
@@ -146,232 +138,346 @@ export default function SchedulePage() {
     }
   };
 
-  const handleDeleteSchedule = async (scheduleId: string, groupId: string) => {
-    try {
-      const res = await fetch(`/api/schedules/${scheduleId}`, {
-        method: "DELETE"
-      });
+  const timeToMinutes = (timeStr: string) => {
+    if (!timeStr) return 0;
+    const [h, m] = timeStr.split(":");
+    return parseInt(h, 10) * 60 + parseInt(m || "0", 10);
+  };
 
-      if (res.ok) {
-        setGroups(prev =>
-          prev.map(g => {
-            if (g.id === groupId) {
-              return {
-                ...g,
-                schedules: (g.schedules || []).filter(s => s.id !== scheduleId)
-              };
-            }
-            return g;
-          })
+  const calculateTopAndHeight = (start: string, end: string) => {
+    const dayStartMinutes = 8 * 60; // 08:00
+    const startM = timeToMinutes(start);
+    const endM = timeToMinutes(end);
+    
+    // Each hour is 60px height. So 1 min = 1px height
+    let top = (startM - dayStartMinutes);
+    if (top < 0) top = 0;
+    
+    let height = (endM - startM);
+    if (height < 30) height = 30; // Min height
+
+    return { top: `${top}px`, height: `${height}px` };
+  };
+
+  const getColorClass = (programName: string) => {
+    const p = programName.toLowerCase();
+    if (p.includes("math")) return styles.colorGreen;
+    if (p.includes("csca")) return styles.colorBlue;
+    if (p.includes("business")) return styles.colorPurple;
+    if (p.includes("ielts") || p.includes("sat")) return styles.colorCyan;
+    return styles.colorYellow;
+  };
+
+  const days = [
+    { num: 1, name: "Monday", date: "24 Aug" },
+    { num: 2, name: "Tuesday", date: "25 Aug" },
+    { num: 3, name: "Wednesday", date: "26 Aug" },
+    { num: 4, name: "Thursday", date: "27 Aug" },
+    { num: 5, name: "Friday", date: "28 Aug" }
+  ];
+
+  const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+
+  // Filter out classes for the calendar grid
+  const renderClassesForDay = (dayNum: number) => {
+    return groups.flatMap(g => {
+      if (selectedProgram !== "all" && g.program?.name !== selectedProgram) return [];
+      
+      const daySchedules = (g.schedules || []).filter(s => s.dayOfWeek === dayNum);
+      
+      return daySchedules.map(s => {
+        const { top, height } = calculateTopAndHeight(s.startTime, s.endTime);
+        const color = getColorClass(g.program?.name || "");
+        
+        return (
+          <div 
+            key={s.id} 
+            className={`${styles.scheduleCard} ${color}`}
+            style={{ top, height }}
+            onClick={() => setSelectedClass({ group: g, schedule: s })}
+          >
+            <div className={styles.cardHeader}>
+              <h4 className={styles.cardTitle}>{g.name}</h4>
+            </div>
+            <div className={styles.cardProgram}>{g.program?.name || "No Program"}</div>
+            <div className={styles.cardFooter}>
+              <span className={styles.cardTime}>{s.startTime} - {s.endTime}</span>
+              <span>• {g.teacher || "Təyin edilməyib"}</span>
+            </div>
+          </div>
         );
-        toast.success("Cədvəl qeydi silindi");
-      } else {
-        toast.error("Cədvəli silmək mümkün olmadı");
-      }
-    } catch (error) {
-      toast.error("Gözlənilməz xəta baş verdi");
-    }
+      });
+    });
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>{t("title")}</h1>
-          <p className={styles.subtitle}>{t("subtitle")}</p>
+          <h1 className={styles.title}>Schedule</h1>
+          <p className={styles.subtitle}>View and manage all classes and sessions</p>
         </div>
-        {canEdit && (
-          <button className={styles.addBtn} onClick={() => openAddScheduleModal()}>
-            <Plus size={18} /> Cədvəl Əlavə Et
-          </button>
-        )}
+        <div className={styles.headerActions}>
+          <div className={styles.dateSelector}>
+            <Calendar size={16} />
+            24 Aug - 28 Aug, 2026
+            <ChevronDown size={14} />
+          </div>
+          {canEdit && (
+            <button className={styles.addBtn} onClick={openAddScheduleModal}>
+              <Plus size={18} /> Add Schedule
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className={styles.tableContainer}>
-        {loading ? (
-          <div className={styles.loading}>{c("loading")}</div>
-        ) : groups.length === 0 ? (
-          <div className={styles.empty}>{c("empty")}</div>
-        ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Qrup & Proqram</th>
-                <th>Həftənin Günü</th>
-                <th>Saat</th>
-                <th>Otaq</th>
-                {canEdit && <th style={{ textAlign: "right" }}>Əməliyyat</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {groups.flatMap(group => 
-                (group.schedules && group.schedules.length > 0) ? group.schedules.map((sch: any) => {
-                  const dayNum = sch.dayOfWeek || sch.day_of_week || 1;
-                  const startTime = sch.startTime || sch.start_time || "";
-                  const endTime = sch.endTime || sch.end_time || "";
-                  const room = sch.room || group.room || "-";
-                  
-                  return (
-                    <motion.tr
-                      key={sch.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={styles.tableRow}
-                    >
-                      <td>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                          <div style={{ background: "rgba(76, 162, 181, 0.1)", padding: "0.4rem", borderRadius: "8px", color: "var(--aqua-teal)" }}>
-                            <BookOpen size={16} />
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: "0.95rem" }}>{group.name}</div>
-                            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{group.program?.name || "Proqram seçilməyib"}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span style={{ background: "rgba(var(--glass-color), 0.05)", padding: "0.3rem 0.6rem", borderRadius: "6px", fontSize: "0.85rem", color: "var(--text-primary)" }}>
-                          {getDayName(dayNum)}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                          <Clock size={14} /> {startTime} - {endTime}
-                        </div>
-                      </td>
-                      <td>
-                        <span style={{ fontSize: "0.9rem", color: "var(--text-primary)" }}>{room}</span>
-                      </td>
-                      {canEdit && (
-                        <td style={{ textAlign: "right" }}>
-                          <button
-                            className={styles.deleteScheduleBtn}
-                            title="Cədvəli Sil"
-                            onClick={() => handleDeleteSchedule(sch.id, group.id)}
-                            style={{ display: "inline-flex", background: "transparent", border: "none", color: "var(--danger-color)", padding: "0.4rem", cursor: "pointer", borderRadius: "6px" }}
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </td>
-                      )}
-                    </motion.tr>
-                  );
-                }) : []
-              )}
-              
-              {groups.flatMap(g => g.schedules || []).length === 0 && (
-                 <tr>
-                   <td colSpan={5} style={{ textAlign: "center", padding: "2rem", color: "var(--text-secondary)" }}>
-                     {t("noSchedule")}
-                   </td>
-                 </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Add Schedule Modal */}
-      {showModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2>{t("modal.addTitle") || "Qrupa Dərs Cədvəli Əlavə Et"}</h2>
-              <button className={styles.closeModalBtn} onClick={() => setShowModal(false)}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddScheduleSubmit} className={styles.form}>
-              <div className={styles.inputGroup}>
-                <label>{t("modal.selectGroup") || "Qrup Seçin"} *</label>
-                <select
-                  required
-                  value={formData.groupId}
-                  onChange={e => {
-                    const gId = e.target.value;
-                    const found = groups.find(g => g.id === gId);
-                    setFormData({
-                      ...formData,
-                      groupId: gId,
-                      room: found?.room || formData.room
-                    });
-                  }}
-                >
-                  <option value="">{t("modal.selectGroupPlaceholder") || "Qrup seçin..."}</option>
-                  {groups.map(g => (
-                    <option key={g.id} value={g.id}>
-                      {g.name} ({g.program?.name || "Proqram yoxdur"})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label>{t("modal.dayOfWeek") || "Həftənin Günü"} *</label>
-                <select
-                  required
-                  value={formData.dayOfWeek}
-                  onChange={e => setFormData({ ...formData, dayOfWeek: e.target.value })}
-                >
-                  <option value="1">1 - {t("days.monday") || "Bazar ertəsi"}</option>
-                  <option value="2">2 - {t("days.tuesday") || "Çərşənbə axşamı"}</option>
-                  <option value="3">3 - {t("days.wednesday") || "Çərşənbə"}</option>
-                  <option value="4">4 - {t("days.thursday") || "Cümə axşamı"}</option>
-                  <option value="5">5 - {t("days.friday") || "Cümə"}</option>
-                  <option value="6">6 - {t("days.saturday") || "Şənbə"}</option>
-                  <option value="7">7 - {t("days.sunday") || "Bazar"}</option>
-                </select>
-              </div>
-
-              <div className={styles.rowInputs}>
-                <div className={styles.inputGroup}>
-                  <label>{t("modal.startTime") || "Başlama Saatı"} *</label>
-                  <input
-                    required
-                    type="time"
-                    value={formData.startTime}
-                    onChange={e => setFormData({ ...formData, startTime: e.target.value })}
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label>{t("modal.endTime") || "Bitmə Saatı"} *</label>
-                  <input
-                    required
-                    type="time"
-                    value={formData.endTime}
-                    onChange={e => setFormData({ ...formData, endTime: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label>{t("modal.room") || "Otaq"}</label>
-                <input
-                  type="text"
-                  placeholder={t("modal.roomPlaceholder") || "Məs: Otaq 204 və ya Lab A"}
-                  value={formData.room}
-                  onChange={e => setFormData({ ...formData, room: e.target.value })}
-                />
-              </div>
-
-              <div className={styles.modalActions}>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={() => setShowModal(false)}
-                >
-                  {t("modal.cancel") || "Ləğv et"}
-                </button>
-                <button type="submit" className={styles.saveBtn}>
-                  {t("modal.save") || "Cədvəli Yadda Saxla"}
-                </button>
-              </div>
-            </form>
+      <div className={styles.filters}>
+        <div className={styles.filterGroup}>
+          <div className={styles.filterSelect}>
+            <span>All Programs</span>
+            <ChevronDown size={14} />
+          </div>
+          <div className={styles.filterSelect}>
+            <span>All Teachers</span>
+            <ChevronDown size={14} />
+          </div>
+          <div className={styles.filterSelect}>
+            <span>All Rooms</span>
+            <ChevronDown size={14} />
           </div>
         </div>
+        
+        <div className={styles.viewToggle}>
+          <button className={`${styles.viewBtn} ${view === "week" ? styles.active : ""}`} onClick={() => setView("week")}>Week</button>
+          <button className={`${styles.viewBtn} ${view === "day" ? styles.active : ""}`} onClick={() => setView("day")}>Day</button>
+          <button className={`${styles.viewBtn} ${view === "list" ? styles.active : ""}`} onClick={() => setView("list")}>List</button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className={styles.loading}>Yüklənir...</div>
+      ) : (
+        <>
+          <div className={styles.calendarWrapper}>
+            <div className={styles.calendarHeader}>
+              <div className={styles.timeSpacer}></div>
+              {days.map(d => (
+                <div key={d.num} className={styles.dayHeader}>
+                  <div className={styles.dayName}>{d.name}</div>
+                  <div className={styles.dayDate}>{d.date}</div>
+                </div>
+              ))}
+            </div>
+            
+            <div className={styles.calendarGrid}>
+              <div className={styles.timeColumn}>
+                {hours.map(h => (
+                  <div key={h} className={styles.timeLabel}>
+                    {h}
+                  </div>
+                ))}
+              </div>
+              
+              <div className={styles.daysColumns}>
+                {days.map(d => (
+                  <div key={d.num} className={styles.dayColumn}>
+                    {renderClassesForDay(d.num)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.panels}>
+            <div className={styles.panel}>
+              <h3 className={styles.panelTitle}>Upcoming Classes</h3>
+              <div className={styles.upcomingList}>
+                {groups.flatMap(g => g.schedules).slice(0, 5).map((s, idx) => {
+                  if(!s) return null;
+                  const group = groups.find(g => g.id === s.groupId);
+                  if(!group) return null;
+                  const isSoon = idx === 0;
+                  
+                  return (
+                    <div key={s.id || idx} className={styles.upcomingRow} onClick={() => setSelectedClass({ group, schedule: s })}>
+                      <div className={styles.statusDot} style={{ backgroundColor: isSoon ? "var(--aqua-teal, #00C4B5)" : "rgba(255,255,255,0.2)" }}></div>
+                      <div>
+                        <div className={styles.rowTitle}>{group.name}</div>
+                        <div className={styles.rowSubtitle}>{group.program?.name || "Program"}</div>
+                      </div>
+                      <div className={styles.rowText}><Clock size={14} /> {s.startTime}</div>
+                      <div className={styles.rowText}><User size={14} /> {group.teacher || "Təyin edilməyib"}</div>
+                      <div className={styles.rowText}>Room {s.room || group.room || "TBA"}</div>
+                      <div className={styles.badge}>{isSoon ? "Next" : "Scheduled"}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={styles.panel}>
+              <h3 className={styles.panelTitle}>Class Details</h3>
+              {selectedClass ? (
+                <div>
+                  <div className={styles.detailsHeader}>
+                    <h2 className={styles.detailsTitle}>{selectedClass.group.name}</h2>
+                    <p className={styles.detailsSubtitle}>{selectedClass.group.program?.name} • {selectedClass.group.teacher || "Təyin edilməyib"}</p>
+                  </div>
+                  
+                  <div className={styles.detailsGrid}>
+                    <div>
+                      <div className={styles.infoBlock}>
+                        <div className={styles.infoLabel}>Frequency</div>
+                        <div className={styles.infoValue}>{selectedClass.group.schedules?.length || 0} lessons / week</div>
+                      </div>
+                      <div className={styles.infoBlock}>
+                        <div className={styles.infoLabel}>Duration</div>
+                        <div className={styles.infoValue}>{selectedClass.schedule.startTime} - {selectedClass.schedule.endTime}</div>
+                      </div>
+                      <div className={styles.infoBlock}>
+                        <div className={styles.infoLabel}>Students</div>
+                        <div className={styles.infoValue}>{selectedClass.group._count?.students || 0} Students</div>
+                      </div>
+                      <div className={styles.infoBlock}>
+                        <div className={styles.infoLabel}>Room</div>
+                        <div className={styles.infoValue}>{selectedClass.schedule.room || selectedClass.group.room || "TBA"}</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className={styles.weeklyScheduleTitle}>Weekly Schedule</h4>
+                      <div className={styles.weeklyList}>
+                        {days.map(d => {
+                          const hasClass = selectedClass.group.schedules?.find((s: any) => s.dayOfWeek === d.num);
+                          return (
+                            <div key={d.num} className={styles.weeklyItem}>
+                              <div className={styles.weeklyDay}>
+                                <div className={`${styles.weeklyIndicator} ${hasClass ? styles.active : ""}`}></div>
+                                {d.name}
+                              </div>
+                              <div className={styles.weeklyTime}>
+                                {hasClass ? `${hasClass.startTime} - ${hasClass.endTime}` : "—"}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.emptyState}>
+                  Select a class from the calendar or upcoming list to view details.
+                </div>
+              )}
+            </div>
+          </div>
+        </>
       )}
+
+      {/* Add Schedule Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={styles.modal} 
+              onClick={e => e.stopPropagation()}
+            >
+              <div className={styles.modalHeader}>
+                <h2>Add Schedule</h2>
+                <button className={styles.closeModalBtn} onClick={() => setShowModal(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddScheduleSubmit} className={styles.form}>
+                <div className={styles.inputGroup}>
+                  <label>Group *</label>
+                  <select
+                    required
+                    value={formData.groupId}
+                    onChange={e => {
+                      const gId = e.target.value;
+                      const found = groups.find(g => g.id === gId);
+                      setFormData({
+                        ...formData,
+                        groupId: gId,
+                        room: found?.room || formData.room
+                      });
+                    }}
+                  >
+                    <option value="">Select a group...</option>
+                    {groups.map(g => (
+                      <option key={g.id} value={g.id}>
+                        {g.name} ({g.program?.name || "No Program"})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label>Day of Week *</label>
+                  <select
+                    required
+                    value={formData.dayOfWeek}
+                    onChange={e => setFormData({ ...formData, dayOfWeek: e.target.value })}
+                  >
+                    <option value="1">1 - Monday</option>
+                    <option value="2">2 - Tuesday</option>
+                    <option value="3">3 - Wednesday</option>
+                    <option value="4">4 - Thursday</option>
+                    <option value="5">5 - Friday</option>
+                  </select>
+                </div>
+
+                <div className={styles.rowInputs}>
+                  <div className={styles.inputGroup}>
+                    <label>Start Time *</label>
+                    <input
+                      required
+                      type="time"
+                      value={formData.startTime}
+                      onChange={e => setFormData({ ...formData, startTime: e.target.value })}
+                    />
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <label>End Time *</label>
+                    <input
+                      required
+                      type="time"
+                      value={formData.endTime}
+                      onChange={e => setFormData({ ...formData, endTime: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label>Room</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Room 204"
+                    value={formData.room}
+                    onChange={e => setFormData({ ...formData, room: e.target.value })}
+                  />
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button type="button" className={styles.cancelBtn} onClick={() => setShowModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className={styles.saveBtn}>
+                    Save Schedule
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -37,7 +37,8 @@
     "settings": "Tənzimləmələr",
     "logout": "Çıxış",
     "programs": "Kurslar",
-    "universities": "Universitetlər"
+    "universities": "Universitetlər",
+    "staff": "İşçilər (RBAC)"
   },
   "AiPage": {
     "title": "Thrive AI Köməkçi",

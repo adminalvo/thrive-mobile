@@ -37,7 +37,8 @@
     "settings": "Settings",
     "logout": "Logout",
     "programs": "Programs",
-    "universities": "Universities"
+    "universities": "Universities",
+    "staff": "Staff (RBAC)"
   },
   "AiPage": {
     "title": "Thrive AI Assistant",

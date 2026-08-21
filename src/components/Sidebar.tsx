@@ -261,9 +261,9 @@ export default function Sidebar({
       <div className={styles.sidebarFooter}>
         {isSuperAdmin && (
           <Link href={`/dashboard/staff`}>
-            <div className={`${styles.navItem} ${pathname === '/dashboard/staff' ? styles.navActive : ""}`} title={isCollapsed ? "İşçilər (RBAC)" : undefined} style={{justifyContent: isCollapsed ? 'center' : 'flex-start'}}>
+            <div className={`${styles.navItem} ${pathname === '/dashboard/staff' ? styles.navActive : ""}`} title={isCollapsed ? t("staff") : undefined} style={{justifyContent: isCollapsed ? 'center' : 'flex-start'}}>
               <ShieldAlert size={20} className={pathname === '/dashboard/staff' ? styles.iconActive : styles.icon} />
-              {!isCollapsed && <span>İşçilər (RBAC)</span>}
+              {!isCollapsed && <span>{t("staff")}</span>}
             </div>
           </Link>
         )}

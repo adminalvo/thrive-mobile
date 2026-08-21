@@ -47,7 +47,7 @@ export default function SchedulePage() {
   const [selectedProgram, setSelectedProgram] = useState("all");
   const [selectedTeacher, setSelectedTeacher] = useState("all");
   const [selectedRoom, setSelectedRoom] = useState("all");
-  const [currentDateOffset, setCurrentDateOffset] = useState(0);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [selectedClass, setSelectedClass] = useState<any>(null);
 
@@ -169,14 +169,20 @@ export default function SchedulePage() {
     return styles.colorYellow;
   };
 
+  const baseDate = new Date(startDate);
+  const dayOfWeek = baseDate.getDay();
+  // Adjust to start on Monday
+  const diffToMonday = baseDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  baseDate.setDate(diffToMonday);
+
   const days = [
-    { num: 1, name: "Monday", date: "24 Aug" },
-    { num: 2, name: "Tuesday", date: "25 Aug" },
-    { num: 3, name: "Wednesday", date: "26 Aug" },
-    { num: 4, name: "Thursday", date: "27 Aug" },
-    { num: 5, name: "Friday", date: "28 Aug" },
-    { num: 6, name: "Saturday", date: "29 Aug" },
-    { num: 7, name: "Sunday", date: "30 Aug" }
+    { num: 1, name: "Monday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 0)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 2, name: "Tuesday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 1)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 3, name: "Wednesday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 2)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 4, name: "Thursday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 3)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 5, name: "Friday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 4)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 6, name: "Saturday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 5)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 7, name: "Sunday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 6)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) }
   ];
 
   const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
@@ -269,10 +275,22 @@ export default function SchedulePage() {
           <p className={styles.subtitle}>View and manage all classes and sessions</p>
         </div>
         <div className={styles.headerActions}>
-          <div className={styles.dateSelector} style={{ userSelect: "none" }} onClick={() => setCurrentDateOffset(p => p === 0 ? 1 : 0)}>
+          <div className={styles.dateSelector} style={{ position: "relative" }}>
             <Calendar size={16} />
-            {new Date(new Date().setDate(new Date().getDate() + currentDateOffset * 7)).toLocaleDateString("en-GB", {day: "numeric", month: "short"})} - {new Date(new Date().setDate(new Date().getDate() + currentDateOffset * 7 + 6)).toLocaleDateString("en-GB", {day: "numeric", month: "short"})}, 2026
-            <ChevronDown size={14} />
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={e => setStartDate(e.target.value)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#fff",
+                fontFamily: "inherit",
+                fontSize: "0.9rem",
+                outline: "none",
+                cursor: "pointer"
+              }}
+            />
           </div>
           {canEdit && (
             <button className={styles.addBtn} onClick={openAddScheduleModal}>

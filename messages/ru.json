@@ -37,7 +37,8 @@
     "settings": "Настройки",
     "logout": "Выйти",
     "programs": "Программы",
-    "universities": "Университеты"
+    "universities": "Университеты",
+    "staff": "Сотрудники (RBAC)"
   },
   "AiPage": {
     "title": "Thrive AI Помощник",

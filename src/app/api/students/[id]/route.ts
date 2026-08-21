@@ -153,6 +153,19 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const presentCount = attendance.filter(a => a.status === "PRESENT").length;
     const totalAttendance = attendance.length;
 
+    // 6.5 Fetch student programs
+    let programs = [];
+    try {
+      const progRows = await sql`
+        SELECT * FROM student_programs 
+        WHERE student_id = ${id}
+        ORDER BY joined_date DESC
+      `;
+      programs = progRows || [];
+    } catch(e) {
+      console.error("Fetch programs error:", e);
+    }
+
     // 7. Combine all
     return NextResponse.json({
       studentPrograms: programs.map(p => ({

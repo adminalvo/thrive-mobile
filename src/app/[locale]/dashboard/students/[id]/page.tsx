@@ -97,6 +97,8 @@ export default function StudentDetailPage({
   const [loading, setLoading] = useState(true);
   const [showProgramModal, setShowProgramModal] = useState(false);
   const [newProgram, setNewProgram] = useState({ name: "", price: "" });
+  const [availablePrograms, setAvailablePrograms] = useState<any[]>([]);
+  const [editProgramId, setEditProgramId] = useState<string | null>(null);
   const [studentPrograms, setStudentPrograms] = useState<any[]>([
     { id: 1, name: "CSCA", price: 150, date: new Date().toLocaleDateString(), status: "ACTIVE" }
   ]);
@@ -141,7 +143,7 @@ export default function StudentDetailPage({
       if (res.ok) {
         const json = await res.json();
         setData(json);
-        setStudentPrograms([{ id: 1, name: json.student.program || "Riyaziyyat", price: 150, date: new Date().toLocaleDateString(), status: "ACTIVE" }]);
+        setStudentPrograms(json.studentPrograms || []);
         setEditForm({
           name: json.student.name || "",
           phone: json.student.phone || "",
@@ -527,7 +529,7 @@ export default function StudentDetailPage({
               </h3>
               <button 
                 className={styles.actionBtnPrimary} 
-                onClick={() => setShowProgramModal(true)}
+                onClick={() => { setEditProgramId(null); setNewProgram({name: "", price: ""}); setShowProgramModal(true); }}
               >
                 <Plus size={16} /> Proqram Əlavə Et
               </button>
@@ -540,6 +542,7 @@ export default function StudentDetailPage({
                   <th>Başlama Tarixi</th>
                   <th>Aylıq Ödəniş</th>
                   <th>Status</th>
+                  <th style={{ textAlign: "right" }}>Əməliyyatlar</th>
                 </tr>
               </thead>
               <tbody>
@@ -916,26 +919,50 @@ export default function StudentDetailPage({
               className={styles.modal} 
               onClick={e => e.stopPropagation()}
             >
-              <h2>Yeni Proqrama Qeydiyyat</h2>
-              <form onSubmit={e => {
+              <h2>{editProgramId ? "Proqramı Yenilə" : "Yeni Proqrama Qeydiyyat"}</h2>
+              <form onSubmit={async e => {
                 e.preventDefault();
-                setStudentPrograms([...studentPrograms, { id: Date.now(), name: newProgram.name, price: newProgram.price || 150, date: new Date().toLocaleDateString(), status: "ACTIVE" }]);
-                setShowProgramModal(false);
-                setNewProgram({ name: "", price: "" });
-                toast.success("Yeni proqram uğurla əlavə edildi!");
+                try {
+                  const url = editProgramId ? `/api/students/${id}/programs/${editProgramId}` : `/api/students/${id}/programs`;
+                  const method = editProgramId ? "PUT" : "POST";
+                  
+                  const res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      name: newProgram.name,
+                      price: newProgram.price || 0,
+                      status: newProgram.status || "ACTIVE"
+                    })
+                  });
+                  
+                  if (res.ok) {
+                    await fetchProfile();
+                    setShowProgramModal(false);
+                    setNewProgram({ name: "", price: "" });
+                    setEditProgramId(null);
+                    toast.success(editProgramId ? "Uğurla yeniləndi!" : "Yeni proqram uğurla əlavə edildi!");
+                  } else {
+                    toast.error("Xəta baş verdi");
+                  }
+                } catch(e) {
+                  toast.error("Xəta baş verdi");
+                }
               }} className={styles.form}>
                 <div className={styles.inputGroup}>
                   <label>Proqramın Adı</label>
                   <select 
                     required 
                     value={newProgram.name} 
-                    onChange={e => setNewProgram({...newProgram, name: e.target.value})}
+                    onChange={e => {
+                       const p = availablePrograms.find(prog => prog.name === e.target.value);
+                       setNewProgram({...newProgram, name: e.target.value, price: p ? p.price : newProgram.price});
+                    }}
                   >
                     <option value="">Seçin...</option>
-                    <option value="CSCA">CSCA</option>
-                    <option value="Math">Math</option>
-                    <option value="IELTS">IELTS</option>
-                    <option value="Business">Business</option>
+                    {availablePrograms.map(p => (
+                      <option key={p.id} value={p.name}>{p.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div className={styles.inputGroup}>

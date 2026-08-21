@@ -155,6 +155,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     // 7. Combine all
     return NextResponse.json({
+      studentPrograms: programs.map(p => ({
+        id: p.id,
+        name: p.program_name,
+        price: p.monthly_payment,
+        date: p.joined_date,
+        status: p.status
+      })),
       student: {
         id: s.id,
         firstName: s.first_name || "",

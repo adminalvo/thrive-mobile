@@ -72,10 +72,10 @@ export default function SchedulePage() {
         const data = await res.json();
         setGroups(data);
       } else {
-        toast.error("Cədvəlləri yükləmək mümkün olmadı");
+        toast.error(t("errorLoad"));
       }
     } catch (error) {
-      toast.error("Gözlənilməz xəta baş verdi");
+      toast.error(t("errorUnexpected"));
     } finally {
       setLoading(false);
     }
@@ -116,11 +116,11 @@ export default function SchedulePage() {
   const handleAddScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.groupId) {
-      toast.error("Zəhmət olmasa qrup seçin");
+      toast.error(t("selectGroupError"));
       return;
     }
     if (!formData.startTime || !formData.endTime) {
-      toast.error("Zəhmət olmasa başlama və bitmə vaxtını daxil edin");
+      toast.error(t("timeError"));
       return;
     }
 
@@ -164,12 +164,12 @@ export default function SchedulePage() {
           })
         );
         setShowModal(false);
-        toast.success(isEditing ? "Cədvəl uğurla yeniləndi" : "Cədvəl uğurla əlavə edildi");
+        toast.success(isEditing ? t("successEdit") : t("successAdd"));
       } else {
-        toast.error(isEditing ? "Cədvəli yeniləmək mümkün olmadı" : "Cədvəl əlavə etmək mümkün olmadı");
+        toast.error(isEditing ? t("errorEdit") : t("errorAdd"));
       }
     } catch (error) {
-      toast.error("Gözlənilməz xəta baş verdi");
+      toast.error(t("errorUnexpected"));
     }
   };
 
@@ -210,13 +210,13 @@ export default function SchedulePage() {
   baseDate.setDate(diffToMonday);
 
   const days = [
-    { num: 1, name: "Monday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 0)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
-    { num: 2, name: "Tuesday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 1)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
-    { num: 3, name: "Wednesday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 2)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
-    { num: 4, name: "Thursday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 3)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
-    { num: 5, name: "Friday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 4)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
-    { num: 6, name: "Saturday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 5)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
-    { num: 7, name: "Sunday", date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 6)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) }
+    { num: 1, name: t("monday"), date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 0)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 2, name: t("tuesday"), date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 1)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 3, name: t("wednesday"), date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 2)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 4, name: t("thursday"), date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 3)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 5, name: t("friday"), date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 4)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 6, name: t("saturday"), date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 5)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) },
+    { num: 7, name: t("sunday"), date: new Date(new Date(baseDate).setDate(baseDate.getDate() + 6)).toLocaleDateString("en-GB", {day: "numeric", month: "short"}) }
   ];
 
   const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
@@ -290,10 +290,10 @@ export default function SchedulePage() {
             <div className={styles.cardHeader}>
               <h4 className={styles.cardTitle}>{item.group.name}</h4>
             </div>
-            <div className={styles.cardProgram}>{item.group.program?.name || "No Program"}</div>
+            <div className={styles.cardProgram}>{item.group.program?.name || t("noProgram")}</div>
             <div className={styles.cardFooter}>
               <span className={styles.cardTime}>{item.schedule.startTime} - {item.schedule.endTime}</span>
-              <span>• {item.group.teacher || "Təyin edilməyib"}</span>
+              <span>• {item.group.teacher || t("unassigned")}</span>
             </div>
           </div>
          );
@@ -305,8 +305,8 @@ export default function SchedulePage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Schedule</h1>
-          <p className={styles.subtitle}>View and manage all classes and sessions</p>
+          <h1 className={styles.title}>{t("title")}</h1>
+          <p className={styles.subtitle}>{t("subtitle")}</p>
         </div>
         <div className={styles.headerActions}>
           <div className={styles.dateSelector} style={{ position: "relative" }}>
@@ -366,14 +366,14 @@ export default function SchedulePage() {
         </div>
         
         <div className={styles.viewToggle}>
-          <button className={`${styles.viewBtn} ${view === "week" ? styles.active : ""}`} onClick={() => setView("week")}>Week</button>
-          <button className={`${styles.viewBtn} ${view === "day" ? styles.active : ""}`} onClick={() => setView("day")}>Day</button>
-          <button className={`${styles.viewBtn} ${view === "list" ? styles.active : ""}`} onClick={() => setView("list")}>List</button>
+          <button className={`${styles.viewBtn} ${view === "week" ? styles.active : ""}`} onClick={() => setView("week")}>{t("week")}</button>
+          <button className={`${styles.viewBtn} ${view === "day" ? styles.active : ""}`} onClick={() => setView("day")}>{t("day")}</button>
+          <button className={`${styles.viewBtn} ${view === "list" ? styles.active : ""}`} onClick={() => setView("list")}>{t("list")}</button>
         </div>
       </div>
 
       {loading ? (
-        <div className={styles.loading}>Yüklənir...</div>
+        <div className={styles.loading}>{t("loading")}</div>
       ) : (
         <>
           {view === "week" && (
@@ -444,22 +444,22 @@ export default function SchedulePage() {
                       <div className={styles.statusDot} style={{ backgroundColor: "rgba(255,255,255,0.2)" }}></div>
                       <div>
                         <div className={styles.rowTitle}>{item.group.name}</div>
-                        <div className={styles.rowSubtitle}>{item.group.program?.name || "Program"}</div>
+                        <div className={styles.rowSubtitle}>{item.group.program?.name || t("noProgram")}</div>
                       </div>
                       <div className={styles.rowText}><Clock size={14} /> {days.find(d => d.num === item.schedule.dayOfWeek)?.name} {item.schedule.startTime}</div>
-                      <div className={styles.rowText}><User size={14} /> {item.group.teacher || "Təyin edilməyib"}</div>
+                      <div className={styles.rowText}><User size={14} /> {item.group.teacher || t("unassigned")}</div>
                       <div className={styles.rowText}>Room {item.schedule.room || item.group.room || "TBA"}</div>
                     </div>
                   ))
                 }
-                {groups.length === 0 && <div className={styles.emptyState}>No schedules found</div>}
+                {groups.length === 0 && <div className={styles.emptyState}>{t("noSchedules")}</div>}
               </div>
             </div>
           )}
 
           <div className={styles.panels}>
             <div className={styles.panel}>
-              <h3 className={styles.panelTitle}>Upcoming Classes</h3>
+              <h3 className={styles.panelTitle}>{t("upcomingClasses")}</h3>
               <div className={styles.upcomingList}>
                 {groups.flatMap(g => g.schedules).slice(0, 5).map((s, idx) => {
                   if(!s) return null;
@@ -472,10 +472,10 @@ export default function SchedulePage() {
                       <div className={styles.statusDot} style={{ backgroundColor: isSoon ? "var(--aqua-teal, #00C4B5)" : "rgba(255,255,255,0.2)" }}></div>
                       <div>
                         <div className={styles.rowTitle}>{group.name}</div>
-                        <div className={styles.rowSubtitle}>{group.program?.name || "Program"}</div>
+                        <div className={styles.rowSubtitle}>{group.program?.name || t("noProgram")}</div>
                       </div>
                       <div className={styles.rowText}><Clock size={14} /> {s.startTime}</div>
-                      <div className={styles.rowText}><User size={14} /> {group.teacher || "Təyin edilməyib"}</div>
+                      <div className={styles.rowText}><User size={14} /> {group.teacher || t("unassigned")}</div>
                       <div className={styles.rowText}>Room {s.room || group.room || "TBA"}</div>
                       <div className={styles.badge}>{isSoon ? "Next" : "Scheduled"}</div>
                     </div>
@@ -485,13 +485,13 @@ export default function SchedulePage() {
             </div>
 
             <div className={styles.panel}>
-              <h3 className={styles.panelTitle}>Class Details</h3>
+              <h3 className={styles.panelTitle}>{t("classDetails")}</h3>
               {selectedClass ? (
                 <div>
                   <div className={styles.detailsHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <h3 className={styles.detailsTitle}>{selectedClass.group.name}</h3>
-                <p className={styles.detailsSubtitle}>{selectedClass.group.program?.name || "Program"} • {selectedClass.group.teacher || "Təyin edilməyib"}</p>
+                <p className={styles.detailsSubtitle}>{selectedClass.group.program?.name || t("noProgram")} • {selectedClass.group.teacher || t("unassigned")}</p>
               </div>
               {canEdit && (
                 <button onClick={openEditScheduleModal} style={{ background: "var(--aqua-teal, #00C4B5)", color: "#fff", border: "none", padding: "0.4rem 1rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500 }}>
@@ -503,25 +503,25 @@ export default function SchedulePage() {
                   <div className={styles.detailsGrid}>
                     <div>
                       <div className={styles.infoBlock}>
-                        <div className={styles.infoLabel}>Frequency</div>
+                        <div className={styles.infoLabel}>{t("frequency")}</div>
                         <div className={styles.infoValue}>{selectedClass.group.schedules?.length || 0} lessons / week</div>
                       </div>
                       <div className={styles.infoBlock}>
-                        <div className={styles.infoLabel}>Duration</div>
+                        <div className={styles.infoLabel}>{t("duration")}</div>
                         <div className={styles.infoValue}>{selectedClass.schedule.startTime} - {selectedClass.schedule.endTime}</div>
                       </div>
                       <div className={styles.infoBlock}>
-                        <div className={styles.infoLabel}>Students</div>
+                        <div className={styles.infoLabel}>{t("students")}</div>
                         <div className={styles.infoValue}>{selectedClass.group._count?.students || 0} Students</div>
                       </div>
                       <div className={styles.infoBlock}>
-                        <div className={styles.infoLabel}>Room</div>
+                        <div className={styles.infoLabel}>{t("room")}</div>
                         <div className={styles.infoValue}>{selectedClass.schedule.room || selectedClass.group.room || "TBA"}</div>
                       </div>
                     </div>
                     
                     <div>
-                      <h4 className={styles.weeklyScheduleTitle}>Weekly Schedule</h4>
+                      <h4 className={styles.weeklyScheduleTitle}>{t("weeklySchedule")}</h4>
                       <div className={styles.weeklyList}>
                         {days.map(d => {
                           const hasClass = selectedClass.group.schedules?.find((s: any) => s.dayOfWeek === d.num);
@@ -563,7 +563,7 @@ export default function SchedulePage() {
               onClick={e => e.stopPropagation()}
             >
               <div className={styles.modalHeader}>
-                <h2>Add Schedule</h2>
+                <h2>{t("addScheduleBtn")}</h2>
                 <button className={styles.closeModalBtn} onClick={() => setShowModal(false)}>
                   <X size={20} />
                 </button>
@@ -571,7 +571,7 @@ export default function SchedulePage() {
 
               <form onSubmit={handleAddScheduleSubmit} className={styles.form}>
                 <div className={styles.inputGroup}>
-                  <label>Group *</label>
+                  <label>{t("groupLabel")}</label>
                   <select
                     required
                     value={formData.groupId}
@@ -585,35 +585,35 @@ export default function SchedulePage() {
                       });
                     }}
                   >
-                    <option value="">Select a group...</option>
+                    <option value="">{t("selectGroup")}</option>
                     {groups.map(g => (
                       <option key={g.id} value={g.id}>
-                        {g.name} ({g.program?.name || "No Program"})
+                        {g.name} ({g.program?.name || t("noProgram")})
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label>Day of Week *</label>
+                  <label>{t("dayOfWeekLabel")}</label>
                   <select
                     required
                     value={formData.dayOfWeek}
                     onChange={e => setFormData({ ...formData, dayOfWeek: e.target.value })}
                   >
-                    <option value="1">1 - Monday</option>
-                    <option value="2">2 - Tuesday</option>
-                    <option value="3">3 - Wednesday</option>
-                    <option value="4">4 - Thursday</option>
-                    <option value="5">5 - Friday</option>
-                    <option value="6">6 - Saturday</option>
-                    <option value="7">7 - Sunday</option>
+                    <option value="1">1 - {t("monday")}</option>
+                    <option value="2">2 - {t("tuesday")}</option>
+                    <option value="3">3 - {t("wednesday")}</option>
+                    <option value="4">4 - {t("thursday")}</option>
+                    <option value="5">5 - {t("friday")}</option>
+                    <option value="6">6 - {t("saturday")}</option>
+                    <option value="7">7 - {t("sunday")}</option>
                   </select>
                 </div>
 
                 <div className={styles.rowInputs}>
                   <div className={styles.inputGroup}>
-                    <label>Start Time *</label>
+                    <label>{t("startTimeLabel")}</label>
                     <input
                       required
                       type="time"
@@ -623,7 +623,7 @@ export default function SchedulePage() {
                   </div>
 
                   <div className={styles.inputGroup}>
-                    <label>End Time *</label>
+                    <label>{t("endTimeLabel")}</label>
                     <input
                       required
                       type="time"
@@ -634,7 +634,7 @@ export default function SchedulePage() {
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label>Room</label>
+                  <label>{t("room")}</label>
                   <input
                     type="text"
                     placeholder="e.g. Room 204"

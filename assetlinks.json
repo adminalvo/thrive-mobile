@@ -1,0 +1,14 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "az.thrive.app",
+      "sha256_cert_fingerprints": [
+        "18:E3:CF:90:D6:1F:93:47:7E:08:1E:8D:78:8C:09:5F:14:6D:A6:97:6E:75:8D:A8:8D:B5:59:5B:2D:86:67:73",
+        "07:E2:95:92:D8:AA:B2:FE:48:2D:AE:49:26:F6:6F:D0:EF:C5:2D:09:A1:7E:CE:20:E8:D1:61:11:95:EE:DF:D4",
+        "A8:64:AE:79:94:70:B6:74:60:96:94:2B:82:55:EC:0F:83:E8:2C:1C:AA:8F:06:13:DC:9E:24:1E:40:7E:AA:13"
+      ]
+    }
+  }
+]

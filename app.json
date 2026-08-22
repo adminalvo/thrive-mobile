@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A192F"
     },
@@ -16,21 +16,24 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "az.thrive.mobile"
+      "bundleIdentifier": "az.thrive.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#0A192F"
       },
-      "package": "az.thrive.mobile"
+      "package": "az.thrive.app"
     },
     "plugins": [
       "expo-secure-store"
     ],
     "extra": {
       "supabaseUrl": "https://bhiqieseyeamiqfgjssh.supabase.co",
-      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoaXFpZXNleWVhbWlxZmdqc3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3NzAwNDgsImV4cCI6MjEwMjM0NjA0OH0._C57EWi20k9OPitcYJSYJOvhQrWwdeuSwMzQINDX-kk"
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoaXFpZXNleWVhbWlxZmdqc3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3NzAwNDgsImV4cCI6MjEwMjM0NjA0OH0._C57EWi20k9OPitcYJSYJOvhQrWwdeuSwMzQINDX-kk",
+      "eas": {
+        "projectId": "thrive-mobile"
+      }
     }
   }
 }

@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="az">
+    <html lang="az" suppressHydrationWarning>
       <body>
         {children}
         <Analytics />

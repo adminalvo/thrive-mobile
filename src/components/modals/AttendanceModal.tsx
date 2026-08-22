@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Check, X, Users, UserCheck } from 'lucide-react-native';
 import { Colors, Radius, Spacing } from '../../config/theme';
+import { useLanguage } from '../../context/LanguageContext';
 import { teacherService } from '../../services/teacherService';
 import { TeacherStudentRosterItem } from '../../types/teacher.types';
 import { AttendanceStatus } from '../../types/database.types';
@@ -31,6 +32,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [students, setStudents] = useState<TeacherStudentRosterItem[]>([]);
@@ -88,7 +90,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerTitle}>Davamiyyət Qeydiyyatı</Text>
+            <Text style={styles.headerTitle}>{t('teacher.attendanceModalTitle')}</Text>
             <Text style={styles.groupSubtitle}>{groupName} • {dateStr}</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -98,7 +100,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
         <View style={styles.toolbar}>
           <ThriveButton
-            title="Hamısını 'İştirak etdi' et"
+            title={t('teacher.markAllPresent')}
             size="sm"
             variant="outline"
             onPress={handleMarkAllPresent}
@@ -109,7 +111,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>Tələbələr yüklənir...</Text>
+            <Text style={styles.loadingText}>{t('teacher.studentsLoading')}</Text>
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.rosterList}>
@@ -140,7 +142,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                           currentStatus === 'PRESENT' && styles.statusBtnTextActive,
                         ]}
                       >
-                        İştirak
+                        {t('teacher.presentShort')}
                       </Text>
                     </TouchableOpacity>
 
@@ -158,7 +160,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                           currentStatus === 'LATE' && styles.statusBtnTextActive,
                         ]}
                       >
-                        Gecikdi
+                        {t('teacher.lateShort')}
                       </Text>
                     </TouchableOpacity>
 
@@ -176,7 +178,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
                           currentStatus === 'ABSENT' && styles.statusBtnTextActive,
                         ]}
                       >
-                        Qayıb
+                        {t('teacher.absentShort')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -188,13 +190,13 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
         <View style={styles.footer}>
           <ThriveButton
-            title="Ləğv et"
+            title={t('common.cancel')}
             variant="secondary"
             onPress={onClose}
             style={{ flex: 1 }}
           />
           <ThriveButton
-            title="Davamiyyəti yadda saxla"
+            title={t('teacher.saveAttendance')}
             variant="primary"
             loading={saving}
             onPress={handleSave}

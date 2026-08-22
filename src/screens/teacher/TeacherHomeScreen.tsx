@@ -14,8 +14,6 @@ import {
   UserCheck,
   PlusCircle,
   FileCheck,
-  Award,
-  ChevronRight,
 } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
@@ -60,7 +58,7 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
   const [langModalVisible, setLangModalVisible] = useState(false);
 
   const teacherId = session?.teacherId;
-  const teacherName = session?.profile.first_name || 'Müəllim';
+  const teacherName = session?.profile.first_name || t('common.teacher');
 
   const loadData = useCallback(async (isRefresh = false) => {
     if (!teacherId) return;
@@ -110,7 +108,7 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
     <View style={styles.container}>
       <HeaderBar
         userName={`${getGreeting()}, ${teacherName} 👋`}
-        subtitle="Müəllim Portalı"
+        subtitle={t('teacher.portalTitle')}
         unreadCount={unreadCount}
         onNotificationsPress={onOpenNotifications}
         onLanguagePress={() => setLangModalVisible(true)}
@@ -177,7 +175,7 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
             {todaysClasses.length === 0 ? (
               <ThriveCard style={styles.emptyCard}>
                 <Clock size={24} color={Colors.textMuted} />
-                <Text style={styles.emptyText}>Bu gün üçün tədris dərsiniz yoxdur.</Text>
+                <Text style={styles.emptyText}>{t('teacher.noClassesToday')}</Text>
               </ThriveCard>
             ) : (
               todaysClasses.map((item, idx) => (
@@ -192,16 +190,16 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
                   <View style={styles.classMeta}>
                     <View style={styles.metaItem}>
                       <MapPin size={14} color={Colors.textMuted} />
-                      <Text style={styles.metaText}>Otaq: {item.room}</Text>
+                      <Text style={styles.metaText}>{t('teacher.roomLabel', { room: item.room })}</Text>
                     </View>
                     <View style={styles.metaItem}>
                       <Users size={14} color={Colors.textMuted} />
-                      <Text style={styles.metaText}>{item.studentCount} Tələbə</Text>
+                      <Text style={styles.metaText}>{t('teacher.studentsCount', { count: item.studentCount })}</Text>
                     </View>
                   </View>
 
                   <ThriveButton
-                    title="Davamiyyət yaz"
+                    title={t('teacher.takeAttendanceBtn')}
                     size="sm"
                     variant="outline"
                     onPress={() => openAttendanceForGroup(item.groupId, item.groupName)}
@@ -214,21 +212,21 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
 
             {/* PENDING WORK STATS */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Gözləyən İşlər</Text>
+              <Text style={styles.sectionTitle}>{t('teacher.pendingWork')}</Text>
             </View>
 
             <View style={styles.statsRow}>
               <StatCard
                 title={t('teacher.pendingGrading')}
                 value={submissionsCount}
-                subtitle="Yoxlanış gözləyir"
+                subtitle={t('common.pending')}
                 accentColor={Colors.warning}
                 icon={<FileCheck size={18} color={Colors.warning} />}
               />
               <StatCard
                 title={t('teacher.assignedGroups')}
                 value={groups.length}
-                subtitle="Aktiv qruplar"
+                subtitle={t('common.active')}
                 accentColor={Colors.primary}
                 icon={<Users size={18} color={Colors.primary} />}
               />

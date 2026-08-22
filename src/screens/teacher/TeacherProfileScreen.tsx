@@ -23,7 +23,7 @@ export const TeacherProfileScreen: React.FC = () => {
   const [langModalVisible, setLangModalVisible] = useState(false);
 
   const profile = session?.profile;
-  const fullName = `${profile?.first_name || 'Müəllim'} ${profile?.last_name || ''}`.trim();
+  const fullName = `${profile?.first_name || t('common.teacher')} ${profile?.last_name || ''}`.trim();
 
   const getLanguageLabel = () => {
     if (language === 'az') return 'Azərbaycan dili 🇦🇿';
@@ -33,7 +33,7 @@ export const TeacherProfileScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Mənim Profilim" subtitle="Müəllim Portalı və Tənzimləmələr" />
+      <HeaderBar title={t('teacher.profileTitle')} subtitle={t('teacher.profileSubtitle')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* User Card */}
@@ -42,18 +42,18 @@ export const TeacherProfileScreen: React.FC = () => {
           <Text style={styles.name}>{fullName}</Text>
           <Text style={styles.email}>{profile?.email || session?.email}</Text>
           <View style={{ marginTop: Spacing.sm }}>
-            <ThriveBadge label="Müəllim Portalı" variant="primary" />
+            <ThriveBadge label={t('teacher.portalTitle')} variant="primary" />
           </View>
         </ThriveCard>
 
         {/* Info list */}
-        <Text style={styles.sectionTitle}>Əlaqə Məlumatları</Text>
+        <Text style={styles.sectionTitle}>{t('teacher.contactInfo')}</Text>
         <ThriveCard style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Mail size={18} color={Colors.primary} />
             <View style={styles.infoTextCol}>
-              <Text style={styles.infoLabel}>E-poçt ünvanı</Text>
-              <Text style={styles.infoValue}>{profile?.email || 'Qeyd olunmayıb'}</Text>
+              <Text style={styles.infoLabel}>{t('common.teacher')} E-poçt</Text>
+              <Text style={styles.infoValue}>{profile?.email || t('common.notSpecified')}</Text>
             </View>
           </View>
 
@@ -62,14 +62,14 @@ export const TeacherProfileScreen: React.FC = () => {
           <View style={styles.infoRow}>
             <Phone size={18} color={Colors.primary} />
             <View style={styles.infoTextCol}>
-              <Text style={styles.infoLabel}>Telefon nömrəsi</Text>
-              <Text style={styles.infoValue}>{profile?.phone || 'Qeyd olunmayıb'}</Text>
+              <Text style={styles.infoLabel}>{t('common.teacher')} Telefon</Text>
+              <Text style={styles.infoValue}>{profile?.phone || t('common.notSpecified')}</Text>
             </View>
           </View>
         </ThriveCard>
 
         {/* Preferences */}
-        <Text style={styles.sectionTitle}>Tənzimləmələr</Text>
+        <Text style={styles.sectionTitle}>{t('teacher.settings')}</Text>
         <ThriveCard style={styles.infoCard}>
           <TouchableOpacity
             activeOpacity={0.7}
@@ -79,7 +79,7 @@ export const TeacherProfileScreen: React.FC = () => {
             <View style={styles.settingLeft}>
               <Globe size={20} color={Colors.primary} />
               <View>
-                <Text style={styles.settingTitle}>Tətbiqin Dili</Text>
+                <Text style={styles.settingTitle}>{t('teacher.appLanguage')}</Text>
                 <Text style={styles.settingSubtitle}>{getLanguageLabel()}</Text>
               </View>
             </View>

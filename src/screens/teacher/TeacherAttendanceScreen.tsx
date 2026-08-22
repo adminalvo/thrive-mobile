@@ -10,6 +10,7 @@ import {
 import { UserCheck, Users, Calendar } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { teacherService } from '../../services/teacherService';
 import { TeacherGroupItem } from '../../types/teacher.types';
 import { HeaderBar } from '../../components/common/HeaderBar';
@@ -22,6 +23,7 @@ import { AttendanceModal } from '../../components/modals/AttendanceModal';
 
 export const TeacherAttendanceScreen: React.FC = () => {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [groups, setGroups] = useState<TeacherGroupItem[]>([]);
@@ -57,7 +59,7 @@ export const TeacherAttendanceScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Davamiyyət İdarəsi" subtitle="Qruplar üzrə Davamiyyət Qeydiyyatı" />
+      <HeaderBar title={t('teacher.attendanceTitle')} subtitle={t('teacher.attendanceSubtitle')} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -69,8 +71,8 @@ export const TeacherAttendanceScreen: React.FC = () => {
           <SkeletonCardList count={3} />
         ) : groups.length === 0 ? (
           <EmptyState
-            title="Qrup tapılmadı"
-            description="Davamiyyət yazmaq üçün aktiv qrup tapılmadı."
+            title={t('common.empty')}
+            description={t('teacher.noGroups')}
           />
         ) : (
           groups.map((g) => (
@@ -79,15 +81,15 @@ export const TeacherAttendanceScreen: React.FC = () => {
                 <ThriveBadge label={g.programName} variant="primary" />
                 <View style={styles.studentBadge}>
                   <Users size={12} color={Colors.primary} />
-                  <Text style={styles.studentBadgeText}>{g.studentCount} Tələbə</Text>
+                  <Text style={styles.studentBadgeText}>{t('teacher.studentsCount', { count: g.studentCount })}</Text>
                 </View>
               </View>
 
               <Text style={styles.groupTitle}>{g.name}</Text>
-              <Text style={styles.roomText}>Otaq: {g.room}</Text>
+              <Text style={styles.roomText}>{t('teacher.roomLabel', { room: g.room })}</Text>
 
               <ThriveButton
-                title="Davamiyyət qeyd et"
+                title={t('teacher.recordAttendanceBtn')}
                 variant="primary"
                 onPress={() => {
                   setSelectedGroup(g);

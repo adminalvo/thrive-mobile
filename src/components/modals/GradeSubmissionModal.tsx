@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { X, Check } from 'lucide-react-native';
 import { Colors, Radius, Spacing } from '../../config/theme';
+import { useLanguage } from '../../context/LanguageContext';
 import { TeacherSubmissionToGrade } from '../../types/teacher.types';
 import { teacherService } from '../../services/teacherService';
 import { ThriveInput } from '../common/ThriveInput';
@@ -28,6 +29,8 @@ export const GradeSubmissionModal: React.FC<GradeSubmissionModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useLanguage();
+
   if (!submission) return null;
 
   const [score, setScore] = useState<string>(
@@ -39,7 +42,7 @@ export const GradeSubmissionModal: React.FC<GradeSubmissionModalProps> = ({
   const handleSaveGrade = async () => {
     const numScore = Number(score);
     if (isNaN(numScore) || numScore < 0 || numScore > submission.maxScore) {
-      alert(`Bal 0 ilə ${submission.maxScore} arasında olmalıdır.`);
+      alert(t('teacher.scoreRangeError', { max: submission.maxScore }));
       return;
     }
 
@@ -72,13 +75,13 @@ export const GradeSubmissionModal: React.FC<GradeSubmissionModalProps> = ({
           <ScrollView style={styles.body}>
             {submission.submissionText ? (
               <View style={styles.answerBox}>
-                <Text style={styles.answerLabel}>Tələbənin cavabı:</Text>
+                <Text style={styles.answerLabel}>{t('teacher.studentAnswerLabel')}</Text>
                 <Text style={styles.answerText}>{submission.submissionText}</Text>
               </View>
             ) : null}
 
             <ThriveInput
-              label={`Yekun Bal (Maksimum: ${submission.maxScore})`}
+              label={t('teacher.finalScoreLabel', { max: submission.maxScore })}
               placeholder={`0 - ${submission.maxScore}`}
               keyboardType="numeric"
               value={score}
@@ -86,8 +89,8 @@ export const GradeSubmissionModal: React.FC<GradeSubmissionModalProps> = ({
             />
 
             <ThriveInput
-              label="Müəllim Rəyi və Tövsiyəsi"
-              placeholder="Tələbəyə rəy və düzəlişlər qeyd edin..."
+              label={t('teacher.teacherFeedbackLabel')}
+              placeholder={t('teacher.teacherFeedbackPlaceholder')}
               multiline
               numberOfLines={3}
               style={{ height: 80, textAlignVertical: 'top' }}
@@ -98,13 +101,13 @@ export const GradeSubmissionModal: React.FC<GradeSubmissionModalProps> = ({
 
           <View style={styles.footer}>
             <ThriveButton
-              title="Ləğv et"
+              title={t('common.cancel')}
               variant="secondary"
               onPress={onClose}
               style={{ flex: 1 }}
             />
             <ThriveButton
-              title="Qiyməti Təsdiqlə"
+              title={t('teacher.confirmGradeBtn')}
               variant="success"
               loading={saving}
               onPress={handleSaveGrade}

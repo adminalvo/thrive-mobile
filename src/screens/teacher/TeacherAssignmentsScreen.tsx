@@ -10,6 +10,7 @@ import {
 import { Plus, Clock, FileCheck, CheckCircle2, Award } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { teacherService } from '../../services/teacherService';
 import {
   TeacherGroupItem,
@@ -28,6 +29,7 @@ type AssignmentTab = 'active' | 'submissions';
 
 export const TeacherAssignmentsScreen: React.FC = () => {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<AssignmentTab>('active');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -75,7 +77,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Tapşırıq İdarəsi" subtitle="Ev Tapşırıqları və Qiymətləndirmə" />
+      <HeaderBar title={t('teacher.assignmentsTitle')} subtitle={t('teacher.assignmentsSubtitle')} />
 
       {/* Main Tabs */}
       <View style={styles.segmentedControl}>
@@ -84,7 +86,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'active' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'active' && styles.segmentTextActive]}>
-            Aktiv Tapşırıqlar ({assignments.length})
+            {t('teacher.activeAssignments')} ({assignments.length})
           </Text>
         </TouchableOpacity>
 
@@ -93,7 +95,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'submissions' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'submissions' && styles.segmentTextActive]}>
-            Təhvil Verilənlər ({submissions.length})
+            {t('teacher.submissions')} ({submissions.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -102,7 +104,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
       {activeTab === 'active' && (
         <View style={styles.toolbar}>
           <ThriveButton
-            title="Yeni Tapşırıq Yarat"
+            title={t('teacher.newAssignmentBtn')}
             size="sm"
             variant="primary"
             onPress={() => setCreateModalVisible(true)}
@@ -122,15 +124,15 @@ export const TeacherAssignmentsScreen: React.FC = () => {
         ) : activeTab === 'active' ? (
           assignments.length === 0 ? (
             <EmptyState
-              title="Tapşırıq yoxdur"
-              description="Hələlik heç bir tapşırıq yaradılmayıb. 'Yeni Tapşırıq Yarat' düyməsinə klikləyərək əlavə edin."
+              title={t('common.empty')}
+              description={t('teacher.noActiveAssignments')}
             />
           ) : (
             assignments.map((item) => (
               <ThriveCard key={item.id} style={styles.card}>
                 <View style={styles.cardHeader}>
                   <ThriveBadge label={item.groupName} variant="primary" />
-                  <Text style={styles.maxScoreText}>Maks. Bal: {item.maxScore}</Text>
+                  <Text style={styles.maxScoreText}>{t('teacher.maxScoreFormatted', { max: item.maxScore })}</Text>
                 </View>
 
                 <Text style={styles.itemTitle}>{item.title}</Text>
@@ -141,7 +143,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
                 {item.dueDate ? (
                   <View style={styles.metaRow}>
                     <Clock size={13} color={Colors.textMuted} />
-                    <Text style={styles.metaText}>Son təhvil tarixi: {item.dueDate}</Text>
+                    <Text style={styles.metaText}>{t('teacher.dueDateFormatted', { date: item.dueDate })}</Text>
                   </View>
                 ) : null}
               </ThriveCard>
@@ -150,8 +152,8 @@ export const TeacherAssignmentsScreen: React.FC = () => {
         ) : (
           submissions.length === 0 ? (
             <EmptyState
-              title="Təhvil verilmiş iş yoxdur"
-              description="Tələbələr tərəfindən hələlik yoxlanış üçün cavab göndərilməyib."
+              title={t('common.empty')}
+              description={t('teacher.noSubmissions')}
             />
           ) : (
             submissions.map((sub) => (
@@ -159,7 +161,11 @@ export const TeacherAssignmentsScreen: React.FC = () => {
                 <View style={styles.cardHeader}>
                   <ThriveBadge label={sub.groupName} variant="primary" />
                   <ThriveBadge
-                    label={sub.status === 'graded' ? `Bal: ${sub.score}/${sub.maxScore}` : 'Gözləyir'}
+                    label={
+                      sub.status === 'graded'
+                        ? t('teacher.scoreFormatted', { score: sub.score || 0, max: sub.maxScore })
+                        : t('teacher.pendingBadge')
+                    }
                     variant={sub.status === 'graded' ? 'success' : 'warning'}
                   />
                 </View>
@@ -169,7 +175,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
 
                 {sub.submissionText ? (
                   <View style={styles.answerBox}>
-                    <Text style={styles.answerLabel}>Cavab:</Text>
+                    <Text style={styles.answerLabel}>{t('teacher.studentAnswerLabel')}</Text>
                     <Text style={styles.answerText} numberOfLines={2}>
                       {sub.submissionText}
                     </Text>
@@ -177,7 +183,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
                 ) : null}
 
                 <ThriveButton
-                  title={sub.status === 'graded' ? "Qiyməti Dəyiş" : "Yoxla və Qiymətləndir"}
+                  title={sub.status === 'graded' ? t('teacher.changeGradeBtn') : t('teacher.gradeNowBtn')}
                   size="sm"
                   variant={sub.status === 'graded' ? "outline" : "primary"}
                   onPress={() => setSelectedSubmission(sub)}

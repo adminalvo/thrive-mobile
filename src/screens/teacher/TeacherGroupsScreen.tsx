@@ -10,6 +10,7 @@ import {
 import { Users, MapPin, Calendar, UserCheck, ChevronRight } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { teacherService } from '../../services/teacherService';
 import { TeacherGroupItem } from '../../types/teacher.types';
 import { HeaderBar } from '../../components/common/HeaderBar';
@@ -28,6 +29,7 @@ export const TeacherGroupsScreen: React.FC<TeacherGroupsScreenProps> = ({
   onOpenStudentDetail,
 }) => {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [groups, setGroups] = useState<TeacherGroupItem[]>([]);
@@ -62,9 +64,19 @@ export const TeacherGroupsScreen: React.FC<TeacherGroupsScreenProps> = ({
     loadGroups();
   };
 
+  const daysMap: Record<number, string> = {
+    1: t('days.mon'),
+    2: t('days.tue'),
+    3: t('days.wed'),
+    4: t('days.thu'),
+    5: t('days.fri'),
+    6: t('days.sat'),
+    7: t('days.sun'),
+  };
+
   return (
     <View style={styles.container}>
-      <HeaderBar title="Tədris Qrupları" subtitle="Müəllimə Təhkim Olunmuş Qruplar" />
+      <HeaderBar title={t('teacher.groupsTitle')} subtitle={t('teacher.groupsSubtitle')} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -76,8 +88,8 @@ export const TeacherGroupsScreen: React.FC<TeacherGroupsScreenProps> = ({
           <SkeletonCardList count={3} />
         ) : groups.length === 0 ? (
           <EmptyState
-            title="Qrup tapılmadı"
-            description="Hazırda sizə təhkim olunmuş aktiv qrup qeydiyyatı yoxdur."
+            title={t('common.empty')}
+            description={t('teacher.noGroups')}
           />
         ) : (
           groups.map((group) => (
@@ -86,7 +98,7 @@ export const TeacherGroupsScreen: React.FC<TeacherGroupsScreenProps> = ({
                 <ThriveBadge label={group.programName} variant="primary" />
                 <View style={styles.studentBadge}>
                   <Users size={12} color={Colors.primary} />
-                  <Text style={styles.studentBadgeText}>{group.studentCount} Tələbə</Text>
+                  <Text style={styles.studentBadgeText}>{t('teacher.studentsCount', { count: group.studentCount })}</Text>
                 </View>
               </View>
 
@@ -95,30 +107,27 @@ export const TeacherGroupsScreen: React.FC<TeacherGroupsScreenProps> = ({
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
                   <MapPin size={13} color={Colors.textMuted} />
-                  <Text style={styles.metaText}>Otaq: {group.room}</Text>
+                  <Text style={styles.metaText}>{t('teacher.roomLabel', { room: group.room })}</Text>
                 </View>
               </View>
 
               {/* Weekly schedule summary */}
               <View style={styles.scheduleBox}>
-                <Text style={styles.scheduleTitle}>Həftəlik Dərs Saatları:</Text>
+                <Text style={styles.scheduleTitle}>{t('teacher.weeklySchedule')}:</Text>
                 {group.schedules.length === 0 ? (
-                  <Text style={styles.noScheduleText}>Cədvəl qeyd edilməyib</Text>
+                  <Text style={styles.noScheduleText}>{t('teacher.noScheduleSet')}</Text>
                 ) : (
-                  group.schedules.map((s, idx) => {
-                    const daysMap = ['', 'B.e', 'Ç.a', 'Çər', 'C.a', 'Cüm', 'Şən', 'Baz'];
-                    return (
-                      <Text key={idx} style={styles.scheduleItemText}>
-                        • {daysMap[s.dayOfWeek] || 'Gün'}: {s.startTime} – {s.endTime} ({s.room})
-                      </Text>
-                    );
-                  })
+                  group.schedules.map((s, idx) => (
+                    <Text key={idx} style={styles.scheduleItemText}>
+                      • {daysMap[s.dayOfWeek] || 'Gün'}: {s.startTime} – {s.endTime} ({s.room})
+                    </Text>
+                  ))
                 )}
               </View>
 
               <View style={styles.btnRow}>
                 <ThriveButton
-                  title="Davamiyyət yaz"
+                  title={t('teacher.takeAttendanceBtn')}
                   size="sm"
                   variant="primary"
                   onPress={() => {

@@ -7,8 +7,9 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { X, Plus } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import { Colors, Radius, Spacing } from '../../config/theme';
+import { useLanguage } from '../../context/LanguageContext';
 import { teacherService } from '../../services/teacherService';
 import { TeacherGroupItem } from '../../types/teacher.types';
 import { ThriveInput } from '../common/ThriveInput';
@@ -27,6 +28,7 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useLanguage();
   const [selectedGroupId, setSelectedGroupId] = useState<string>(groups[0]?.id || '');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -36,7 +38,7 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
 
   const handleCreate = async () => {
     if (!selectedGroupId || !title.trim()) {
-      alert('Zəhmət olmasa qrup və tapşırıq başlığını qeyd edin.');
+      alert(t('auth.emptyFields'));
       return;
     }
 
@@ -56,7 +58,7 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
       onSuccess && onSuccess();
       onClose();
     } else {
-      alert(res.error || 'Xəta baş verdi');
+      alert(res.error || t('common.error'));
     }
   };
 
@@ -67,14 +69,14 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
           <View style={styles.sheetHandle} />
 
           <View style={styles.header}>
-            <Text style={styles.title}>Yeni Ev Tapşırığı Yarat</Text>
+            <Text style={styles.title}>{t('teacher.createAssignmentModalTitle')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <X size={20} color={Colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.body}>
-            <Text style={styles.label}>Qrup Seçin</Text>
+            <Text style={styles.label}>{t('teacher.selectGroup')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupScroll}>
               {groups.map((g) => {
                 const isSelected = g.id === selectedGroupId;
@@ -93,15 +95,15 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             </ScrollView>
 
             <ThriveInput
-              label="Tapşırığın Başlığı"
-              placeholder="Məs: SAT Math Bölmə 3 Sual 1-20"
+              label={t('teacher.assignmentTitleLabel')}
+              placeholder={t('teacher.assignmentTitlePlaceholder')}
               value={title}
               onChangeText={setTitle}
             />
 
             <ThriveInput
-              label="Təsvir / Tələblər"
-              placeholder="Tapşırıq haqqında ətraflı qeydlər..."
+              label={t('teacher.assignmentDescLabel')}
+              placeholder={t('teacher.assignmentDescPlaceholder')}
               multiline
               numberOfLines={3}
               style={{ height: 80, textAlignVertical: 'top' }}
@@ -112,15 +114,15 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             <View style={styles.row}>
               <View style={{ flex: 1 }}>
                 <ThriveInput
-                  label="Son Tarix (YYYY-MM-DD)"
+                  label={t('teacher.dueDateLabel')}
                   placeholder="2026-09-01"
                   value={dueDate}
                   onChangeText={setDueDate}
                 />
               </View>
-              <View style={{ width: 100 }}>
+              <View style={{ width: 110 }}>
                 <ThriveInput
-                  label="Maks. Bal"
+                  label={t('teacher.maxScoreLabel')}
                   keyboardType="numeric"
                   value={maxScore}
                   onChangeText={setMaxScore}
@@ -131,13 +133,13 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
 
           <View style={styles.footer}>
             <ThriveButton
-              title="Ləğv et"
+              title={t('common.cancel')}
               variant="secondary"
               onPress={onClose}
               style={{ flex: 1 }}
             />
             <ThriveButton
-              title="Tapşırığı Yarat"
+              title={t('teacher.createAssignmentSubmit')}
               variant="primary"
               loading={saving}
               onPress={handleCreate}

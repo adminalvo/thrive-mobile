@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -44,17 +44,11 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
   const parentId = session?.parentId;
   const parentName = session?.profile.first_name || 'Valideyn';
 
-  useEffect(() => {
-    if (parentId) {
-      loadData();
-    }
-  }, [parentId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async (isRefresh = false) => {
     if (!parentId) return;
     try {
       const [kids, unread] = await Promise.all([
-        parentService.getChildren(parentId),
+        parentService.getChildren(parentId, isRefresh),
         session?.userId ? notificationService.getUnreadCount(session.userId) : Promise.resolve(0),
       ]);
 
@@ -70,11 +64,17 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [parentId, activeChildId, setActiveChildId, session?.userId]);
+
+  useEffect(() => {
+    if (parentId) {
+      loadData();
+    }
+  }, [parentId, loadData]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadData();
+    loadData(true);
   };
 
   const activeChild = childrenList.find((c) => c.studentId === activeChildId) || childrenList[0];
@@ -102,7 +102,7 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
       >
-        {loading ? (
+        {loading && childrenList.length === 0 ? (
           <SkeletonCardList count={3} />
         ) : childrenList.length === 0 ? (
           <EmptyState

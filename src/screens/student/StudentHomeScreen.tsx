@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -52,27 +52,19 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
   const studentId = session?.studentId;
   const studentName = session?.profile.first_name || 'Tələbə';
 
-  useEffect(() => {
-    if (studentId) {
-      loadData();
-    }
-  }, [studentId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async (isRefresh = false) => {
     if (!studentId) return;
     try {
-      const [next, todays, prog, payments, unread] = await Promise.all([
-        studentService.getNextClass(studentId),
-        studentService.getTodaysClasses(studentId),
-        studentService.getStudentProgress(studentId),
-        studentService.getStudentPaymentSummary(studentId),
+      // 1-Hop Ultra-Fast Batched & Cached Fetch
+      const [homeData, unread] = await Promise.all([
+        studentService.getStudentHomeData(studentId, isRefresh),
         session?.userId ? notificationService.getUnreadCount(session.userId) : Promise.resolve(0),
       ]);
 
-      setNextClass(next);
-      setTodaysClasses(todays);
-      setProgress(prog);
-      setPaymentSummary(payments);
+      setNextClass(homeData.nextClass);
+      setTodaysClasses(homeData.todaysClasses);
+      setProgress(homeData.progress);
+      setPaymentSummary(homeData.paymentSummary);
       setUnreadCount(unread);
     } catch (e) {
       console.error('Error loading student home data:', e);
@@ -80,11 +72,17 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [studentId, session?.userId]);
+
+  useEffect(() => {
+    if (studentId) {
+      loadData();
+    }
+  }, [studentId, loadData]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadData();
+    loadData(true);
   };
 
   const getGreeting = () => {
@@ -116,7 +114,7 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
       >
-        {loading ? (
+        {loading && !nextClass && !progress ? (
           <SkeletonCardList count={3} />
         ) : (
           <>

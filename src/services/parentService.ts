@@ -1,37 +1,20 @@
 import { supabase } from '../config/supabase';
 import { ChildOverview } from '../types/parent.types';
 import { studentService } from './studentService';
+import { cacheManager } from '../utils/cacheManager';
 
 export const parentService = {
-  async getChildren(parentId: string): Promise<ChildOverview[]> {
-    try {
-      // 1. Check student_parents first
-      const { data: studentParents, error } = await supabase
-        .from('student_parents')
-        .select(`
-          student_id,
-          relation_type,
-          students:student_id (
-            id,
-            program,
-            user_profiles:profile_id (
-              first_name,
-              last_name,
-              email,
-              phone
-            )
-          )
-        `)
-        .eq('parent_id', parentId);
-
-      let studentRows: any[] = (studentParents || []).map((sp: any) => sp.students).filter(Boolean);
-
-      // Fallback: check parent_students if empty
-      if (studentRows.length === 0) {
-        const { data: ps } = await supabase
-          .from('parent_students')
+  async getChildren(parentId: string, forceRefresh = false): Promise<ChildOverview[]> {
+    const cacheKey = `parent_children_${parentId}`;
+    const result = await cacheManager.fetchWithCache<ChildOverview[]>(
+      cacheKey,
+      async () => {
+        // 1. Fetch student-parent links
+        const { data: studentParents } = await supabase
+          .from('student_parents')
           .select(`
             student_id,
+            relation_type,
             students:student_id (
               id,
               program,
@@ -45,50 +28,73 @@ export const parentService = {
           `)
           .eq('parent_id', parentId);
 
-        studentRows = (ps || []).map((p: any) => p.students).filter(Boolean);
-      }
+        let studentRows: any[] = (studentParents || []).map((sp: any) => sp.students).filter(Boolean);
 
-      // If still empty, grab any students for demonstration if in testing, or return empty
-      if (studentRows.length === 0) {
-        return [];
-      }
+        if (studentRows.length === 0) {
+          const { data: ps } = await supabase
+            .from('parent_students')
+            .select(`
+              student_id,
+              students:student_id (
+                id,
+                program,
+                user_profiles:profile_id (
+                  first_name,
+                  last_name,
+                  email,
+                  phone
+                )
+              )
+            `)
+            .eq('parent_id', parentId);
 
-      const children: ChildOverview[] = [];
+          studentRows = (ps || []).map((p: any) => p.students).filter(Boolean);
+        }
 
-      for (const s of studentRows) {
-        const profile = s.user_profiles || {};
-        const fullName = `${profile.first_name || 'Tələbə'} ${profile.last_name || ''}`.trim();
-        const programsList = s.program
-          ? s.program.split(',').map((p: string) => p.trim())
-          : ['Ümumi Proqram'];
+        if (studentRows.length === 0) {
+          return [];
+        }
 
-        // Fetch child quick stats
-        const [progress, nextClass, payments] = await Promise.all([
-          studentService.getStudentProgress(s.id),
-          studentService.getNextClass(s.id),
-          studentService.getStudentPaymentSummary(s.id),
-        ]);
+        // 2. Fetch all children data in parallel
+        const children = await Promise.all(
+          studentRows.map(async (s: any) => {
+            const profile = s.user_profiles || {};
+            const fullName = `${profile.first_name || 'Tələbə'} ${profile.last_name || ''}`.trim();
+            const programsList = s.program
+              ? s.program.split(',').map((p: string) => p.trim())
+              : ['Ümumi Proqram'];
 
-        children.push({
-          studentId: s.id,
-          fullName,
-          email: profile.email,
-          phone: profile.phone,
-          programs: programsList,
-          attendanceRate: progress.attendanceRate,
-          nextClassTime: nextClass ? `${nextClass.startTime} - ${nextClass.endTime}` : undefined,
-          nextClassSubject: nextClass?.programName || nextClass?.groupName,
-          pendingAssignmentsCount: progress.pendingAssignmentsCount,
-          paymentStatus: payments.remainingDebt <= 0 ? 'Ödənilib' : `${payments.remainingDebt} ₼ Qalıq`,
-          stats: progress,
-          paymentSummary: payments,
-        });
-      }
+            // 1-Hop batched retrieval for each child
+            const homeData = await studentService.getStudentHomeData(s.id, forceRefresh);
 
-      return children;
-    } catch (e) {
-      console.error('Error fetching parent children:', e);
-      return [];
-    }
+            return {
+              studentId: s.id,
+              fullName,
+              email: profile.email,
+              phone: profile.phone,
+              programs: programsList,
+              attendanceRate: homeData.progress.attendanceRate,
+              nextClassTime: homeData.nextClass
+                ? `${homeData.nextClass.startTime} - ${homeData.nextClass.endTime}`
+                : undefined,
+              nextClassSubject: homeData.nextClass?.programName || homeData.nextClass?.groupName,
+              pendingAssignmentsCount: homeData.progress.pendingAssignmentsCount,
+              paymentStatus:
+                homeData.paymentSummary.remainingDebt <= 0
+                  ? 'Ödənilib'
+                  : `${homeData.paymentSummary.remainingDebt} ₼ Qalıq`,
+              stats: homeData.progress,
+              paymentSummary: homeData.paymentSummary,
+            };
+          })
+        );
+
+        return children;
+      },
+      3 * 60 * 1000,
+      forceRefresh
+    );
+
+    return result.data;
   },
 };

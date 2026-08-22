@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -62,25 +62,17 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
   const teacherId = session?.teacherId;
   const teacherName = session?.profile.first_name || 'Müəllim';
 
-  useEffect(() => {
-    if (teacherId) {
-      loadData();
-    }
-  }, [teacherId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async (isRefresh = false) => {
     if (!teacherId) return;
     try {
-      const [classes, allGroups, subs, unread] = await Promise.all([
-        teacherService.getTodaysClasses(teacherId),
-        teacherService.getTeacherGroups(teacherId),
-        teacherService.getSubmissionsToGrade(),
+      const [homeData, unread] = await Promise.all([
+        teacherService.getTeacherHomeData(teacherId, isRefresh),
         session?.userId ? notificationService.getUnreadCount(session.userId) : Promise.resolve(0),
       ]);
 
-      setTodaysClasses(classes);
-      setGroups(allGroups);
-      setSubmissionsCount(subs.filter(s => s.status !== 'graded').length);
+      setTodaysClasses(homeData.todaysClasses);
+      setGroups(homeData.groups);
+      setSubmissionsCount(homeData.pendingSubmissionsCount);
       setUnreadCount(unread);
     } catch (e) {
       console.error('Error loading teacher data:', e);
@@ -88,11 +80,17 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [teacherId, session?.userId]);
+
+  useEffect(() => {
+    if (teacherId) {
+      loadData();
+    }
+  }, [teacherId, loadData]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadData();
+    loadData(true);
   };
 
   const openAttendanceForGroup = (groupId: string, groupName: string) => {
@@ -124,7 +122,7 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
       >
-        {loading ? (
+        {loading && groups.length === 0 ? (
           <SkeletonCardList count={3} />
         ) : (
           <>
@@ -245,7 +243,7 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
         groupId={attendanceGroupId}
         groupName={attendanceGroupName}
         onClose={() => setAttendanceModalVisible(false)}
-        onSuccess={() => loadData()}
+        onSuccess={() => loadData(true)}
       />
 
       {/* Create Assignment Modal */}
@@ -253,7 +251,7 @@ export const TeacherHomeScreen: React.FC<TeacherHomeScreenProps> = ({
         visible={createAssModalVisible}
         groups={groups}
         onClose={() => setCreateAssModalVisible(false)}
-        onSuccess={() => loadData()}
+        onSuccess={() => loadData(true)}
       />
 
       {/* Language Picker Modal */}

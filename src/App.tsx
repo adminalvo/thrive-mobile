@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Screens
 import { SplashScreen } from './screens/auth/SplashScreen';
+import { WelcomeScreen } from './screens/auth/WelcomeScreen';
 import { LoginScreen } from './screens/auth/LoginScreen';
 import { NotificationsScreen } from './screens/global/NotificationsScreen';
 
@@ -40,13 +41,17 @@ const MainNavigator: React.FC = () => {
   const { session, loading } = useAuth();
   const [currentTab, setCurrentTab] = useState<string>('home');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   if (loading) {
     return <SplashScreen />;
   }
 
   if (!session) {
-    return <LoginScreen />;
+    if (!showLogin) {
+      return <WelcomeScreen onGetStarted={() => setShowLogin(true)} />;
+    }
+    return <LoginScreen onBackToWelcome={() => setShowLogin(false)} />;
   }
 
   if (showNotifications) {

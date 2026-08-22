@@ -18,16 +18,6 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 import { ClassDetailModal } from '../../components/modals/ClassDetailModal';
 
-const DAYS = [
-  { num: 1, label: 'B.e' },
-  { num: 2, label: 'Ç.a' },
-  { num: 3, label: 'Çər' },
-  { num: 4, label: 'C.a' },
-  { num: 5, label: 'Cüm' },
-  { num: 6, label: 'Şən' },
-  { num: 7, label: 'Baz' },
-];
-
 export const StudentScheduleScreen: React.FC = () => {
   const { session } = useAuth();
   const { t } = useLanguage();
@@ -41,6 +31,16 @@ export const StudentScheduleScreen: React.FC = () => {
   const [selectedLesson, setSelectedLesson] = useState<LessonScheduleItem | null>(null);
 
   const studentId = session?.studentId;
+
+  const DAYS = [
+    { num: 1, label: t('days.mon') },
+    { num: 2, label: t('days.tue') },
+    { num: 3, label: t('days.wed') },
+    { num: 4, label: t('days.thu') },
+    { num: 5, label: t('days.fri') },
+    { num: 6, label: t('days.sat') },
+    { num: 7, label: t('days.sun') },
+  ];
 
   useEffect(() => {
     if (studentId) {
@@ -70,7 +70,7 @@ export const StudentScheduleScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Dərs Cədvəli" subtitle="Həftəlik Tədris Qrafiki" />
+      <HeaderBar title={t('student.scheduleTitle')} subtitle={t('student.scheduleSubtitle')} />
 
       {/* Weekday selector */}
       <View style={styles.daysBar}>
@@ -107,8 +107,8 @@ export const StudentScheduleScreen: React.FC = () => {
           <SkeletonCardList count={3} />
         ) : filteredLessons.length === 0 ? (
           <EmptyState
-            title="Bu gün üçün dərs yoxdur"
-            description="Seçilmiş gün üçün planlaşdırılmış dərs qeydi tapılmadı."
+            title={t('common.empty')}
+            description={t('student.noClassesToday')}
           />
         ) : (
           filteredLessons.map((item) => (

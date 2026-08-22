@@ -9,10 +9,10 @@ import {
   Users,
   TrendingUp,
   FileCheck,
-  Award,
 } from 'lucide-react-native';
-import { Colors, Spacing, Radius } from '../../config/theme';
+import { Colors, Spacing } from '../../config/theme';
 import { UserRole } from '../../types/database.types';
+import { useLanguage } from '../../context/LanguageContext';
 
 export interface TabItem {
   key: string;
@@ -31,36 +31,38 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
   currentTab,
   onTabPress,
 }) => {
+  const { t } = useLanguage();
+
   const getTabsForRole = (): TabItem[] => {
     if (role === 'student') {
       return [
-        { key: 'home', label: 'Əsas', iconName: 'home' },
-        { key: 'schedule', label: 'Cədvəl', iconName: 'schedule' },
-        { key: 'learning', label: 'Tədris', iconName: 'learning' },
-        { key: 'payments', label: 'Ödəniş', iconName: 'payments' },
-        { key: 'profile', label: 'Profil', iconName: 'profile' },
+        { key: 'home', label: t('nav.home'), iconName: 'home' },
+        { key: 'schedule', label: t('nav.schedule'), iconName: 'schedule' },
+        { key: 'learning', label: t('nav.learning'), iconName: 'learning' },
+        { key: 'payments', label: t('nav.payments'), iconName: 'payments' },
+        { key: 'profile', label: t('nav.profile'), iconName: 'profile' },
       ];
     }
     if (role === 'parent') {
       return [
-        { key: 'home', label: 'Əsas', iconName: 'home' },
-        { key: 'children', label: 'Övladlar', iconName: 'children' },
-        { key: 'schedule', label: 'Cədvəl', iconName: 'schedule' },
-        { key: 'progress', label: 'Tərəqqi', iconName: 'progress' },
-        { key: 'payments', label: 'Ödəniş', iconName: 'payments' },
-        { key: 'profile', label: 'Profil', iconName: 'profile' },
+        { key: 'home', label: t('nav.home'), iconName: 'home' },
+        { key: 'children', label: t('nav.children'), iconName: 'children' },
+        { key: 'schedule', label: t('nav.schedule'), iconName: 'schedule' },
+        { key: 'progress', label: t('nav.progress'), iconName: 'progress' },
+        { key: 'payments', label: t('nav.payments'), iconName: 'payments' },
+        { key: 'profile', label: t('nav.profile'), iconName: 'profile' },
       ];
     }
     if (role === 'teacher') {
       return [
-        { key: 'home', label: 'Əsas', iconName: 'home' },
-        { key: 'schedule', label: 'Cədvəl', iconName: 'schedule' },
-        { key: 'groups', label: 'Qruplar', iconName: 'groups' },
-        { key: 'assignments', label: 'Tapşırıq', iconName: 'assignments' },
-        { key: 'profile', label: 'Profil', iconName: 'profile' },
+        { key: 'home', label: t('nav.home'), iconName: 'home' },
+        { key: 'schedule', label: t('nav.schedule'), iconName: 'schedule' },
+        { key: 'groups', label: t('nav.groups'), iconName: 'groups' },
+        { key: 'assignments', label: t('nav.assignments'), iconName: 'assignments' },
+        { key: 'profile', label: t('nav.profile'), iconName: 'profile' },
       ];
     }
-    return [{ key: 'home', label: 'Əsas', iconName: 'home' }];
+    return [{ key: 'home', label: t('nav.home'), iconName: 'home' }];
   };
 
   const renderIcon = (iconName: string, isFocused: boolean) => {

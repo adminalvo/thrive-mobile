@@ -7,7 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { Users, Calendar, TrendingUp, CreditCard, Clock, CheckCircle } from 'lucide-react-native';
+import { Calendar, TrendingUp, CreditCard, Clock, CheckCircle } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -42,7 +42,7 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
   const [langModalVisible, setLangModalVisible] = useState(false);
 
   const parentId = session?.parentId;
-  const parentName = session?.profile.first_name || 'Valideyn';
+  const parentName = session?.profile.first_name || t('common.parent');
 
   const loadData = useCallback(async (isRefresh = false) => {
     if (!parentId) return;
@@ -90,7 +90,7 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
     <View style={styles.container}>
       <HeaderBar
         userName={`${getGreeting()}, ${parentName} 👋`}
-        subtitle="Valideyn İcmalı"
+        subtitle={t('parent.parentOverview')}
         unreadCount={unreadCount}
         onNotificationsPress={onOpenNotifications}
         onLanguagePress={() => setLangModalVisible(true)}
@@ -106,15 +106,15 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
           <SkeletonCardList count={3} />
         ) : childrenList.length === 0 ? (
           <EmptyState
-            title="Övlad tapılmadı"
-            description="Hesabınıza bağlı heç bir tələbə qeydiyyatı tapılmadı. Zəhmət olmasa tədris mərkəzinin administratoru ilə əlaqə saxlayın."
+            title={t('common.empty')}
+            description={t('parent.noChildrenLinked')}
           />
         ) : (
           <>
             {/* Child Selector Carousel */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{t('parent.myChildren')}</Text>
-              <Text style={styles.childCountText}>{childrenList.length} Övlad</Text>
+              <Text style={styles.childCountText}>{childrenList.length} {t('common.student')}</Text>
             </View>
 
             <ChildSelectorCarousel
@@ -133,7 +133,7 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
                       {activeChild.programs.join(', ')}
                     </Text>
                   </View>
-                  <ThriveBadge label="Aktiv Tələbə" variant="primary" />
+                  <ThriveBadge label={t('parent.activeStudent')} variant="primary" />
                 </View>
 
                 {/* Quick Child Metrics */}
@@ -142,7 +142,7 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
                     style={styles.metricItem}
                     onPress={() => onNavigateTab('progress')}
                   >
-                    <Text style={styles.metricLabel}>Davamiyyət</Text>
+                    <Text style={styles.metricLabel}>{t('parent.attendance')}</Text>
                     <Text style={[styles.metricVal, { color: Colors.success }]}>
                       {activeChild.attendanceRate}%
                     </Text>
@@ -154,9 +154,9 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
                     style={styles.metricItem}
                     onPress={() => onNavigateTab('schedule')}
                   >
-                    <Text style={styles.metricLabel}>Növbəti Dərs</Text>
+                    <Text style={styles.metricLabel}>{t('parent.nextClass')}</Text>
                     <Text style={styles.metricVal} numberOfLines={1}>
-                      {activeChild.nextClassTime || 'Planlaşdırılmayıb'}
+                      {activeChild.nextClassTime || t('common.unassigned')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -168,7 +168,7 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
                     onPress={() => onNavigateTab('schedule')}
                   >
                     <Calendar size={18} color={Colors.primary} />
-                    <Text style={styles.actionTabText}>Cədvəl</Text>
+                    <Text style={styles.actionTabText}>{t('nav.schedule')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -176,7 +176,7 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
                     onPress={() => onNavigateTab('progress')}
                   >
                     <TrendingUp size={18} color={Colors.primary} />
-                    <Text style={styles.actionTabText}>Tərəqqi</Text>
+                    <Text style={styles.actionTabText}>{t('nav.progress')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -184,7 +184,7 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
                     onPress={() => onNavigateTab('payments')}
                   >
                     <CreditCard size={18} color={Colors.primary} />
-                    <Text style={styles.actionTabText}>Ödəniş</Text>
+                    <Text style={styles.actionTabText}>{t('nav.payments')}</Text>
                   </TouchableOpacity>
                 </View>
               </ThriveCard>
@@ -192,21 +192,21 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
 
             {/* Academic Status Overview */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Akademik Vəziyyət</Text>
+              <Text style={styles.sectionTitle}>{t('parent.academicStatus')}</Text>
             </View>
 
             <View style={styles.statsRow}>
               <StatCard
-                title="Davamiyyət Faizi"
+                title={t('parent.attendance')}
                 value={`${activeChild?.attendanceRate || 100}%`}
-                subtitle="Dərslərdə iştirak"
+                subtitle={t('teacher.present')}
                 accentColor={Colors.success}
                 icon={<CheckCircle size={18} color={Colors.success} />}
               />
               <StatCard
-                title="Gözləyən Tapşırıq"
+                title={t('student.pendingAssignments')}
                 value={activeChild?.pendingAssignmentsCount || 0}
-                subtitle="Yoxlanış gözləyir"
+                subtitle={t('common.pending')}
                 accentColor={Colors.warning}
                 icon={<Clock size={18} color={Colors.warning} />}
               />
@@ -214,25 +214,25 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
 
             {/* Tuition Status */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Təhsil Haqqı Məlumatı</Text>
+              <Text style={styles.sectionTitle}>{t('parent.tuitionInfo')}</Text>
             </View>
 
             <ThriveCard style={styles.tuitionCard}>
               <View style={styles.tuitionRow}>
                 <View>
-                  <Text style={styles.tuitionLabel}>Ödəniş Vəziyyəti</Text>
+                  <Text style={styles.tuitionLabel}>{t('parent.paymentStatus')}</Text>
                   <Text style={styles.tuitionValue}>{activeChild?.paymentStatus}</Text>
                   {activeChild?.paymentSummary?.nextDueDate && (
                     <Text style={styles.tuitionDate}>
-                      Son tarix: {activeChild.paymentSummary.nextDueDate}
+                      {t('parent.dueDate', { date: activeChild.paymentSummary.nextDueDate })}
                     </Text>
                   )}
                 </View>
                 <ThriveBadge
                   label={
                     activeChild?.paymentSummary && activeChild.paymentSummary.remainingDebt <= 0
-                      ? 'Ödənilib'
-                      : 'Gözlənilir'
+                      ? t('parent.paid')
+                      : t('parent.pendingPayment')
                   }
                   variant={
                     activeChild?.paymentSummary && activeChild.paymentSummary.remainingDebt <= 0

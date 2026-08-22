@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { studentService } from '../../services/studentService';
 import { parentService } from '../../services/parentService';
 import { LessonScheduleItem } from '../../types/student.types';
@@ -19,18 +20,9 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 import { ClassDetailModal } from '../../components/modals/ClassDetailModal';
 
-const DAYS = [
-  { num: 1, label: 'B.e' },
-  { num: 2, label: 'Ç.a' },
-  { num: 3, label: 'Çər' },
-  { num: 4, label: 'C.a' },
-  { num: 5, label: 'Cüm' },
-  { num: 6, label: 'Şən' },
-  { num: 7, label: 'Baz' },
-];
-
 export const ParentScheduleScreen: React.FC = () => {
   const { session, activeChildId } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [schedules, setSchedules] = useState<LessonScheduleItem[]>([]);
@@ -41,6 +33,16 @@ export const ParentScheduleScreen: React.FC = () => {
   const [selectedLesson, setSelectedLesson] = useState<LessonScheduleItem | null>(null);
 
   const parentId = session?.parentId;
+
+  const DAYS = [
+    { num: 1, label: t('days.mon') },
+    { num: 2, label: t('days.tue') },
+    { num: 3, label: t('days.wed') },
+    { num: 4, label: t('days.thu') },
+    { num: 5, label: t('days.fri') },
+    { num: 6, label: t('days.sat') },
+    { num: 7, label: t('days.sun') },
+  ];
 
   useEffect(() => {
     if (parentId) {
@@ -78,8 +80,8 @@ export const ParentScheduleScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <HeaderBar
-        title="Dərs Cədvəli"
-        subtitle={activeChild ? `${activeChild.fullName} üçün cədvəl` : 'Övlad cədvəli'}
+        title={t('parent.scheduleTitle')}
+        subtitle={activeChild ? `${activeChild.fullName} • ${t('parent.scheduleSubtitle')}` : t('parent.scheduleSubtitle')}
       />
 
       {/* Weekday selector */}
@@ -117,8 +119,8 @@ export const ParentScheduleScreen: React.FC = () => {
           <SkeletonCardList count={3} />
         ) : filteredLessons.length === 0 ? (
           <EmptyState
-            title="Dərs yoxdur"
-            description="Bu gün üçün planlaşdırılmış dərs qeydiyyatı tapılmadı."
+            title={t('common.empty')}
+            description={t('student.noClassesToday')}
           />
         ) : (
           filteredLessons.map((item) => (

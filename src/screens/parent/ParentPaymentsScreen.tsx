@@ -6,9 +6,10 @@ import {
   RefreshControl,
   StyleSheet,
 } from 'react-native';
-import { CreditCard, Calendar, CheckCircle2 } from 'lucide-react-native';
-import { Colors, Spacing, Radius } from '../../config/theme';
+import { Calendar } from 'lucide-react-native';
+import { Colors, Spacing } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { studentService } from '../../services/studentService';
 import { parentService } from '../../services/parentService';
 import { StudentPaymentSummary } from '../../types/student.types';
@@ -20,6 +21,7 @@ import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 
 export const ParentPaymentsScreen: React.FC = () => {
   const { session, activeChildId } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [summary, setSummary] = useState<StudentPaymentSummary | null>(null);
@@ -62,8 +64,8 @@ export const ParentPaymentsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <HeaderBar
-        title="Təhsil Haqqı və Ödənişlər"
-        subtitle={activeChild ? `${activeChild.fullName} üçün maliyyə hesabatı` : 'Maliyyə'}
+        title={t('parent.paymentsTitle')}
+        subtitle={activeChild ? `${activeChild.fullName} • ${t('parent.tuitionSummary')}` : t('parent.tuitionSummary')}
       />
 
       <ScrollView
@@ -78,26 +80,26 @@ export const ParentPaymentsScreen: React.FC = () => {
           <>
             {/* Balance Hero Card */}
             <ThriveCard style={styles.heroCard}>
-              <Text style={styles.heroLabel}>Qalıq Borc Məbləği</Text>
+              <Text style={styles.heroLabel}>{t('parent.remainingDebt')}</Text>
               <Text style={styles.heroAmount}>
                 {summary ? `${summary.remainingDebt} ₼` : '0.00 ₼'}
               </Text>
 
               <View style={styles.heroBadgeRow}>
                 <ThriveBadge
-                  label={summary && summary.remainingDebt <= 0 ? 'Ödəniş Tamamlanıb' : 'Ödəniş Tələb Olunur'}
+                  label={summary && summary.remainingDebt <= 0 ? t('parent.paid') : t('parent.pendingPayment')}
                   variant={summary && summary.remainingDebt <= 0 ? 'success' : 'warning'}
                 />
               </View>
 
               <View style={styles.statsGrid}>
                 <View style={styles.statBox}>
-                  <Text style={styles.statLabel}>Ümumi Təhsil Haqqı</Text>
+                  <Text style={styles.statLabel}>{t('parent.totalDue')}</Text>
                   <Text style={styles.statVal}>{summary?.totalDue || 0} ₼</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statBox}>
-                  <Text style={styles.statLabel}>Ödənilmiş Hissə</Text>
+                  <Text style={styles.statLabel}>{t('parent.totalPaid')}</Text>
                   <Text style={[styles.statVal, { color: Colors.success }]}>
                     {summary?.paidAmount || 0} ₼
                   </Text>
@@ -113,18 +115,18 @@ export const ParentPaymentsScreen: React.FC = () => {
                     <Calendar size={20} color={Colors.warning} />
                   </View>
                   <View>
-                    <Text style={styles.dueLabel}>Növbəti Ödəniş Tarixi</Text>
+                    <Text style={styles.dueLabel}>{t('parent.nextDueDate')}</Text>
                     <Text style={styles.dueValue}>{summary.nextDueDate}</Text>
                   </View>
                 </View>
               </ThriveCard>
             )}
 
-            <Text style={styles.sectionTitle}>Məlumat və Əlaqə</Text>
+            <Text style={styles.sectionTitle}>{t('parent.tuitionInfo')}</Text>
             <ThriveCard style={styles.infoCard}>
-              <Text style={styles.infoTitle}>Valideynlər üçün ödəniş qaydaları</Text>
+              <Text style={styles.infoTitle}>{t('student.paymentSummary')}</Text>
               <Text style={styles.infoDesc}>
-                Ödənişlərinizi mərkəzimizin mühasibatlığına yaxınlaşaraq nağd və ya bank kartı vasitəsilə icra edə bilərsiniz. Ödəniş qeydə alındıqda dərhal sistemdə yenilənir və qəbz təqdim olunur.
+                {summary && summary.remainingDebt <= 0 ? t('student.upToDate') : `${t('student.amountDue')}: ${summary?.remainingDebt || 0} ₼`}
               </Text>
             </ThriveCard>
           </>

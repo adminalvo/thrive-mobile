@@ -6,8 +6,8 @@ import {
   RefreshControl,
   StyleSheet,
 } from 'react-native';
-import { CreditCard, Calendar, CheckCircle2, Clock } from 'lucide-react-native';
-import { Colors, Spacing, Radius } from '../../config/theme';
+import { Calendar } from 'lucide-react-native';
+import { Colors, Spacing } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { studentService } from '../../services/studentService';
@@ -53,7 +53,7 @@ export const StudentPaymentsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Maliyyə və Ödənişlər" subtitle="Təhsil Haqqı və Tarixçə" />
+      <HeaderBar title={t('student.paymentsTitle')} subtitle={t('student.paymentsSubtitle')} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -67,26 +67,26 @@ export const StudentPaymentsScreen: React.FC = () => {
           <>
             {/* Balance Hero Card */}
             <ThriveCard style={styles.heroCard}>
-              <Text style={styles.heroLabel}>Cari Qalıq Borc</Text>
+              <Text style={styles.heroLabel}>{t('parent.remainingDebt')}</Text>
               <Text style={styles.heroAmount}>
                 {summary ? `${summary.remainingDebt} ₼` : '0.00 ₼'}
               </Text>
 
               <View style={styles.heroBadgeRow}>
                 <ThriveBadge
-                  label={summary && summary.remainingDebt <= 0 ? 'Tam Ödənilib' : 'Ödəniş Gözlənilir'}
+                  label={summary && summary.remainingDebt <= 0 ? t('parent.paid') : t('parent.pendingPayment')}
                   variant={summary && summary.remainingDebt <= 0 ? 'success' : 'warning'}
                 />
               </View>
 
               <View style={styles.statsGrid}>
                 <View style={styles.statBox}>
-                  <Text style={styles.statLabel}>Ümumi Məbləğ</Text>
+                  <Text style={styles.statLabel}>{t('parent.totalDue')}</Text>
                   <Text style={styles.statVal}>{summary?.totalDue || 0} ₼</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statBox}>
-                  <Text style={styles.statLabel}>Ödənilən</Text>
+                  <Text style={styles.statLabel}>{t('parent.totalPaid')}</Text>
                   <Text style={[styles.statVal, { color: Colors.success }]}>
                     {summary?.paidAmount || 0} ₼
                   </Text>
@@ -102,18 +102,18 @@ export const StudentPaymentsScreen: React.FC = () => {
                     <Calendar size={20} color={Colors.warning} />
                   </View>
                   <View>
-                    <Text style={styles.dueLabel}>Növbəti Ödəniş Tarixi</Text>
+                    <Text style={styles.dueLabel}>{t('parent.nextDueDate')}</Text>
                     <Text style={styles.dueValue}>{summary.nextDueDate}</Text>
                   </View>
                 </View>
               </ThriveCard>
             )}
 
-            <Text style={styles.sectionTitle}>Məlumat və Qaydalar</Text>
+            <Text style={styles.sectionTitle}>{t('parent.tuitionInfo')}</Text>
             <ThriveCard style={styles.infoCard}>
-              <Text style={styles.infoTitle}>Ödənişlərin icrası haqqında</Text>
+              <Text style={styles.infoTitle}>{t('student.paymentSummary')}</Text>
               <Text style={styles.infoDesc}>
-                Ödənişlərinizi mərkəzimizin inzibati ofisində nağd və ya terminal vasitəsilə həyata keçirə bilərsiniz. Ödəniş qəbzini təqdim etdikdən sonra status dərhal tətbiqdə yenilənir.
+                {summary && summary.remainingDebt <= 0 ? t('student.upToDate') : `${t('student.amountDue')}: ${summary?.remainingDebt || 0} ₼`}
               </Text>
             </ThriveCard>
           </>

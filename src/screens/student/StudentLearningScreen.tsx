@@ -101,7 +101,7 @@ export const StudentLearningScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Tədris Mərkəzi" subtitle="Tapşırıqlar, İmtahanlar və Davamiyyət" />
+      <HeaderBar title={t('student.learningTitle')} subtitle={t('student.learningSubtitle')} />
 
       {/* Main Tabs */}
       <View style={styles.segmentedControl}>
@@ -110,7 +110,7 @@ export const StudentLearningScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'assignments' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'assignments' && styles.segmentTextActive]}>
-            Tapşırıqlar
+            {t('nav.assignments')}
           </Text>
         </TouchableOpacity>
 
@@ -119,7 +119,7 @@ export const StudentLearningScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'exams' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'exams' && styles.segmentTextActive]}>
-            İmtahanlar
+            {t('student.examsResults')}
           </Text>
         </TouchableOpacity>
 
@@ -128,7 +128,7 @@ export const StudentLearningScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'attendance' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'attendance' && styles.segmentTextActive]}>
-            Davamiyyət
+            {t('student.attendanceHistory')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -164,12 +164,12 @@ export const StudentLearningScreen: React.FC = () => {
                         ]}
                       >
                         {filterKey === 'all'
-                          ? 'Hamısı'
+                          ? t('common.all')
                           : filterKey === 'pending'
-                          ? 'Gözləyir'
+                          ? t('common.pending')
                           : filterKey === 'submitted'
-                          ? 'Təhvil verildi'
-                          : 'Qiymətləndirildi'}
+                          ? t('common.submitted')
+                          : t('common.graded')}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -177,8 +177,8 @@ export const StudentLearningScreen: React.FC = () => {
 
                 {filteredAssignments.length === 0 ? (
                   <EmptyState
-                    title="Tapşırıq tapılmadı"
-                    description="Bu kateqoriya üzrə hazırda aktiv ev tapşırığı yoxdur."
+                    title={t('common.empty')}
+                    description={t('student.noAssignments')}
                   />
                 ) : (
                   filteredAssignments.map((item) => {
@@ -194,10 +194,10 @@ export const StudentLearningScreen: React.FC = () => {
                           <ThriveBadge
                             label={
                               item.status === 'graded'
-                                ? `Bal: ${item.score}/${item.maxScore}`
+                                ? t('teacher.scoreFormatted', { score: item.score || 0, max: item.maxScore })
                                 : item.status === 'submitted'
-                                ? 'Təhvil verildi'
-                                : 'Gözləyir'
+                                ? t('common.submitted')
+                                : t('common.pending')
                             }
                             variant={
                               item.status === 'graded'
@@ -217,13 +217,13 @@ export const StudentLearningScreen: React.FC = () => {
                         {item.dueDate ? (
                           <View style={styles.metaItem}>
                             <Clock size={13} color={Colors.textMuted} />
-                            <Text style={styles.metaText}>Son tarix: {item.dueDate}</Text>
+                            <Text style={styles.metaText}>{t('teacher.dueDateFormatted', { date: item.dueDate })}</Text>
                           </View>
                         ) : null}
 
                         {item.feedback ? (
                           <View style={styles.feedbackBox}>
-                            <Text style={styles.feedbackLabel}>Müəllim rəyi:</Text>
+                            <Text style={styles.feedbackLabel}>{t('student.teacherFeedback')}</Text>
                             <Text style={styles.feedbackText}>{item.feedback}</Text>
                           </View>
                         ) : null}
@@ -234,7 +234,7 @@ export const StudentLearningScreen: React.FC = () => {
                             {isSubmitting ? (
                               <View style={styles.submitArea}>
                                 <TextInput
-                                  placeholder="Cavabınızı və ya qeydlərinizi yazın..."
+                                  placeholder={t('student.typeAnswerPlaceholder')}
                                   placeholderTextColor={Colors.textMuted}
                                   multiline
                                   numberOfLines={3}
@@ -244,7 +244,7 @@ export const StudentLearningScreen: React.FC = () => {
                                 />
                                 <View style={styles.submitBtnRow}>
                                   <ThriveButton
-                                    title="Ləğv et"
+                                    title={t('common.cancel')}
                                     size="sm"
                                     variant="secondary"
                                     onPress={() => {
@@ -253,7 +253,7 @@ export const StudentLearningScreen: React.FC = () => {
                                     }}
                                   />
                                   <ThriveButton
-                                    title="Göndər"
+                                    title={t('common.send')}
                                     size="sm"
                                     variant="primary"
                                     loading={savingSubmission}
@@ -264,7 +264,7 @@ export const StudentLearningScreen: React.FC = () => {
                               </View>
                             ) : (
                               <ThriveButton
-                                title="Tapşırığı təhvil ver"
+                                title={t('student.submitAssignment')}
                                 size="sm"
                                 variant="outline"
                                 onPress={() => {
@@ -288,8 +288,8 @@ export const StudentLearningScreen: React.FC = () => {
               <View>
                 {exams.length === 0 ? (
                   <EmptyState
-                    title="İmtahan tapılmadı"
-                    description="Hazırda qeydə alınmış imtahan və ya sınaq nəticəsi yoxdur."
+                    title={t('common.empty')}
+                    description={t('student.noExams')}
                   />
                 ) : (
                   exams.map((ex) => (
@@ -298,11 +298,11 @@ export const StudentLearningScreen: React.FC = () => {
                         <ThriveBadge label={ex.programName} variant="primary" />
                         {ex.score !== undefined && ex.score !== null ? (
                           <ThriveBadge
-                            label={`Nəticə: ${ex.score} / ${ex.maxScore}`}
+                            label={t('student.examResult', { score: ex.score, max: ex.maxScore })}
                             variant="success"
                           />
                         ) : (
-                          <ThriveBadge label="Gözlənilir" variant="warning" />
+                          <ThriveBadge label={t('common.pending')} variant="warning" />
                         )}
                       </View>
 
@@ -312,13 +312,13 @@ export const StudentLearningScreen: React.FC = () => {
                       {ex.examDate ? (
                         <View style={styles.metaItem}>
                           <Calendar size={13} color={Colors.textMuted} />
-                          <Text style={styles.metaText}>İmtahan tarixi: {ex.examDate}</Text>
+                          <Text style={styles.metaText}>{t('student.examDate', { date: ex.examDate })}</Text>
                         </View>
                       ) : null}
 
                       {ex.feedback ? (
                         <View style={styles.feedbackBox}>
-                          <Text style={styles.feedbackLabel}>Müəllim rəyi:</Text>
+                          <Text style={styles.feedbackLabel}>{t('student.teacherFeedback')}</Text>
                           <Text style={styles.feedbackText}>{ex.feedback}</Text>
                         </View>
                       ) : null}
@@ -333,7 +333,7 @@ export const StudentLearningScreen: React.FC = () => {
               <View>
                 {/* Attendance rate hero */}
                 <ThriveCard style={styles.attendanceHeroCard}>
-                  <Text style={styles.attRateLabel}>Ümumi Davamiyyət Göstəricisi</Text>
+                  <Text style={styles.attRateLabel}>{t('student.overallAttendance')}</Text>
                   <Text style={styles.attRateVal}>{progress?.attendanceRate || 100}%</Text>
                   <ThriveProgressBar
                     progress={progress?.attendanceRate || 100}
@@ -347,35 +347,35 @@ export const StudentLearningScreen: React.FC = () => {
                       <Text style={[styles.attStatNumber, { color: Colors.success }]}>
                         {progress?.presentCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>İştirak</Text>
+                      <Text style={styles.attStatText}>{t('teacher.presentShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.warning }]}>
                         {progress?.lateCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Gecikmə</Text>
+                      <Text style={styles.attStatText}>{t('teacher.lateShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.danger }]}>
                         {progress?.absentCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Qayıb</Text>
+                      <Text style={styles.attStatText}>{t('teacher.absentShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.primary }]}>
                         {progress?.excusedCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Üzrlü</Text>
+                      <Text style={styles.attStatText}>{t('teacher.excusedShort')}</Text>
                     </View>
                   </View>
                 </ThriveCard>
 
-                <Text style={styles.historyTitle}>Davamiyyət Tarixçəsi</Text>
+                <Text style={styles.historyTitle}>{t('student.attendanceHistory')}</Text>
 
                 {attendance.length === 0 ? (
                   <EmptyState
-                    title="Davamiyyət qeydi yoxdur"
-                    description="Sistemdə hələlik davamiyyət məlumatı qeydə alınmayıb."
+                    title={t('common.empty')}
+                    description={t('student.noAttendance')}
                   />
                 ) : (
                   attendance.map((att) => (
@@ -388,12 +388,12 @@ export const StudentLearningScreen: React.FC = () => {
                       <ThriveBadge
                         label={
                           att.status === 'PRESENT'
-                            ? 'İştirak'
+                            ? t('teacher.presentShort')
                             : att.status === 'LATE'
-                            ? 'Gecikdi'
+                            ? t('teacher.lateShort')
                             : att.status === 'ABSENT'
-                            ? 'Qayıb'
-                            : 'Üzrlü'
+                            ? t('teacher.absentShort')
+                            : t('teacher.excusedShort')
                         }
                         variant={
                           att.status === 'PRESENT'

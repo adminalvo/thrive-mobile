@@ -6,9 +6,9 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { Check, Mail, Phone, BookOpen, Clock } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { parentService } from '../../services/parentService';
 import { ChildOverview } from '../../types/parent.types';
 import { HeaderBar } from '../../components/common/HeaderBar';
@@ -27,6 +27,7 @@ export const ParentChildrenScreen: React.FC<ParentChildrenScreenProps> = ({
   onSelectChildAndNavigate,
 }) => {
   const { session, activeChildId, setActiveChildId } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [childrenList, setChildrenList] = useState<ChildOverview[]>([]);
@@ -64,7 +65,7 @@ export const ParentChildrenScreen: React.FC<ParentChildrenScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Övladlarım" subtitle="Bağlı Tələbə Hesabları" />
+      <HeaderBar title={t('parent.childrenTitle')} subtitle={t('parent.childrenSubtitle')} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -76,8 +77,8 @@ export const ParentChildrenScreen: React.FC<ParentChildrenScreenProps> = ({
           <SkeletonCardList count={2} />
         ) : childrenList.length === 0 ? (
           <EmptyState
-            title="Övlad tapılmadı"
-            description="Hesabınıza bağlı heç bir tələbə qeydiyyatı tapılmadı."
+            title={t('common.empty')}
+            description={t('parent.noChildrenLinked')}
           />
         ) : (
           childrenList.map((child) => {
@@ -90,10 +91,10 @@ export const ParentChildrenScreen: React.FC<ParentChildrenScreenProps> = ({
                     <ThriveAvatar name={child.fullName} size={48} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.childName}>{child.fullName}</Text>
-                      <Text style={styles.childEmail}>{child.email || 'Email qeyd olunmayıb'}</Text>
+                      <Text style={styles.childEmail}>{child.email || t('common.notSpecified')}</Text>
                     </View>
                   </View>
-                  {isSelected && <ThriveBadge label="Seçilib" variant="success" />}
+                  {isSelected && <ThriveBadge label={t('common.active')} variant="success" />}
                 </View>
 
                 {/* Programs Tag Row */}
@@ -106,28 +107,28 @@ export const ParentChildrenScreen: React.FC<ParentChildrenScreenProps> = ({
                 {/* Stats */}
                 <View style={styles.statsRow}>
                   <View style={styles.statBox}>
-                    <Text style={styles.statLabel}>Davamiyyət</Text>
+                    <Text style={styles.statLabel}>{t('parent.attendance')}</Text>
                     <Text style={[styles.statVal, { color: Colors.success }]}>
                       {child.attendanceRate}%
                     </Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.statBox}>
-                    <Text style={styles.statLabel}>Tapşırıqlar</Text>
+                    <Text style={styles.statLabel}>{t('nav.assignments')}</Text>
                     <Text style={[styles.statVal, { color: Colors.warning }]}>
-                      {child.pendingAssignmentsCount} gözləyir
+                      {child.pendingAssignmentsCount} {t('common.pending')}
                     </Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.statBox}>
-                    <Text style={styles.statLabel}>Ödəniş</Text>
+                    <Text style={styles.statLabel}>{t('nav.payments')}</Text>
                     <Text style={styles.statVal}>{child.paymentStatus}</Text>
                   </View>
                 </View>
 
                 {/* Action button */}
                 <ThriveButton
-                  title={isSelected ? "Tələbəyə baxılır (Aktiv)" : "Bu tələbəni seç və bax"}
+                  title={isSelected ? `${t('parent.activeStudent')} (${t('common.active')})` : t('parent.selectChild')}
                   variant={isSelected ? "outline" : "primary"}
                   onPress={() => handleSelectChild(child.studentId)}
                   style={{ marginTop: Spacing.md }}

@@ -8,7 +8,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Eye, EyeOff, Mail, Lock, Globe } from 'lucide-react-native';
+import { Eye, EyeOff, Mail, Phone, Lock, Globe, ChevronLeft } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -16,19 +16,27 @@ import { ThriveInput } from '../../components/common/ThriveInput';
 import { ThriveButton } from '../../components/common/ThriveButton';
 import { LanguagePickerModal } from '../../components/modals/LanguagePickerModal';
 
-export const LoginScreen: React.FC = () => {
-  const { login } = useAuth();
-  const { t } = useLanguage();
+interface LoginScreenProps {
+  onBackToWelcome?: () => void;
+}
 
-  const [email, setEmail] = useState('');
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onBackToWelcome }) => {
+  const { login } = useAuth();
+  const { t, language } = useLanguage();
+
+  const [inputIdentifier, setInputIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [langModalVisible, setLangModalVisible] = useState(false);
 
+  // Detect whether the user is typing a phone number or an email
+  const trimmed = inputIdentifier.trim();
+  const isPhone = /^[+0-9\s-]+$/.test(trimmed) && trimmed.length > 2;
+
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
+    if (!trimmed || !password.trim()) {
       setErrorMessage(t('auth.emptyFields'));
       return;
     }
@@ -36,7 +44,7 @@ export const LoginScreen: React.FC = () => {
     setErrorMessage('');
     setLoading(true);
 
-    const res = await login(email, password);
+    const res = await login(trimmed, password);
     setLoading(false);
 
     if (!res.success) {
@@ -48,23 +56,43 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
+  const getLanguageLabel = () => {
+    if (language === 'az') return 'AZ 🇦🇿';
+    if (language === 'en') return 'EN 🇬🇧';
+    return 'RU 🇷🇺';
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        {/* Top Navigation Bar */}
         <View style={styles.topBar}>
+          {onBackToWelcome ? (
+            <TouchableOpacity
+              style={styles.backBtn}
+              onPress={onBackToWelcome}
+              activeOpacity={0.7}
+            >
+              <ChevronLeft size={22} color={Colors.textPrimary} />
+            </TouchableOpacity>
+          ) : (
+            <View />
+          )}
+
           <TouchableOpacity
             style={styles.langBtn}
             onPress={() => setLangModalVisible(true)}
             activeOpacity={0.7}
           >
-            <Globe size={18} color={Colors.primary} />
-            <Text style={styles.langBtnText}>{t('common.language')}</Text>
+            <Globe size={16} color={Colors.primary} />
+            <Text style={styles.langBtnText}>{getLanguageLabel()}</Text>
           </TouchableOpacity>
         </View>
 
+        {/* Brand Section */}
         <View style={styles.brandSection}>
           <View style={styles.logoCircle}>
             <Text style={styles.logoLetter}>T</Text>
@@ -73,6 +101,7 @@ export const LoginScreen: React.FC = () => {
           <Text style={styles.brandSubtitle}>{t('auth.loginSubtitle')}</Text>
         </View>
 
+        {/* Form Card */}
         <View style={styles.formCard}>
           <Text style={styles.formTitle}>{t('auth.loginTitle')}</Text>
 
@@ -82,19 +111,35 @@ export const LoginScreen: React.FC = () => {
             </View>
           )}
 
+          {/* Identifier Input (Phone or Email) */}
           <ThriveInput
             label={t('auth.emailLabel')}
             placeholder={t('auth.emailPlaceholder')}
             autoCapitalize="none"
-            keyboardType="email-address"
-            value={email}
+            keyboardType={isPhone ? 'phone-pad' : 'email-address'}
+            value={inputIdentifier}
             onChangeText={(text: string) => {
-              setEmail(text);
+              setInputIdentifier(text);
               if (errorMessage) setErrorMessage('');
             }}
-            leftIcon={<Mail size={18} color={Colors.textMuted} />}
+            leftIcon={
+              isPhone ? (
+                <Phone size={18} color={Colors.primary} />
+              ) : (
+                <Mail size={18} color={Colors.textMuted} />
+              )
+            }
           />
 
+          {trimmed.length > 3 && (
+            <View style={styles.detectedBadgeRow}>
+              <Text style={styles.detectedText}>
+                {isPhone ? `📱 ${t('auth.phoneDetected')}` : `✉️ ${t('auth.emailDetected')}`}
+              </Text>
+            </View>
+          )}
+
+          {/* Password Input */}
           <ThriveInput
             label={t('auth.passwordLabel')}
             placeholder={t('auth.passwordPlaceholder')}
@@ -145,15 +190,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topBar: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: Spacing.md,
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.cardElevated,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   langBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs + 2,
+    paddingVertical: 6,
     borderRadius: Radius.full,
     backgroundColor: Colors.cardElevated,
     borderWidth: 1,
@@ -161,26 +218,26 @@ const styles = StyleSheet.create({
   },
   langBtnText: {
     fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '600',
+    color: Colors.textPrimary,
+    fontWeight: '700',
   },
   brandSection: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   logoCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: 'rgba(76, 162, 181, 0.15)',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#0F2744',
     borderWidth: 2,
     borderColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   logoLetter: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '900',
     color: Colors.primary,
   },
@@ -207,8 +264,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
     textAlign: 'center',
+  },
+  detectedBadgeRow: {
+    marginTop: -8,
+    marginBottom: Spacing.sm,
+  },
+  detectedText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   errorBox: {
     backgroundColor: Colors.dangerLight,

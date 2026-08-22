@@ -6,8 +6,8 @@ import {
   RefreshControl,
   StyleSheet,
 } from 'react-native';
-import { Calendar, Award, CreditCard, Clock, CheckCircle } from 'lucide-react-native';
-import { Colors, Spacing, Radius } from '../../config/theme';
+import { Calendar, CreditCard, Clock, CheckCircle } from 'lucide-react-native';
+import { Colors, Spacing } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { studentService } from '../../services/studentService';
@@ -36,7 +36,7 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
   onOpenNotifications,
 }) => {
   const { session } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,7 +50,7 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
   const [langModalVisible, setLangModalVisible] = useState(false);
 
   const studentId = session?.studentId;
-  const studentName = session?.profile.first_name || 'Tələbə';
+  const studentName = session?.profile.first_name || t('common.student');
 
   const loadData = useCallback(async (isRefresh = false) => {
     if (!studentId) return;
@@ -92,7 +92,13 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
     return t('common.goodEvening');
   };
 
-  const todayFormatted = new Date().toLocaleDateString('az-AZ', {
+  const getLocaleTag = () => {
+    if (language === 'en') return 'en-US';
+    if (language === 'ru') return 'ru-RU';
+    return 'az-AZ';
+  };
+
+  const todayFormatted = new Date().toLocaleDateString(getLocaleTag(), {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -159,14 +165,14 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               <StatCard
                 title={t('student.attendanceRate')}
                 value={`${progress?.attendanceRate || 100}%`}
-                subtitle={`${progress?.presentCount || 0} iştirak, ${progress?.lateCount || 0} gecikmə`}
+                subtitle={`${progress?.presentCount || 0} ${t('teacher.presentShort').toLowerCase()}, ${progress?.lateCount || 0} ${t('teacher.lateShort').toLowerCase()}`}
                 accentColor={Colors.success}
                 icon={<CheckCircle size={18} color={Colors.success} />}
               />
               <StatCard
                 title={t('student.pendingAssignments')}
                 value={progress?.pendingAssignmentsCount || 0}
-                subtitle="Təhvil gözləyir"
+                subtitle={t('common.pending')}
                 accentColor={Colors.warning}
                 icon={<Clock size={18} color={Colors.warning} />}
               />
@@ -194,7 +200,7 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
                       : '0.00 ₼'}
                   </Text>
                   {paymentSummary?.nextDueDate && (
-                    <Text style={styles.paymentDate}>Son ödəniş: {paymentSummary.nextDueDate}</Text>
+                    <Text style={styles.paymentDate}>{t('parent.dueDate', { date: paymentSummary.nextDueDate })}</Text>
                   )}
                 </View>
                 <View style={styles.paymentIconBox}>
@@ -250,11 +256,6 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600',
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
   emptyCard: {
     padding: Spacing.lg,
     alignItems: 'center',
@@ -266,9 +267,12 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'center',
   },
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.xs,
+  },
   paymentCard: {
-    backgroundColor: '#0F2744',
-    borderColor: 'rgba(76, 162, 181, 0.3)',
     padding: Spacing.md,
   },
   paymentRow: {
@@ -283,19 +287,19 @@ const styles = StyleSheet.create({
   },
   paymentAmount: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontWeight: '900',
+    color: Colors.textPrimary,
     marginTop: 2,
   },
   paymentDate: {
     fontSize: 11,
     color: Colors.textMuted,
-    marginTop: 2,
+    marginTop: 4,
   },
   paymentIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: Radius.md,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: 'rgba(76, 162, 181, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',

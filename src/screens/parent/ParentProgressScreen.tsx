@@ -7,9 +7,10 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { CheckCircle, Clock, Calendar, FileCheck, Award } from 'lucide-react-native';
+import { Clock, Calendar } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { studentService } from '../../services/studentService';
 import { parentService } from '../../services/parentService';
 import {
@@ -30,6 +31,7 @@ type ProgressTab = 'attendance' | 'assignments' | 'exams';
 
 export const ParentProgressScreen: React.FC = () => {
   const { session, activeChildId } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<ProgressTab>('attendance');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -85,8 +87,8 @@ export const ParentProgressScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <HeaderBar
-        title="Akademik Tərəqqi"
-        subtitle={activeChild ? `${activeChild.fullName} üzrə hesabat` : 'Tədris icmalı'}
+        title={t('parent.progressTitle')}
+        subtitle={activeChild ? `${activeChild.fullName} • ${t('parent.academicOverview')}` : t('parent.academicOverview')}
       />
 
       {/* Main Tabs */}
@@ -96,7 +98,7 @@ export const ParentProgressScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'attendance' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'attendance' && styles.segmentTextActive]}>
-            Davamiyyət
+            {t('nav.schedule')} & {t('parent.attendance')}
           </Text>
         </TouchableOpacity>
 
@@ -105,7 +107,7 @@ export const ParentProgressScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'assignments' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'assignments' && styles.segmentTextActive]}>
-            Tapşırıqlar
+            {t('nav.assignments')}
           </Text>
         </TouchableOpacity>
 
@@ -114,7 +116,7 @@ export const ParentProgressScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'exams' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'exams' && styles.segmentTextActive]}>
-            İmtahanlar
+            {t('student.examsResults')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -133,7 +135,7 @@ export const ParentProgressScreen: React.FC = () => {
             {activeTab === 'attendance' && (
               <View>
                 <ThriveCard style={styles.attendanceHeroCard}>
-                  <Text style={styles.attRateLabel}>Davamiyyət Göstəricisi</Text>
+                  <Text style={styles.attRateLabel}>{t('student.overallAttendance')}</Text>
                   <Text style={styles.attRateVal}>{progress?.attendanceRate || 100}%</Text>
                   <ThriveProgressBar
                     progress={progress?.attendanceRate || 100}
@@ -147,35 +149,35 @@ export const ParentProgressScreen: React.FC = () => {
                       <Text style={[styles.attStatNumber, { color: Colors.success }]}>
                         {progress?.presentCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>İştirak</Text>
+                      <Text style={styles.attStatText}>{t('teacher.presentShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.warning }]}>
                         {progress?.lateCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Gecikmə</Text>
+                      <Text style={styles.attStatText}>{t('teacher.lateShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.danger }]}>
                         {progress?.absentCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Qayıb</Text>
+                      <Text style={styles.attStatText}>{t('teacher.absentShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.primary }]}>
                         {progress?.excusedCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Üzrlü</Text>
+                      <Text style={styles.attStatText}>{t('teacher.excusedShort')}</Text>
                     </View>
                   </View>
                 </ThriveCard>
 
-                <Text style={styles.historyTitle}>Davamiyyət Jurnalı</Text>
+                <Text style={styles.historyTitle}>{t('student.attendanceHistory')}</Text>
 
                 {attendance.length === 0 ? (
                   <EmptyState
-                    title="Davamiyyət qeydi yoxdur"
-                    description="Bu tələbə üçün hələlik davamiyyət məlumatı qeydə alınmayıb."
+                    title={t('common.empty')}
+                    description={t('student.noAttendance')}
                   />
                 ) : (
                   attendance.map((att) => (
@@ -188,12 +190,12 @@ export const ParentProgressScreen: React.FC = () => {
                       <ThriveBadge
                         label={
                           att.status === 'PRESENT'
-                            ? 'İştirak'
+                            ? t('teacher.presentShort')
                             : att.status === 'LATE'
-                            ? 'Gecikdi'
+                            ? t('teacher.lateShort')
                             : att.status === 'ABSENT'
-                            ? 'Qayıb'
-                            : 'Üzrlü'
+                            ? t('teacher.absentShort')
+                            : t('teacher.excusedShort')
                         }
                         variant={
                           att.status === 'PRESENT'
@@ -216,8 +218,8 @@ export const ParentProgressScreen: React.FC = () => {
               <View>
                 {assignments.length === 0 ? (
                   <EmptyState
-                    title="Tapşırıq yoxdur"
-                    description="Övladınızın tədris qrupları üçün aktiv tapşırıq tapılmadı."
+                    title={t('common.empty')}
+                    description={t('student.noAssignments')}
                   />
                 ) : (
                   assignments.map((item) => (
@@ -227,10 +229,10 @@ export const ParentProgressScreen: React.FC = () => {
                         <ThriveBadge
                           label={
                             item.status === 'graded'
-                              ? `Nəticə: ${item.score}/${item.maxScore}`
+                              ? t('teacher.scoreFormatted', { score: item.score || 0, max: item.maxScore })
                               : item.status === 'submitted'
-                              ? 'Təhvil verildi'
-                              : 'Gözləyir'
+                              ? t('common.submitted')
+                              : t('common.pending')
                           }
                           variant={
                             item.status === 'graded'
@@ -250,13 +252,13 @@ export const ParentProgressScreen: React.FC = () => {
                       {item.dueDate ? (
                         <View style={styles.metaItem}>
                           <Clock size={13} color={Colors.textMuted} />
-                          <Text style={styles.metaText}>Son tarix: {item.dueDate}</Text>
+                          <Text style={styles.metaText}>{t('teacher.dueDateFormatted', { date: item.dueDate })}</Text>
                         </View>
                       ) : null}
 
                       {item.feedback ? (
                         <View style={styles.feedbackBox}>
-                          <Text style={styles.feedbackLabel}>Müəllim rəyi:</Text>
+                          <Text style={styles.feedbackLabel}>{t('student.teacherFeedback')}</Text>
                           <Text style={styles.feedbackText}>{item.feedback}</Text>
                         </View>
                       ) : null}
@@ -271,8 +273,8 @@ export const ParentProgressScreen: React.FC = () => {
               <View>
                 {exams.length === 0 ? (
                   <EmptyState
-                    title="İmtahan tapılmadı"
-                    description="Bu tələbə üçün qeydə alınmış imtahan nəticəsi yoxdur."
+                    title={t('common.empty')}
+                    description={t('student.noExams')}
                   />
                 ) : (
                   exams.map((ex) => (
@@ -281,11 +283,11 @@ export const ParentProgressScreen: React.FC = () => {
                         <ThriveBadge label={ex.programName} variant="primary" />
                         {ex.score !== undefined && ex.score !== null ? (
                           <ThriveBadge
-                            label={`Nəticə: ${ex.score} / ${ex.maxScore}`}
+                            label={t('student.examResult', { score: ex.score, max: ex.maxScore })}
                             variant="success"
                           />
                         ) : (
-                          <ThriveBadge label="Gözlənilir" variant="warning" />
+                          <ThriveBadge label={t('common.pending')} variant="warning" />
                         )}
                       </View>
 
@@ -295,13 +297,13 @@ export const ParentProgressScreen: React.FC = () => {
                       {ex.examDate ? (
                         <View style={styles.metaItem}>
                           <Calendar size={13} color={Colors.textMuted} />
-                          <Text style={styles.metaText}>Tarix: {ex.examDate}</Text>
+                          <Text style={styles.metaText}>{t('student.examDate', { date: ex.examDate })}</Text>
                         </View>
                       ) : null}
 
                       {ex.feedback ? (
                         <View style={styles.feedbackBox}>
-                          <Text style={styles.feedbackLabel}>Müəllim rəyi:</Text>
+                          <Text style={styles.feedbackLabel}>{t('student.teacherFeedback')}</Text>
                           <Text style={styles.feedbackText}>{ex.feedback}</Text>
                         </View>
                       ) : null}
@@ -401,6 +403,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   attendanceRow: {
     flexDirection: 'row',

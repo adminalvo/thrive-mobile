@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   const [recentStudents, setRecentStudents] = useState<any[]>([]);
   const [todayClasses, setTodayClasses] = useState<any[]>([]);
   useEffect(() => {
-    fetch("/api/dashboard/stats").then(res => res.json()).then(d => setStatsData(Array.isArray(d) ? d : []));
+    fetch("/api/dashboard/stats").then(res => res.json()).then(d => setStatsData(d && typeof d === 'object' && !Array.isArray(d) ? d : {}));
     fetch("/api/dashboard/recent").then(res => res.json()).then(d => setRecentStudents(Array.isArray(d) ? d : []));
     fetch("/api/dashboard/today").then(res => res.json()).then(d => setTodayClasses(Array.isArray(d) ? d : []));
   }, []);

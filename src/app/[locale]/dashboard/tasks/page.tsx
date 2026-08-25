@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
-import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2, Search, Check, Users } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2, Search, Check } from "lucide-react";
+import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
@@ -38,15 +38,40 @@ const getInitial = (name?: any) => {
   return name.trim().charAt(0).toUpperCase();
 };
 
+const getPriorityColor = (priority?: string) => {
+  if (!priority) return "#3b82f6";
+  const p = String(priority).toUpperCase();
+  if (p === "HIGH") return "#ef4444";
+  if (p === "MEDIUM") return "#f59e0b";
+  return "#3b82f6";
+};
+
+const normalizeStatus = (status?: string): "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE" => {
+  if (!status) return "TODO";
+  const s = String(status).toUpperCase();
+  if (s === "IN_PROGRESS" || s === "INPROGRESS" || s === "PROGRESS") return "IN_PROGRESS";
+  if (s === "REVIEW") return "REVIEW";
+  if (s === "DONE" || s === "COMPLETED") return "DONE";
+  return "TODO";
+};
+
+const normalizePriority = (priority?: string): "LOW" | "MEDIUM" | "HIGH" => {
+  if (!priority) return "MEDIUM";
+  const p = String(priority).toUpperCase();
+  if (p === "HIGH") return "HIGH";
+  if (p === "LOW") return "LOW";
+  return "MEDIUM";
+};
+
 export default function TasksPage() {
   const t = useTranslations("Tasks");
   const c = useTranslations("Common");
 
   const COLUMNS: { id: KanbanTask["status"]; title: string; color: string }[] = [
-    { id: "TODO", title: t("columns.TODO") || "Gözləmədə", color: "#64748b" },
-    { id: "IN_PROGRESS", title: t("columns.IN_PROGRESS") || "İcrada", color: "#3b82f6" },
-    { id: "REVIEW", title: t("columns.REVIEW") || "Yoxlanışda", color: "#f59e0b" },
-    { id: "DONE", title: t("columns.DONE") || "Tamamlandı", color: "#10b981" }
+    { id: "TODO", title: "Gözləmədə", color: "#64748b" },
+    { id: "IN_PROGRESS", title: "İcrada", color: "#3b82f6" },
+    { id: "REVIEW", title: "Yoxlanışda", color: "#f59e0b" },
+    { id: "DONE", title: "Tamamlandı", color: "#10b981" }
   ];
 
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
@@ -57,8 +82,9 @@ export default function TasksPage() {
 
   const { data: session } = useSession();
   const userRole = session?.user?.role || "staff";
+  const isSuperAdmin = userRole === "super_admin";
   const permissions = (session?.user as any)?.permissions?.tasks || {};
-  const canCreate = userRole === "super_admin" || userRole === "admin" || permissions.create;
+  const canCreate = isSuperAdmin || userRole === "admin" || Boolean(permissions.create || permissions.can_create);
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -89,12 +115,31 @@ export default function TasksPage() {
       const res = await apiFetch("/api/tasks");
       if (res.ok) {
         const data = await res.json();
-        setTasks(Array.isArray(data) ? data : []);
+        if (Array.isArray(data)) {
+          const cleanTasks: KanbanTask[] = data.map((item: any) => ({
+            ...item,
+            id: String(item.id || Math.random()),
+            title: String(item.title || "Adsız Tapşırıq"),
+            description: item.description ? String(item.description) : null,
+            status: normalizeStatus(item.status),
+            priority: normalizePriority(item.priority),
+            due_date: item.due_date || item.dueDate || null,
+            assignees: Array.isArray(item.assignees) ? item.assignees.map((a: any) => ({
+              id: String(a?.id || ""),
+              name: String(a?.name || "İstifadəçi"),
+              email: String(a?.email || "")
+            })) : []
+          }));
+          setTasks(cleanTasks);
+        } else {
+          setTasks([]);
+        }
       } else {
-        toast.error("Tapşırıqları yükləmək mümkün olmadı");
+        setTasks([]);
       }
     } catch (error) {
-      toast.error("Gözlənilməz xəta baş verdi");
+      console.error("fetchTasks error:", error);
+      setTasks([]);
     } finally {
       setLoading(false);
     }
@@ -108,7 +153,7 @@ export default function TasksPage() {
         setStaffUsers(Array.isArray(data) ? data : []);
       }
     } catch (e) {
-      console.error(e);
+      console.error("fetchStaff error:", e);
     }
   };
 
@@ -145,17 +190,17 @@ export default function TasksPage() {
     if (!Array.isArray(tasks)) return [];
     return tasks.filter(task => {
       if (!task) return false;
-      const matchesSearch = !searchQuery.trim() || 
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      const title = String(task.title || "").toLowerCase();
+      const desc = String(task.description || "").toLowerCase();
+      const q = (searchQuery || "").trim().toLowerCase();
 
+      const matchesSearch = !q || title.includes(q) || desc.includes(q);
       if (!matchesSearch) return false;
 
       if (selectedAssigneeFilter === "all") return true;
 
-      // Check if user is in assignees list
-      const hasAssignee = task.assignees?.some(a => a.id === selectedAssigneeFilter || a.name === selectedAssigneeFilter);
-      return hasAssignee;
+      const hasAssignee = task.assignees?.some(a => a && (a.id === selectedAssigneeFilter || a.name === selectedAssigneeFilter));
+      return Boolean(hasAssignee);
     });
   }, [tasks, selectedAssigneeFilter, searchQuery]);
 
@@ -202,15 +247,25 @@ export default function TasksPage() {
   const openEditModal = (task: KanbanTask) => {
     setEditingTask(task);
     const dateVal = task.due_date || task.dueDate || task.deadline;
-    const formattedDate = dateVal ? new Date(dateVal).toISOString().split("T")[0] : "";
-    
-    const currentAssigneeIds = task.assignees?.map(a => a.id) || [];
+    let formattedDate = "";
+    if (dateVal) {
+      try {
+        const d = new Date(dateVal);
+        if (!isNaN(d.getTime())) {
+          formattedDate = d.toISOString().split("T")[0];
+        }
+      } catch (e) {}
+    }
+
+    const currentAssigneeIds = Array.isArray(task.assignees) 
+      ? task.assignees.map(a => a?.id).filter(Boolean)
+      : [];
 
     setFormData({
-      title: task.title,
+      title: task.title || "",
       description: task.description || "",
-      status: task.status,
-      priority: task.priority,
+      status: task.status || "TODO",
+      priority: task.priority || "MEDIUM",
       dueDate: formattedDate,
       selectedAssignees: currentAssigneeIds
     });
@@ -252,11 +307,11 @@ export default function TasksPage() {
       });
 
       if (res.ok) {
-        toast.success("Tapşırıq uğurla yaradıldı");
+        toast.success("Tapşırıq yaradıldı");
         setShowCreateModal(false);
         fetchTasks();
       } else {
-        toast.error("Tapşırıq yaratmaq mümkün olmadı");
+        toast.error("Tapşırığı yaratmaq mümkün olmadı");
       }
     } catch (error) {
       toast.error("Gözlənilməz xəta baş verdi");
@@ -265,11 +320,7 @@ export default function TasksPage() {
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingTask) return;
-    if (!formData.title.trim()) {
-      toast.error("Zəhmət olmasa başlıq daxil edin");
-      return;
-    }
+    if (!editingTask || !formData.title.trim()) return;
 
     try {
       const res = await apiFetch(`/api/tasks/${editingTask.id}`, {
@@ -313,17 +364,12 @@ export default function TasksPage() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    if (priority === "HIGH") return "#ef4444";
-    if (priority === "MEDIUM") return "#f59e0b";
-    return "#3b82f6";
-  };
-
   const getDueDateDisplay = (task: KanbanTask) => {
     const raw = task.due_date || task.dueDate || task.deadline;
     if (!raw) return null;
     try {
-      return raw ? new Date(raw).toLocaleDateString() : "-";
+      const d = new Date(raw);
+      return !isNaN(d.getTime()) ? d.toLocaleDateString() : null;
     } catch {
       return null;
     }
@@ -334,7 +380,11 @@ export default function TasksPage() {
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>{t("title") || "Tapşırıqlar"}</h1>
-          <p className={styles.subtitle}>{t("subtitle") || "Komandanın daxili iş axını və tapşırıqları"}</p>
+          <p className={styles.subtitle}>
+            {isSuperAdmin 
+              ? "Bütün komandanın daxili iş axını və tapşırıqları" 
+              : "Sizə təyin olunmuş daxili tapşırıqlar"}
+          </p>
         </div>
         {canCreate && (
           <button className={styles.addBtn} onClick={openCreateModal}>
@@ -384,41 +434,42 @@ export default function TasksPage() {
       </div>
 
       <div className={styles.kanbanBoard}>
-        {COLUMNS.map(col => (
-          <div
-            key={col.id}
-            className={styles.column}
-            onDrop={e => handleDrop(e, col.id)}
-            onDragOver={handleDragOver}
-          >
-            <div className={styles.columnHeader}>
-              <div className={styles.colIndicator} style={{ backgroundColor: col.color }}></div>
-              <h3>{t(`columns.${col.id}`) || col.title}</h3>
-              <span className={styles.count}>
-                {filteredTasks.filter(t => t.status === col.id).length}
-              </span>
-            </div>
+        {COLUMNS.map(col => {
+          const colTasks = filteredTasks.filter(t => t && t.status === col.id);
+          return (
+            <div
+              key={col.id}
+              className={styles.column}
+              onDrop={e => handleDrop(e, col.id)}
+              onDragOver={handleDragOver}
+            >
+              <div className={styles.columnHeader}>
+                <div className={styles.colIndicator} style={{ backgroundColor: col.color }}></div>
+                <h3>{col.title}</h3>
+                <span className={styles.count}>{colTasks.length}</span>
+              </div>
 
-            <div className={styles.columnBody}>
-              {loading ? (
-                <div className={styles.loading}>{c("loading") || "Yüklənir..."}</div>
-              ) : (
-                filteredTasks
-                  .filter(t => t.status === col.id)
-                  .map(task => {
+              <div className={styles.taskList}>
+                {loading ? (
+                  <div className={styles.loadingState}>
+                    <p>Yüklənir...</p>
+                  </div>
+                ) : colTasks.length === 0 ? (
+                  <div className={styles.emptyColumn}>
+                    <p>Tapşırıq yoxdur</p>
+                  </div>
+                ) : (
+                  colTasks.map(task => {
                     const dueDateDisplay = getDueDateDisplay(task);
                     const isMenuOpen = activeMenuTaskId === task.id;
-                    const assignees = task.assignees && task.assignees.length > 0 ? task.assignees : [];
+                    const assignees = Array.isArray(task.assignees) ? task.assignees : [];
 
                     return (
-                      <motion.div
-                        layout
+                      <div
                         key={task.id}
                         draggable
-                        onDragStart={e => handleDragStart(e as any, task.id)}
+                        onDragStart={e => handleDragStart(e, task.id)}
                         className={styles.card}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
                         onClick={() => setViewingTask(task)}
                         style={{ cursor: "pointer" }}
                       >
@@ -450,13 +501,13 @@ export default function TasksPage() {
                                   className={styles.dropdownItem}
                                   onClick={() => openEditModal(task)}
                                 >
-                                  <Edit2 size={14} /> {c("edit") || "Redaktə et"}
+                                  <Edit2 size={14} /> Redaktə et
                                 </button>
                                 <button
                                   className={`${styles.dropdownItem} ${styles.deleteDropdownItem}`}
                                   onClick={() => handleDeleteTask(task.id)}
                                 >
-                                  <Trash2 size={14} /> {c("delete") || "Sil"}
+                                  <Trash2 size={14} /> Sil
                                 </button>
                               </div>
                             )}
@@ -474,8 +525,8 @@ export default function TasksPage() {
                                 <span style={{ opacity: 0.6 }}>Təyin edilməyib</span>
                               </div>
                             ) : (
-                              assignees.map(a => (
-                                <div key={a.id} className={styles.assigneeChip} title={a.name}>
+                              assignees.map((a, idx) => (
+                                <div key={a.id || idx} className={styles.assigneeChip} title={a.name}>
                                   <span className={styles.userAvatarMini}>
                                     {getInitial(a?.name)}
                                   </span>
@@ -492,13 +543,14 @@ export default function TasksPage() {
                             </div>
                           )}
                         </div>
-                      </motion.div>
+                      </div>
                     );
                   })
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Create Task Modal */}
@@ -735,11 +787,11 @@ export default function TasksPage() {
                   <div
                     className={styles.detailBadge}
                     style={{
-                      backgroundColor: `${COLUMNS.find(c => c.id === viewingTask.status)?.color}26`,
-                      color: COLUMNS.find(c => c.id === viewingTask.status)?.color
+                      backgroundColor: `${COLUMNS.find(c => c.id === viewingTask.status)?.color || "#64748b"}26`,
+                      color: COLUMNS.find(c => c.id === viewingTask.status)?.color || "#64748b"
                     }}
                   >
-                    {COLUMNS.find(c => c.id === viewingTask.status)?.title}
+                    {COLUMNS.find(c => c.id === viewingTask.status)?.title || viewingTask.status}
                   </div>
                 </div>
 
@@ -761,9 +813,9 @@ export default function TasksPage() {
                 <div className={styles.detailGroup}>
                   <div className={styles.detailLabel}>İcraçılar</div>
                   <div className={styles.assigneesWrapper} style={{ marginTop: "0.25rem" }}>
-                    {viewingTask.assignees && viewingTask.assignees.length > 0 ? (
-                      viewingTask.assignees.map(a => (
-                        <div key={a.id} className={styles.assigneeChip}>
+                    {Array.isArray(viewingTask.assignees) && viewingTask.assignees.length > 0 ? (
+                      viewingTask.assignees.map((a, idx) => (
+                        <div key={a.id || idx} className={styles.assigneeChip}>
                           <span className={styles.userAvatarMini}>{getInitial(a?.name)}</span>
                           <span>{a.name}</span>
                         </div>

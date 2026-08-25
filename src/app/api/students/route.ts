@@ -6,26 +6,71 @@ import { logAction } from "@/lib/logger";
 
 export async function GET() {
   try {
-    const students = await sql`
-      SELECT s.id, s.created_at, p.first_name, p.last_name, p.email, p.phone
-      FROM students s
-      LEFT JOIN user_profiles p ON s.profile_id = p.id
-      ORDER BY s.created_at DESC
-    `;
+    const [students, studentProgramsList, groupStudentsList] = await Promise.all([
+      sql`
+        SELECT 
+          s.id, 
+          s.created_at, 
+          s.program,
+          s.fin_code,
+          p.first_name, 
+          p.last_name, 
+          p.email, 
+          p.phone
+        FROM students s
+        LEFT JOIN user_profiles p ON s.profile_id = p.id
+        ORDER BY s.created_at DESC
+      `,
+      sql`
+        SELECT student_id, program_name, status 
+        FROM student_programs
+      `,
+      sql`
+        SELECT gs.student_id, g.id as group_id, g.name as group_name
+        FROM group_students gs
+        JOIN groups g ON gs.group_id = g.id
+      `
+    ]);
 
-    const formatted = students.map((s: any) => ({
-      id: s.id,
-      name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Bilinmir",
-      email: s.email || "",
-      phone: s.phone || "",
-      group: "Qrup", 
-      joinDate: s.created_at ? new Date(s.created_at).toLocaleDateString() : "",
-      status: "ACTIVE"
-    }));
+    const programsMap = new Map();
+    studentProgramsList.forEach((sp: any) => {
+      if (!programsMap.has(sp.student_id)) {
+        programsMap.set(sp.student_id, []);
+      }
+      programsMap.get(sp.student_id).push(sp.program_name);
+    });
+
+    const groupsMap = new Map();
+    groupStudentsList.forEach((gs: any) => {
+      if (!groupsMap.has(gs.student_id)) {
+        groupsMap.set(gs.student_id, []);
+      }
+      groupsMap.get(gs.student_id).push({ id: gs.group_id, name: gs.group_name });
+    });
+
+    const formatted = students.map((s: any) => {
+      const dbPrograms = programsMap.get(s.id) || [];
+      const mainProgram = s.program ? s.program.split(",").map((p: string) => p.trim()).filter(Boolean) : [];
+      const allUniquePrograms = Array.from(new Set([...mainProgram, ...dbPrograms]));
+
+      return {
+        id: s.id,
+        name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Bilinmir",
+        email: s.email || "",
+        phone: s.phone || "",
+        fin: s.fin_code || "",
+        program: s.program || "—",
+        programs: allUniquePrograms.length > 0 ? allUniquePrograms : (s.program ? [s.program] : []),
+        groups: groupsMap.get(s.id) || [],
+        group: (groupsMap.get(s.id)?.[0]?.name) || "Əsas Qrup",
+        joinDate: s.created_at ? new Date(s.created_at).toLocaleDateString() : "",
+        status: "ACTIVE"
+      };
+    });
 
     return NextResponse.json(formatted);
   } catch (error) {
-    console.error(error);
+    console.error("Students GET error:", error);
     return NextResponse.json({ error: "Failed to fetch students" }, { status: 500 });
   }
 }

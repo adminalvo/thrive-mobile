@@ -1,14 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
-import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2, Search, Check, Users } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
 import { apiFetch } from "@/lib/apiClient";
+
+interface AssigneeUser {
+  id: string;
+  name: string;
+  email?: string;
+  avatar_url?: string | null;
+}
 
 interface KanbanTask {
   id: string;
@@ -20,30 +27,31 @@ interface KanbanTask {
   dueDate?: string | null;
   deadline?: string | null;
   assignee?: any;
+  assignees?: AssigneeUser[];
   order_index?: number;
   created_at?: string;
   updated_at?: string;
 }
-
-
 
 export default function TasksPage() {
   const t = useTranslations("Tasks");
   const c = useTranslations("Common");
 
   const COLUMNS: { id: KanbanTask["status"]; title: string; color: string }[] = [
-    { id: "TODO", title: t("columns.TODO"), color: "#64748b" },
-    { id: "IN_PROGRESS", title: t("columns.IN_PROGRESS"), color: "#3b82f6" },
-    { id: "REVIEW", title: t("columns.REVIEW"), color: "#f59e0b" },
-    { id: "DONE", title: t("columns.DONE"), color: "#10b981" }
+    { id: "TODO", title: t("columns.TODO") || "Gözləmədə", color: "#64748b" },
+    { id: "IN_PROGRESS", title: t("columns.IN_PROGRESS") || "İcrada", color: "#3b82f6" },
+    { id: "REVIEW", title: t("columns.REVIEW") || "Yoxlanışda", color: "#f59e0b" },
+    { id: "DONE", title: t("columns.DONE") || "Tamamlandı", color: "#10b981" }
   ];
 
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedAssigneeFilter, setSelectedAssigneeFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
   const { data: session } = useSession();
   const userRole = session?.user?.role || "staff";
-  const isSuperAdmin = userRole === 'super_admin';
   const permissions = (session?.user as any)?.permissions?.tasks || {};
   const canCreate = userRole === "super_admin" || userRole === "admin" || permissions.create;
 
@@ -61,14 +69,14 @@ export default function TasksPage() {
     status: KanbanTask["status"];
     priority: KanbanTask["priority"];
     dueDate: string;
-    assignee: string;
+    selectedAssignees: string[];
   }>({
     title: "",
     description: "",
     status: "TODO",
     priority: "MEDIUM",
     dueDate: "",
-    assignee: ""
+    selectedAssignees: []
   });
 
   const fetchTasks = async () => {
@@ -92,7 +100,7 @@ export default function TasksPage() {
       const res = await apiFetch("/api/staff");
       if (res.ok) {
         const data = await res.json();
-        setStaffUsers(data);
+        setStaffUsers(Array.isArray(data) ? data : []);
       }
     } catch (e) {
       console.error(e);
@@ -105,16 +113,12 @@ export default function TasksPage() {
   }, []);
 
   useEffect(() => {
-    // Supabase Realtime subscription
     const channel = supabase
-      .channel('kanban-changes')
+      .channel("kanban-changes")
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'kanban_tasks' },
-        (payload) => {
-          console.log('Realtime update:', payload);
-          // Refetch everything or update state optimistically
-          // The safest and easiest to keep order_index in sync is to refetch
+        "postgres_changes",
+        { event: "*", schema: "public", table: "kanban_tasks" },
+        () => {
           fetchTasks();
         }
       )
@@ -125,12 +129,28 @@ export default function TasksPage() {
     };
   }, []);
 
-  // Close card options dropdown when clicking outside
   useEffect(() => {
     const handleOutsideClick = () => setActiveMenuTaskId(null);
     window.addEventListener("click", handleOutsideClick);
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
+
+  // Filter tasks by Assignee & Search
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      const matchesSearch = !searchQuery.trim() || 
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      if (!matchesSearch) return false;
+
+      if (selectedAssigneeFilter === "all") return true;
+
+      // Check if user is in assignees list
+      const hasAssignee = task.assignees?.some(a => a.id === selectedAssigneeFilter || a.name === selectedAssigneeFilter);
+      return hasAssignee;
+    });
+  }, [tasks, selectedAssigneeFilter, searchQuery]);
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     e.dataTransfer.setData("taskId", taskId);
@@ -141,7 +161,6 @@ export default function TasksPage() {
     const taskId = e.dataTransfer.getData("taskId");
     if (!taskId) return;
 
-    // Optimistic UI update
     setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: newStatus } : t)));
 
     try {
@@ -153,7 +172,7 @@ export default function TasksPage() {
       if (!res.ok) throw new Error("Update failed");
     } catch (error) {
       toast.error("Tapşırıq statusunu dəyişmək mümkün olmadı");
-      fetchTasks(); // Revert on failure
+      fetchTasks();
     }
   };
 
@@ -168,7 +187,7 @@ export default function TasksPage() {
       status: "TODO",
       priority: "MEDIUM",
       dueDate: "",
-      assignee: ""
+      selectedAssignees: []
     });
     setShowCreateModal(true);
   };
@@ -177,7 +196,8 @@ export default function TasksPage() {
     setEditingTask(task);
     const dateVal = task.due_date || task.dueDate || task.deadline;
     const formattedDate = dateVal ? new Date(dateVal).toISOString().split("T")[0] : "";
-    const assigneeVal = typeof task.assignee === "object" ? task.assignee?.name || "" : task.assignee || "";
+    
+    const currentAssigneeIds = task.assignees?.map(a => a.id) || [];
 
     setFormData({
       title: task.title,
@@ -185,10 +205,22 @@ export default function TasksPage() {
       status: task.status,
       priority: task.priority,
       dueDate: formattedDate,
-      assignee: assigneeVal
+      selectedAssignees: currentAssigneeIds
     });
     setShowEditModal(true);
     setActiveMenuTaskId(null);
+  };
+
+  const toggleAssignee = (userId: string) => {
+    setFormData(prev => {
+      const exists = prev.selectedAssignees.includes(userId);
+      return {
+        ...prev,
+        selectedAssignees: exists 
+          ? prev.selectedAssignees.filter(id => id !== userId)
+          : [...prev.selectedAssignees, userId]
+      };
+    });
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -208,15 +240,14 @@ export default function TasksPage() {
           status: formData.status,
           priority: formData.priority,
           due_date: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
-          assignee: formData.assignee.trim() || null
+          assignees: formData.selectedAssignees
         })
       });
 
       if (res.ok) {
-        const created = await res.json();
-        setTasks(prev => [created, ...prev]);
-        setShowCreateModal(false);
         toast.success("Tapşırıq uğurla yaradıldı");
+        setShowCreateModal(false);
+        fetchTasks();
       } else {
         toast.error("Tapşırıq yaratmaq mümkün olmadı");
       }
@@ -243,16 +274,15 @@ export default function TasksPage() {
           status: formData.status,
           priority: formData.priority,
           due_date: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
-          assignee: formData.assignee.trim() || null
+          assignees: formData.selectedAssignees
         })
       });
 
       if (res.ok) {
-        const updated = await res.json();
-        setTasks(prev => prev.map(t => (t.id === updated.id ? updated : t)));
+        toast.success("Tapşırıq yeniləndi");
         setShowEditModal(false);
         setEditingTask(null);
-        toast.success("Tapşırıq yeniləndi");
+        fetchTasks();
       } else {
         toast.error("Tapşırığı yeniləmək mümkün olmadı");
       }
@@ -265,7 +295,6 @@ export default function TasksPage() {
     setActiveMenuTaskId(null);
     try {
       const res = await apiFetch(`/api/tasks/${taskId}`, { method: "DELETE" });
-
       if (res.ok) {
         setTasks(prev => prev.filter(t => t.id !== taskId));
         toast.success("Tapşırıq silindi");
@@ -280,14 +309,7 @@ export default function TasksPage() {
   const getPriorityColor = (priority: string) => {
     if (priority === "HIGH") return "#ef4444";
     if (priority === "MEDIUM") return "#f59e0b";
-    return "#3b82f6"; // LOW
-  };
-
-  const formatAssignee = (assignee: any) => {
-    if (!assignee) return t("unassigned");
-    if (typeof assignee === "string") return assignee;
-    if (typeof assignee === "object" && assignee.name) return assignee.name;
-    return t("unassigned");
+    return "#3b82f6";
   };
 
   const getDueDateDisplay = (task: KanbanTask) => {
@@ -304,14 +326,40 @@ export default function TasksPage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>{t("title")}</h1>
-          <p className={styles.subtitle}>{t("subtitle")}</p>
+          <h1 className={styles.title}>{t("title") || "Tapşırıqlar"}</h1>
+          <p className={styles.subtitle}>{t("subtitle") || "Komandanın daxili iş axını və tapşırıqları"}</p>
         </div>
         {canCreate && (
           <button className={styles.addBtn} onClick={openCreateModal}>
-            <Plus size={18} /> {t("newTask")}
+            <Plus size={18} /> {t("newTask") || "Yeni Tapşırıq"}
           </button>
         )}
+      </div>
+
+      {/* Assignee Filter & Search Bar */}
+      <div className={styles.filterBar}>
+        <div className={styles.searchFilter}>
+          <Search size={16} color="var(--text-secondary)" />
+          <input 
+            type="text" 
+            placeholder="Tapşırıq axtar..." 
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <select 
+          className={styles.filterSelect}
+          value={selectedAssigneeFilter}
+          onChange={e => setSelectedAssigneeFilter(e.target.value)}
+        >
+          <option value="all">Bütün İcraçılar (Hamısı)</option>
+          {staffUsers.map(user => (
+            <option key={user.id} value={user.id}>
+              {user.name} ({user.role})
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className={styles.kanbanBoard}>
@@ -324,21 +372,22 @@ export default function TasksPage() {
           >
             <div className={styles.columnHeader}>
               <div className={styles.colIndicator} style={{ backgroundColor: col.color }}></div>
-              <h3>{t(`columns.${col.id}`)}</h3>
+              <h3>{t(`columns.${col.id}`) || col.title}</h3>
               <span className={styles.count}>
-                {tasks.filter(t => t.status === col.id).length}
+                {filteredTasks.filter(t => t.status === col.id).length}
               </span>
             </div>
 
             <div className={styles.columnBody}>
               {loading ? (
-                <div className={styles.loading}>{c("loading")}</div>
+                <div className={styles.loading}>{c("loading") || "Yüklənir..."}</div>
               ) : (
-                tasks
+                filteredTasks
                   .filter(t => t.status === col.id)
                   .map(task => {
                     const dueDateDisplay = getDueDateDisplay(task);
                     const isMenuOpen = activeMenuTaskId === task.id;
+                    const assignees = task.assignees && task.assignees.length > 0 ? task.assignees : [];
 
                     return (
                       <motion.div
@@ -397,10 +446,24 @@ export default function TasksPage() {
                         {task.description && <p className={styles.taskDesc}>{task.description}</p>}
 
                         <div className={styles.cardFooter}>
-                          <div className={styles.assignee}>
-                            <User size={14} />
-                            <span>{formatAssignee(task.assignee)}</span>
+                          <div className={styles.assigneesWrapper}>
+                            {assignees.length === 0 ? (
+                              <div className={styles.assigneeChip}>
+                                <User size={13} />
+                                <span style={{ opacity: 0.6 }}>Təyin edilməyib</span>
+                              </div>
+                            ) : (
+                              assignees.map(a => (
+                                <div key={a.id} className={styles.assigneeChip} title={a.name}>
+                                  <span className={styles.userAvatarMini}>
+                                    {a.name.charAt(0)}
+                                  </span>
+                                  <span>{a.name}</span>
+                                </div>
+                              ))
+                            )}
                           </div>
+
                           {dueDateDisplay && (
                             <div className={styles.deadline}>
                               <Calendar size={14} />
@@ -454,14 +517,12 @@ export default function TasksPage() {
                   <label>Status</label>
                   <select
                     value={formData.status}
-                    onChange={e =>
-                      setFormData({ ...formData, status: e.target.value as KanbanTask["status"] })
-                    }
+                    onChange={e => setFormData({ ...formData, status: e.target.value as any })}
                   >
-                    <option value="TODO">{t("columns.TODO")}</option>
-                    <option value="IN_PROGRESS">{t("columns.IN_PROGRESS")}</option>
-                    <option value="REVIEW">{t("columns.REVIEW")}</option>
-                    <option value="DONE">{t("columns.DONE")}</option>
+                    <option value="TODO">Gözləmədə</option>
+                    <option value="IN_PROGRESS">İcrada</option>
+                    <option value="REVIEW">Yoxlanışda</option>
+                    <option value="DONE">Tamamlandı</option>
                   </select>
                 </div>
 
@@ -469,49 +530,46 @@ export default function TasksPage() {
                   <label>Prioritet</label>
                   <select
                     value={formData.priority}
-                    onChange={e =>
-                      setFormData({ ...formData, priority: e.target.value as KanbanTask["priority"] })
-                    }
+                    onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
                   >
-                    <option value="LOW">Aşağı (LOW)</option>
-                    <option value="MEDIUM">Orta (MEDIUM)</option>
-                    <option value="HIGH">Yüksək (HIGH)</option>
+                    <option value="LOW">Aşağı</option>
+                    <option value="MEDIUM">Orta</option>
+                    <option value="HIGH">Yüksək</option>
                   </select>
                 </div>
               </div>
 
-              <div className={styles.rowInputs}>
-                <div className={styles.inputGroup}>
-                  <label>İcra Tarixi</label>
-                  <input
-                    type="date"
-                    value={formData.dueDate}
-                    onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
-                  />
-                </div>
+              <div className={styles.inputGroup}>
+                <label>Bitmə Tarixi</label>
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                />
+              </div>
 
-                <div className={styles.inputGroup}>
-                  <label>Məsul Şəxs</label>
-                  <select
-                    value={formData.assignee}
-                    onChange={e => setFormData({ ...formData, assignee: e.target.value })}
-                  >
-                    <option value="">-- Məsul Şəxs Seçin --</option>
-                    {staffUsers.map(staff => (
-                      <option key={staff.id} value={staff.id}>
-                        {staff.name}
-                      </option>
-                    ))}
-                  </select>
+              <div className={styles.inputGroup}>
+                <label>İcraçılar (Bir və ya bir neçə işçi seçin)</label>
+                <div className={styles.multiUserPicker}>
+                  {staffUsers.map(user => {
+                    const isSelected = formData.selectedAssignees.includes(user.id);
+                    return (
+                      <div
+                        key={user.id}
+                        className={`${styles.userOptionChip} ${isSelected ? styles.userOptionActive : ""}`}
+                        onClick={() => toggleAssignee(user.id)}
+                      >
+                        <span className={styles.userAvatarMini}>{user.name.charAt(0)}</span>
+                        <span>{user.name}</span>
+                        {isSelected && <Check size={14} color="var(--aqua-teal, #00C4B5)" />}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className={styles.modalActions}>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={() => setShowCreateModal(false)}
-                >
+                <button type="button" className={styles.cancelBtn} onClick={() => setShowCreateModal(false)}>
                   Ləğv et
                 </button>
                 <button type="submit" className={styles.saveBtn}>
@@ -528,7 +586,7 @@ export default function TasksPage() {
         <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>{t("modal.edit.title")}</h2>
+              <h2>Tapşırığı Redaktə Et</h2>
               <button className={styles.closeModalBtn} onClick={() => setShowEditModal(false)}>
                 <X size={20} />
               </button>
@@ -540,7 +598,6 @@ export default function TasksPage() {
                 <input
                   required
                   type="text"
-                  placeholder="Başlıq..."
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
                 />
@@ -549,7 +606,6 @@ export default function TasksPage() {
               <div className={styles.inputGroup}>
                 <label>Təsvir</label>
                 <textarea
-                  placeholder="Detallar..."
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
@@ -560,14 +616,12 @@ export default function TasksPage() {
                   <label>Status</label>
                   <select
                     value={formData.status}
-                    onChange={e =>
-                      setFormData({ ...formData, status: e.target.value as KanbanTask["status"] })
-                    }
+                    onChange={e => setFormData({ ...formData, status: e.target.value as any })}
                   >
-                    <option value="TODO">{t("columns.TODO")}</option>
-                    <option value="IN_PROGRESS">{t("columns.IN_PROGRESS")}</option>
-                    <option value="REVIEW">{t("columns.REVIEW")}</option>
-                    <option value="DONE">{t("columns.DONE")}</option>
+                    <option value="TODO">Gözləmədə</option>
+                    <option value="IN_PROGRESS">İcrada</option>
+                    <option value="REVIEW">Yoxlanışda</option>
+                    <option value="DONE">Tamamlandı</option>
                   </select>
                 </div>
 
@@ -575,49 +629,46 @@ export default function TasksPage() {
                   <label>Prioritet</label>
                   <select
                     value={formData.priority}
-                    onChange={e =>
-                      setFormData({ ...formData, priority: e.target.value as KanbanTask["priority"] })
-                    }
+                    onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
                   >
-                    <option value="LOW">Aşağı (LOW)</option>
-                    <option value="MEDIUM">Orta (MEDIUM)</option>
-                    <option value="HIGH">Yüksək (HIGH)</option>
+                    <option value="LOW">Aşağı</option>
+                    <option value="MEDIUM">Orta</option>
+                    <option value="HIGH">Yüksək</option>
                   </select>
                 </div>
               </div>
 
-              <div className={styles.rowInputs}>
-                <div className={styles.inputGroup}>
-                  <label>İcra Tarixi</label>
-                  <input
-                    type="date"
-                    value={formData.dueDate}
-                    onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
-                  />
-                </div>
+              <div className={styles.inputGroup}>
+                <label>Bitmə Tarixi</label>
+                <input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
+                />
+              </div>
 
-                <div className={styles.inputGroup}>
-                  <label>Məsul Şəxs</label>
-                  <select
-                    value={formData.assignee}
-                    onChange={e => setFormData({ ...formData, assignee: e.target.value })}
-                  >
-                    <option value="">-- Məsul Şəxs Seçin --</option>
-                    {staffUsers.map(staff => (
-                      <option key={staff.id} value={staff.id}>
-                        {staff.name}
-                      </option>
-                    ))}
-                  </select>
+              <div className={styles.inputGroup}>
+                <label>İcraçılar (Bir və ya bir neçə işçi seçin)</label>
+                <div className={styles.multiUserPicker}>
+                  {staffUsers.map(user => {
+                    const isSelected = formData.selectedAssignees.includes(user.id);
+                    return (
+                      <div
+                        key={user.id}
+                        className={`${styles.userOptionChip} ${isSelected ? styles.userOptionActive : ""}`}
+                        onClick={() => toggleAssignee(user.id)}
+                      >
+                        <span className={styles.userAvatarMini}>{user.name.charAt(0)}</span>
+                        <span>{user.name}</span>
+                        {isSelected && <Check size={14} color="var(--aqua-teal, #00C4B5)" />}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className={styles.modalActions}>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={() => setShowEditModal(false)}
-                >
+                <button type="button" className={styles.cancelBtn} onClick={() => setShowEditModal(false)}>
                   Ləğv et
                 </button>
                 <button type="submit" className={styles.saveBtn}>
@@ -629,55 +680,107 @@ export default function TasksPage() {
         </div>
       )}
 
-      {/* View Task Modal */}
+      {/* Task Details Modal */}
       {viewingTask && (
         <div className={styles.modalOverlay} onClick={() => setViewingTask(null)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>{t("detail.title") || "Detallı Baxış"}</h2>
+              <h2>Tapşırıq Detalları</h2>
               <button className={styles.closeModalBtn} onClick={() => setViewingTask(null)}>
                 <X size={20} />
               </button>
             </div>
+
             <div className={styles.detailBody}>
               <div className={styles.detailGroup}>
-                <span className={styles.detailLabel}>{t("detail.taskTitle") || "Başlıq"}</span>
-                <span className={styles.detailValue} style={{ fontSize: "1.1rem", fontWeight: 500 }}>{viewingTask.title}</span>
+                <div className={styles.detailLabel}>Başlıq</div>
+                <div className={styles.detailValue} style={{ fontWeight: 600, fontSize: "1.1rem" }}>
+                  {viewingTask.title}
+                </div>
               </div>
-              <div className={styles.detailGroup}>
-                <span className={styles.detailLabel}>{t("detail.description") || "Təsvir"}</span>
-                <span className={styles.detailValue}>{viewingTask.description || t("detail.none")}</span>
-              </div>
+
+              {viewingTask.description && (
+                <div className={styles.detailGroup}>
+                  <div className={styles.detailLabel}>Təsvir</div>
+                  <div className={styles.detailValue} style={{ whiteSpace: "pre-wrap" }}>
+                    {viewingTask.description}
+                  </div>
+                </div>
+              )}
+
               <div className={styles.detailRow}>
                 <div className={styles.detailGroup}>
-                  <span className={styles.detailLabel}>{t("detail.status") || "Status"}</span>
-                  <span className={styles.detailValue}>{t(`columns.${viewingTask.status}`)}</span>
+                  <div className={styles.detailLabel}>Status</div>
+                  <div
+                    className={styles.detailBadge}
+                    style={{
+                      backgroundColor: `${COLUMNS.find(c => c.id === viewingTask.status)?.color}26`,
+                      color: COLUMNS.find(c => c.id === viewingTask.status)?.color
+                    }}
+                  >
+                    {COLUMNS.find(c => c.id === viewingTask.status)?.title}
+                  </div>
                 </div>
+
                 <div className={styles.detailGroup}>
-                  <span className={styles.detailLabel}>{t("detail.priority") || "Prioritet"}</span>
-                  <span className={styles.detailBadge} style={{ 
-                    color: getPriorityColor(viewingTask.priority), 
-                    backgroundColor: `${getPriorityColor(viewingTask.priority)}1A` 
-                  }}>
+                  <div className={styles.detailLabel}>Prioritet</div>
+                  <div
+                    className={styles.detailBadge}
+                    style={{
+                      backgroundColor: `${getPriorityColor(viewingTask.priority)}26`,
+                      color: getPriorityColor(viewingTask.priority)
+                    }}
+                  >
                     {viewingTask.priority}
-                  </span>
+                  </div>
                 </div>
               </div>
+
               <div className={styles.detailRow}>
                 <div className={styles.detailGroup}>
-                  <span className={styles.detailLabel}>{t("detail.assignee") || "İcraçı"}</span>
-                  <span className={styles.detailValue}>{formatAssignee(viewingTask.assignee)}</span>
+                  <div className={styles.detailLabel}>İcraçılar</div>
+                  <div className={styles.assigneesWrapper} style={{ marginTop: "0.25rem" }}>
+                    {viewingTask.assignees && viewingTask.assignees.length > 0 ? (
+                      viewingTask.assignees.map(a => (
+                        <div key={a.id} className={styles.assigneeChip}>
+                          <span className={styles.userAvatarMini}>{a.name.charAt(0)}</span>
+                          <span>{a.name}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span style={{ opacity: 0.6, fontSize: "0.9rem" }}>Təyin edilməyib</span>
+                    )}
+                  </div>
                 </div>
+
                 <div className={styles.detailGroup}>
-                  <span className={styles.detailLabel}>{t("detail.date") || "Tarix"}</span>
-                  <span className={styles.detailValue}>{getDueDateDisplay(viewingTask) || t("detail.none")}</span>
+                  <div className={styles.detailLabel}>Bitmə Tarixi</div>
+                  <div className={styles.detailValue}>
+                    {getDueDateDisplay(viewingTask) || "Təyin edilməyib"}
+                  </div>
                 </div>
+              </div>
+
+              <div className={styles.modalActions} style={{ marginTop: "1rem" }}>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={() => {
+                    const t = viewingTask;
+                    setViewingTask(null);
+                    openEditModal(t);
+                  }}
+                >
+                  <Edit2 size={15} style={{ marginRight: 6 }} /> Redaktə Et
+                </button>
+                <button type="button" className={styles.saveBtn} onClick={() => setViewingTask(null)}>
+                  Bağla
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

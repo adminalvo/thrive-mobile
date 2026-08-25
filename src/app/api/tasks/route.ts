@@ -4,15 +4,65 @@ import sql from "@/lib/db";
 import { logAction } from "@/lib/logger";
 import { checkApiPermission } from "@/lib/auth-utils";
 
-
 export async function GET() {
   try {
-    const tasks = await sql`
-      SELECT id, title, description, status, priority, due_date, assignee, order_index, created_at, updated_at
-      FROM kanban_tasks 
-      ORDER BY order_index ASC, created_at DESC
-    `;
-    return NextResponse.json(tasks);
+    const [tasks, users] = await Promise.all([
+      sql`
+        SELECT id, title, description, status, priority, due_date, assignee, order_index, created_at, updated_at
+        FROM kanban_tasks 
+        ORDER BY order_index ASC, created_at DESC
+      `,
+      sql`
+        SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url
+        FROM auth.users u
+        LEFT JOIN user_profiles p ON u.id = p.user_id
+      `
+    ]);
+
+    const userMap = new Map();
+    users.forEach((u: any) => {
+      const fullName = `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email?.split("@")[0] || "İstifadəçi";
+      userMap.set(u.id, {
+        id: u.id,
+        name: fullName,
+        email: u.email || "",
+        avatar_url: u.avatar_url || null
+      });
+    });
+
+    const formattedTasks = tasks.map((task: any) => {
+      let assigneeIds: string[] = [];
+      if (task.assignee) {
+        try {
+          if (task.assignee.startsWith("[") && task.assignee.endsWith("]")) {
+            assigneeIds = JSON.parse(task.assignee);
+          } else if (task.assignee.includes(",")) {
+            assigneeIds = task.assignee.split(",").map((s: string) => s.trim()).filter(Boolean);
+          } else {
+            assigneeIds = [task.assignee.trim()];
+          }
+        } catch {
+          assigneeIds = [task.assignee];
+        }
+      }
+
+      const assignees = assigneeIds.map(id => {
+        const found = userMap.get(id);
+        if (found) return found;
+        if (!id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          return { id, name: id, email: "" };
+        }
+        return { id, name: "Təyin edilib", email: "" };
+      });
+
+      return {
+        ...task,
+        assignee: assignees.length > 0 ? assignees[0].name : null,
+        assignees: assignees
+      };
+    });
+
+    return NextResponse.json(formattedTasks);
   } catch (error) {
     console.error("Tasks GET error:", error);
     return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });
@@ -32,7 +82,8 @@ export async function POST(req: Request) {
       priority = "MEDIUM", 
       due_date = null, 
       dueDate = null,
-      assignee = null 
+      assignee = null,
+      assignees = null
     } = body;
 
     if (!title || typeof title !== "string" || !title.trim()) {
@@ -41,10 +92,11 @@ export async function POST(req: Request) {
 
     const finalDueDate = due_date || dueDate || null;
     
-    // Assignee is a UUID in the new schema. If the frontend passes a raw string name, we set it to null.
-    let validAssignee = null;
-    if (assignee && typeof assignee === 'string' && assignee.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-      validAssignee = assignee;
+    let storedAssignee = null;
+    if (Array.isArray(assignees) && assignees.length > 0) {
+      storedAssignee = JSON.stringify(assignees);
+    } else if (assignee) {
+      storedAssignee = typeof assignee === "object" ? JSON.stringify(assignee) : String(assignee).trim();
     }
 
     const task = await sql`
@@ -52,10 +104,10 @@ export async function POST(req: Request) {
       VALUES (
         ${title.trim()}, 
         ${description ? String(description).trim() : null}, 
-        ${status || 'TODO'}, 
-        ${priority || 'MEDIUM'}, 
+        ${status || "TODO"}, 
+        ${priority || "MEDIUM"}, 
         ${finalDueDate ? new Date(finalDueDate) : null}, 
-        ${validAssignee}, 
+        ${storedAssignee}, 
         0
       )
       RETURNING *

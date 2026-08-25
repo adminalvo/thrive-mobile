@@ -24,9 +24,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const priority = body.priority !== undefined ? String(body.priority).trim() : current.priority;
     const rawDueDate = body.due_date !== undefined ? body.due_date : body.dueDate;
     const dueDate = rawDueDate !== undefined ? (rawDueDate ? new Date(rawDueDate) : null) : (current.due_date ? new Date(current.due_date) : null);
-    const assignee = body.assignee !== undefined
-      ? (body.assignee ? String(body.assignee).trim() : null)
-      : (body.assignee_id !== undefined ? (body.assignee_id ? String(body.assignee_id).trim() : null) : current.assignee);
+    
+    let assignee = current.assignee;
+    if (body.assignees !== undefined && Array.isArray(body.assignees)) {
+      assignee = JSON.stringify(body.assignees);
+    } else if (body.assignee !== undefined) {
+      assignee = body.assignee ? (typeof body.assignee === "object" ? JSON.stringify(body.assignee) : String(body.assignee).trim()) : null;
+    }
+
     const orderIndex = body.order_index !== undefined ? Number(body.order_index) : (body.orderIndex !== undefined ? Number(body.orderIndex) : Number(current.order_index || 0));
 
     const updated = await sql`

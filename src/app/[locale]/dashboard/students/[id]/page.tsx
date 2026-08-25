@@ -162,9 +162,22 @@ export default function StudentDetailPage({
     }
   }, [id, t]);
 
+  const fetchAvailablePrograms = useCallback(async () => {
+    try {
+      const res = await fetch("/api/programs");
+      if (res.ok) {
+        const data = await res.json();
+        setAvailablePrograms(Array.isArray(data) ? data : (data.programs || []));
+      }
+    } catch (e) {
+      console.error("Failed to load programs:", e);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+    fetchAvailablePrograms();
+  }, [fetchProfile, fetchAvailablePrograms]);
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -529,7 +542,7 @@ export default function StudentDetailPage({
               </h3>
               <button 
                 className={styles.actionBtnPrimary} 
-                onClick={() => { setEditProgramId(null); setNewProgram({name: "", price: ""}); setShowProgramModal(true); }}
+                onClick={() => { setEditProgramId(null); setNewProgram({name: "", price: ""}); fetchAvailablePrograms(); setShowProgramModal(true); }}
               >
                 <Plus size={16} /> Proqram Əlavə Et
               </button>

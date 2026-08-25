@@ -121,6 +121,7 @@ export default function StudentsPage() {
               <tr>
                 <th>{t("table.name")}</th>
                 <th>{t("table.contact")}</th>
+                <th>Fənlər / Proqramlar</th>
                 <th>{t("table.group")}</th>
                 <th>{t("table.enrollDate")}</th>
                 <th></th>
@@ -161,6 +162,30 @@ export default function StudentsPage() {
                       <div className={styles.contact}>
                         <span>{student.phone || "—"}</span>
                         <span className={styles.email}>{displayEmail}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", maxWidth: "260px" }}>
+                        {student.programs && student.programs.length > 0 ? (
+                          student.programs.map((p: string, pIdx: number) => (
+                            <span 
+                              key={pIdx} 
+                              style={{
+                                background: "rgba(0, 196, 181, 0.12)",
+                                color: "var(--aqua-teal, #00C4B5)",
+                                border: "1px solid rgba(0, 196, 181, 0.25)",
+                                padding: "2px 8px",
+                                borderRadius: "12px",
+                                fontSize: "0.78rem",
+                                fontWeight: 600
+                              }}
+                            >
+                              {p}
+                            </span>
+                          ))
+                        ) : (
+                          <span style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>—</span>
+                        )}
                       </div>
                     </td>
                     <td>

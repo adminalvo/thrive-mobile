@@ -97,6 +97,31 @@ export default function SchedulePage() {
   };
 
   
+  const handleDeleteSchedule = async () => {
+    if (!selectedClass?.schedule?.id) return;
+    if (!confirm("Bu dərsi cədvəldən silmək istədiyinizə əminsiniz?")) return;
+    try {
+      const res = await fetch(`/api/schedules/${selectedClass.schedule.id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Dərs cədvəldən uğurla silindi");
+        setSelectedClass(null);
+        fetchSchedules();
+      } else {
+        toast.error("Dərsi silmək mümkün olmadı");
+      }
+    } catch {
+      toast.error("Xəta baş verdi");
+    }
+  };
+
+  useEffect(() => {
+    // Dynamic auto-update ticker every 60 seconds
+    const interval = setInterval(() => {
+      fetchSchedules();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const openEditScheduleModal = () => {
     if (!selectedClass) return;
     setIsEditing(true);
@@ -494,9 +519,14 @@ export default function SchedulePage() {
                 <p className={styles.detailsSubtitle}>{selectedClass.group.program?.name || t("noProgram")} • {selectedClass.group.teacher || t("unassigned")}</p>
               </div>
               {canEdit && (
-                <button onClick={openEditScheduleModal} style={{ background: "var(--aqua-teal, #00C4B5)", color: "#fff", border: "none", padding: "0.4rem 1rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500 }}>
-                  {t("edit")}
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <button onClick={openEditScheduleModal} style={{ background: "var(--aqua-teal, #00C4B5)", color: "#fff", border: "none", padding: "0.4rem 1rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500 }}>
+                    {t("edit")}
+                  </button>
+                  <button onClick={handleDeleteSchedule} style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.4rem 0.8rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: "4px" }}>
+                    <Trash2 size={14} /> Sil
+                  </button>
+                </div>
               )}
             </div>
                   

@@ -68,10 +68,10 @@ export default function TasksPage() {
   const c = useTranslations("Common");
 
   const COLUMNS: { id: KanbanTask["status"]; title: string; color: string }[] = [
-    { id: "TODO", title: "Gözləmədə", color: "#64748b" },
-    { id: "IN_PROGRESS", title: "İcrada", color: "#3b82f6" },
-    { id: "REVIEW", title: "Yoxlanışda", color: "#f59e0b" },
-    { id: "DONE", title: "Tamamlandı", color: "#10b981" }
+    { id: "TODO", title: t("columns.TODO") || "Gözləmədə", color: "#64748b" },
+    { id: "IN_PROGRESS", title: t("columns.IN_PROGRESS") || "İcrada", color: "#3b82f6" },
+    { id: "REVIEW", title: t("columns.REVIEW") || "Yoxlanışda", color: "#f59e0b" },
+    { id: "DONE", title: t("columns.DONE") || "Tamamlandı", color: "#10b981" }
   ];
 
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
@@ -280,9 +280,9 @@ export default function TasksPage() {
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) throw new Error("Update failed");
-      toast.success("Status yeniləndi");
+      toast.success(t("statusUpdated") || "Status yeniləndi");
     } catch (error) {
-      toast.error("Tapşırıq statusunu dəyişmək mümkün olmadı");
+      toast.error(t("statusFailed") || "Tapşırıq statusunu dəyişmək mümkün olmadı");
       fetchTasks();
     }
   };
@@ -305,9 +305,9 @@ export default function TasksPage() {
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) throw new Error("Update failed");
-      toast.success("Status yeniləndi");
+      toast.success(t("statusUpdated") || "Status yeniləndi");
     } catch (error) {
-      toast.error("Tapşırıq statusunu dəyişmək mümkün olmadı");
+      toast.error(t("statusFailed") || "Tapşırıq statusunu dəyişmək mümkün olmadı");
       fetchTasks();
     }
   };
@@ -368,7 +368,7 @@ export default function TasksPage() {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) {
-      toast.error("Zəhmət olmasa başlıq daxil edin");
+      toast.error(t("titleRequired") || "Zəhmət olmasa başlıq daxil edin");
       return;
     }
 
@@ -387,14 +387,14 @@ export default function TasksPage() {
       });
 
       if (res.ok) {
-        toast.success("Tapşırıq yaradıldı");
+        toast.success(t("createdSuccess") || "Tapşırıq yaradıldı");
         setShowCreateModal(false);
         fetchTasks();
       } else {
-        toast.error("Tapşırığı yaratmaq mümkün olmadı");
+        toast.error(t("createdFailed") || "Tapşırığı yaratmaq mümkün olmadı");
       }
     } catch (error) {
-      toast.error("Gözlənilməz xəta baş verdi");
+      toast.error(c("errors.unexpected") || "Gözlənilməz xəta baş verdi");
     }
   };
 
@@ -417,15 +417,15 @@ export default function TasksPage() {
       });
 
       if (res.ok) {
-        toast.success("Tapşırıq yeniləndi");
+        toast.success(t("updatedSuccess") || "Tapşırıq yeniləndi");
         setShowEditModal(false);
         setEditingTask(null);
         fetchTasks();
       } else {
-        toast.error("Tapşırığı yeniləmək mümkün olmadı");
+        toast.error(t("updatedFailed") || "Tapşırığı yeniləmək mümkün olmadı");
       }
     } catch (error) {
-      toast.error("Gözlənilməz xəta baş verdi");
+      toast.error(c("errors.unexpected") || "Gözlənilməz xəta baş verdi");
     }
   };
 
@@ -435,12 +435,12 @@ export default function TasksPage() {
       const res = await apiFetch(`/api/tasks/${taskId}`, { method: "DELETE" });
       if (res.ok) {
         setTasks(prev => prev.filter(t => t.id !== taskId));
-        toast.success("Tapşırıq silindi");
+        toast.success(t("deletedSuccess") || "Tapşırıq silindi");
       } else {
-        toast.error("Tapşırığı silmək mümkün olmadı");
+        toast.error(t("deletedFailed") || "Tapşırığı silmək mümkün olmadı");
       }
     } catch (error) {
-      toast.error("Gözlənilməz xəta baş verdi");
+      toast.error(c("errors.unexpected") || "Gözlənilməz xəta baş verdi");
     }
   };
 
@@ -480,7 +480,7 @@ export default function TasksPage() {
             <Search size={16} color="var(--text-secondary)" />
             <input 
               type="text" 
-              placeholder="Tapşırıq axtar..." 
+              placeholder={t("searchPlaceholder") || "Tapşırıq axtar..."} 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -496,13 +496,13 @@ export default function TasksPage() {
               fontSize: "0.85rem",
               fontWeight: 600
             }}>
-              Mənə aid tapşırıqlar ({filteredTasks.length})
+              {t("myTasksOnly") || "Mənə aid tapşırıqlar"} ({filteredTasks.length})
             </div>
           )}
 
           {isSuperAdmin && selectedAssigneeFilters.length > 0 && (
             <button className={styles.filterClearBtn} onClick={handleSelectAll}>
-              Seçimləri sıfırla ({selectedAssigneeFilters.length})
+              {t("resetFilters") || "Seçimləri sıfırla"} ({selectedAssigneeFilters.length})
             </button>
           )}
         </div>
@@ -516,7 +516,7 @@ export default function TasksPage() {
               onClick={handleSelectAll}
             >
               <Users size={14} />
-              <span>👥 Bütün Şəxsləri Göstər (Hamısı)</span>
+              <span>{t("allPeople") || "👥 Bütün Şəxsləri Göstər (Hamısı)"}</span>
             </div>
 
             {/* Individual Staff Chips */}
@@ -656,7 +656,7 @@ export default function TasksPage() {
                             {assignees.length === 0 ? (
                               <div className={styles.assigneeChip}>
                                 <User size={13} />
-                                <span style={{ opacity: 0.6 }}>Təyin edilməyib</span>
+                                <span style={{ opacity: 0.6 }}>{t("unassigned") || "Təyin edilməyib"}</span>
                               </div>
                             ) : (
                               assignees.map((a, idx) => (

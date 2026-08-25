@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import styles from "./page.module.css";
-import { LogIn, Mail, Lock, LayoutDashboard, Eye, EyeOff, BookOpen } from "lucide-react";
+import { LogIn, Mail, Lock, LayoutDashboard, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "@/i18n/routing";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("Auth");
+  const h = useTranslations("HomePage");
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,7 +44,6 @@ export default function LoginPage() {
       <div className={styles.orb1}></div>
       <div className={styles.orb2}></div>
 
-
       <div className={styles.layoutWrapper}>
         {/* Left Side: Branding */}
         <motion.div 
@@ -53,7 +55,7 @@ export default function LoginPage() {
           <div className={styles.brandContent}>
             <LayoutDashboard className={styles.hugeLogo} size={64} />
             <h1 className={styles.hugeTitle}>Thrive<span className={styles.logoAccent}>CRM</span></h1>
-            <p className={styles.brandSubtitle}>Empowering the future of education with intelligent management.</p>
+            <p className={styles.brandSubtitle}>{t("slogan") || "Empowering the future of education with intelligent management."}</p>
           </div>
         </motion.div>
 
@@ -66,18 +68,18 @@ export default function LoginPage() {
             className={styles.loginContainer}
           >
             <div className={styles.loginHeader}>
-              <h2 className={styles.formTitle}>Welcome Back</h2>
-              <p className={styles.subtitle}>Sign in to your account</p>
+              <h2 className={styles.formTitle}>{t("welcomeBack") || "Welcome Back"}</h2>
+              <p className={styles.subtitle}>{t("signInSubtitle") || "Sign in to your account"}</p>
             </div>
 
             <form onSubmit={handleLogin} className={styles.form}>
               <div className={styles.inputGroup}>
-                <label>Email Address</label>
+                <label>{t("emailAddress") || t("emailLabel") || "Email Address"}</label>
                 <div className={styles.inputWrapper}>
                   <Mail className={styles.inputIcon} size={20} />
                   <input 
                     type="email" 
-                    placeholder="Enter your email"
+                    placeholder={t("enterEmail") || t("emailPlaceholder") || "Enter your email"}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required 
@@ -86,12 +88,12 @@ export default function LoginPage() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Password</label>
+                <label>{t("password") || t("passwordLabel") || "Password"}</label>
                 <div className={styles.inputWrapper}>
                   <Lock className={styles.inputIcon} size={20} />
                   <input 
                     type={showPassword ? "text" : "password"} 
-                    placeholder="Enter your password"
+                    placeholder={t("enterPassword") || t("passwordPlaceholder") || "Enter your password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required 
@@ -109,7 +111,7 @@ export default function LoginPage() {
               {error && <div className={styles.errorText}>{error}</div>}
 
               <button type="submit" className={styles.submitBtn} disabled={loading}>
-                {loading ? "Signing in..." : "Sign In"}
+                {loading ? (t("loading") || "Signing in...") : (t("loginBtn") || "Sign In")}
               </button>
             </form>
           </motion.div>
@@ -120,7 +122,7 @@ export default function LoginPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 1 }}
           >
-            Developed by <span className={styles.hactag}>HacTag</span>
+            {h("developedBy") || "Developed by"} <span className={styles.hactag}>HacTag</span>
           </motion.div>
         </div>
       </div>

@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Lock, KeyRound, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import styles from "./page.module.css";
+import { useTranslations } from "next-intl";
 
 export default function UnlockPage() {
+  const t = useTranslations("Unlock");
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,7 @@ export default function UnlockPage() {
       if (res.ok) {
         router.push("/login");
       } else {
-        setError("Invalid passcode. Access denied.");
+        setError(t("error") || "Invalid passcode. Access denied.");
         setPasscode("");
       }
     } catch {
@@ -49,15 +51,15 @@ export default function UnlockPage() {
         className={styles.container}
       >
         <Lock className={styles.logoAccent} size={48} />
-        <h1 className={styles.title}>Protected Area</h1>
-        <p className={styles.subtitle}>Please enter the site passcode to continue.</p>
+        <h1 className={styles.title}>{t("title") || "Protected Area"}</h1>
+        <p className={styles.subtitle}>{t("description") || "Please enter the site passcode to continue."}</p>
 
         <form onSubmit={handleUnlock} className={styles.form}>
           <div className={styles.inputWrapper}>
             <KeyRound className={styles.inputIcon} size={20} />
             <input 
               type="password" 
-              placeholder="Enter passcode"
+              placeholder={t("placeholder") || "Enter passcode"}
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
               required 
@@ -68,7 +70,7 @@ export default function UnlockPage() {
           {error && <div className={styles.errorText}>{error}</div>}
 
           <button type="submit" className={styles.submitBtn} disabled={loading || !passcode}>
-            {loading ? <Loader2 className="animate-spin" size={20} /> : "Unlock Site"}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : (t("button") || "Unlock Site")}
           </button>
         </form>
       </motion.div>

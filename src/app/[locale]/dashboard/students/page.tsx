@@ -80,8 +80,8 @@ export default function StudentsPage() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px', color: '#ef4444' }}>
         <ShieldAlert size={48} />
-        <h2>Giriş Qadağandır</h2>
-        <p>Tələbələr bölməsinə baxmaq üçün icazəniz yoxdur.</p>
+        <h2>{c("accessDeniedTitle") || "Giriş Qadağandır"}</h2>
+        <p>{c("accessDeniedDesc") || "Tələbələr bölməsinə baxmaq üçün icazəniz yoxdur."}</p>
       </div>
     );
   }
@@ -131,7 +131,7 @@ export default function StudentsPage() {
               <tr>
                 <th>{t("table.name")}</th>
                 <th>{t("table.contact")}</th>
-                <th>Fənlər / Proqramlar</th>
+                <th>{t("subjectsAndPrograms") || "Fənlər / Proqramlar"}</th>
                 <th>{t("table.group")}</th>
                 <th>{t("table.enrollDate")}</th>
                 <th></th>

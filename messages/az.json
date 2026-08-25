@@ -7,7 +7,7 @@
     "typewriter4": "Tam Nəzarət",
     "aboutTitle": "Thrive CRM Haqqında",
     "aboutText": "Təhsil idarəetməsinin yeni nəslini kəşf edin. Thrive CRM qabaqcıl avtomatlaşdırmanı, fasiləsiz cədvəlləşdirməni və hərtərəfli izləməni tək bir futuristik mərkəzdə birləşdirir. Biz sadəcə məlumatları idarə etmirik; təhsilin gələcəyini dizayn edir, qurumlara onların hər ehtiyacını qabaqcadan görən alətlər təqdim edirik.",
-    "developedBy": "Developed by",
+    "developedBy": "Hazırladı",
     "website": "www.thrive.az"
   },
   "Auth": {
@@ -20,7 +20,14 @@
     "loading": "GÖZLƏYİN...",
     "forgotPassword": "Şifrənizi unutmusunuz?",
     "contactAdmin": "Adminlə əlaqə saxlayın",
-    "backHome": "Ana Səhifə"
+    "backHome": "Ana Səhifə",
+    "welcomeBack": "Yenidən Xoş Gəlmisiniz",
+    "signInSubtitle": "Hesabınıza daxil olun",
+    "slogan": "İntellektual idarəetmə ilə təhsilin gələcəyini qurun.",
+    "emailAddress": "E-poçt ünvanı",
+    "enterEmail": "E-poçtunuzu daxil edin",
+    "password": "Şifrə",
+    "enterPassword": "Şifrənizi daxil edin"
   },
   "Sidebar": {
     "dashboard": "İdarə Paneli",
@@ -202,7 +209,13 @@
       "group": "Qrup / İxtisas",
       "status": "Status",
       "enrollDate": "Qeydiyyat"
-    }
+    },
+    "subjectsAndPrograms": "Fənlər / Proqramlar",
+    "selectProgramReq": "Zəhmət olmasa ən azı bir proqram seçin",
+    "addedSuccess": "Tələbə uğurla əlavə edildi!",
+    "studentInfo": "Tələbə məlumatları",
+    "autoPasswordPlaceholder": "Avtomatik: 123456",
+    "loginPassword": "Sistemə Giriş Şifrəsi"
   },
   "Teachers": {
     "title": "Müəllimlər və İxtisaslar",
@@ -458,6 +471,26 @@
       "assignee": "İcraçı",
       "date": "Tarix",
       "none": "Yoxdur"
+    },
+    "allPeople": "👥 Bütün Şəxsləri Göstər (Hamısı)",
+    "resetFilters": "Seçimləri sıfırla",
+    "myTasksOnly": "Mənə aid tapşırıqlar",
+    "searchPlaceholder": "Tapşırıq axtar...",
+    "statusUpdated": "Status yeniləndi",
+    "statusFailed": "Tapşırıq statusunu dəyişmək mümkün olmadı",
+    "titleRequired": "Zəhmət olmasa başlıq daxil edin",
+    "createdSuccess": "Tapşırıq yaradıldı",
+    "createdFailed": "Tapşırığı yaratmaq mümkün olmadı",
+    "updatedSuccess": "Tapşırıq yeniləndi",
+    "updatedFailed": "Tapşırığı yeniləmək mümkün olmadı",
+    "deletedSuccess": "Tapşırıq silindi",
+    "deletedFailed": "Tapşırığı silmək mümkün olmadı",
+    "assigneesOnlyStaff": "İcraçılar (Yalnız komanda işçiləri)",
+    "quickStatus": "Statusu birbaşa dəyişin",
+    "priorities": {
+      "LOW": "Aşağı",
+      "MEDIUM": "Orta",
+      "HIGH": "Yüksək"
     }
   },
   "Settings": {
@@ -539,7 +572,9 @@
     "delete": "Sil",
     "view": "Bax",
     "close": "Bağla",
-    "add": "Əlavə et"
+    "add": "Əlavə et",
+    "accessDeniedTitle": "Giriş Qadağandır",
+    "accessDeniedDesc": "Bu bölməyə baxmaq üçün icazəniz yoxdur."
   },
   "NotFound": {
     "title": "Sistem Xətası: Səhifə Tapılmadı",
@@ -742,10 +777,10 @@
     "modalPermDesc": "Aşağıdakı modullar üzrə bu istifadəçiyə uyğun hüquqları təyin edin.",
     "module": "Modul",
     "view": "View",
-    "create": "Create",
+    "create": "Yaratmaq",
     "edit": "Edit",
-    "delete": "Delete",
-    "export": "Export",
+    "delete": "Silmək",
+    "export": "İxrac etmək",
     "cancel": "Ləğv et",
     "save": "Yadda saxla",
     "saving": "Saxlanılır...",
@@ -756,11 +791,18 @@
     "password": "Şifrə",
     "passwordPlaceholder": "Ən azı 6 simvol",
     "roleSelect": "Rol seçin",
-    "admin": "Admin",
+    "admin": "İnzibatçı",
     "staff": "Staff (Ofis işçisi)",
     "teacher": "Müəllim",
     "sales": "Satış",
     "denied": "Bu səhifəyə giriş qadağandır",
     "deniedDesc": "Sizin bu səhifəni görmək üçün kifayət qədər yetkiniz yoxdur."
+  },
+  "Unlock": {
+    "title": "Qorunan Zona",
+    "description": "Davam etmək üçün saytın giriş kodunu daxil edin.",
+    "placeholder": "Giriş kodunu daxil edin",
+    "button": "Daxil ol",
+    "error": "Giriş kodu yanlışdır"
   }
 }

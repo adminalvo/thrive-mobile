@@ -20,7 +20,14 @@
     "loading": "WAITING...",
     "forgotPassword": "Forgot your password?",
     "contactAdmin": "Contact administrator",
-    "backHome": "Home Page"
+    "backHome": "Home Page",
+    "welcomeBack": "Welcome Back",
+    "signInSubtitle": "Sign in to your account",
+    "slogan": "Empowering the future of education with intelligent management.",
+    "emailAddress": "Email Address",
+    "enterEmail": "Enter your email",
+    "password": "Password",
+    "enterPassword": "Enter your password"
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -202,7 +209,13 @@
       "group": "Group / Major",
       "status": "Status",
       "enrollDate": "Enrollment"
-    }
+    },
+    "subjectsAndPrograms": "Subjects / Programs",
+    "selectProgramReq": "Please select at least one program",
+    "addedSuccess": "Student added successfully!",
+    "studentInfo": "Student Information",
+    "autoPasswordPlaceholder": "Automatic: 123456",
+    "loginPassword": "Login Password"
   },
   "Teachers": {
     "title": "Teachers & Subjects",
@@ -409,7 +422,8 @@
     "searchExpensePlaceholder": "Search expenses...",
     "paidAmount": "Paid",
     "debt": "Debt",
-    "action": "Action"
+    "action": "Action",
+    "desc3": "Manage financial transactions and student balances."
   },
   "Contract": {
     "title": "Electronic Contract & Invoice",
@@ -457,6 +471,26 @@
       "assignee": "Assignee",
       "date": "Date",
       "none": "None"
+    },
+    "allPeople": "👥 Show All Persons (All)",
+    "resetFilters": "Reset filters",
+    "myTasksOnly": "My assigned tasks",
+    "searchPlaceholder": "Search tasks...",
+    "statusUpdated": "Status updated",
+    "statusFailed": "Failed to update task status",
+    "titleRequired": "Please enter a title",
+    "createdSuccess": "Task created",
+    "createdFailed": "Failed to create task",
+    "updatedSuccess": "Task updated",
+    "updatedFailed": "Failed to update task",
+    "deletedSuccess": "Task deleted",
+    "deletedFailed": "Failed to delete task",
+    "assigneesOnlyStaff": "Assignees (Team staff only)",
+    "quickStatus": "Quick status change",
+    "priorities": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High"
     }
   },
   "Settings": {
@@ -538,7 +572,9 @@
     "delete": "Delete",
     "view": "View",
     "close": "Close",
-    "add": "Add"
+    "add": "Add",
+    "accessDeniedTitle": "Access Denied",
+    "accessDeniedDesc": "You do not have permission to view this section."
   },
   "NotFound": {
     "title": "System Error: Page Not Found",
@@ -761,5 +797,12 @@
     "sales": "Sales",
     "denied": "Access Denied",
     "deniedDesc": "You don't have sufficient privileges to view this page."
+  },
+  "Unlock": {
+    "title": "Protected Area",
+    "description": "Please enter the site passcode to continue.",
+    "placeholder": "Enter passcode",
+    "button": "Enter",
+    "error": "Invalid passcode"
   }
 }

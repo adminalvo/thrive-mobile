@@ -214,13 +214,32 @@ export default function TasksPage() {
       // If no individual filter selected -> Show All
       if (selectedAssigneeFilters.length === 0) return true;
 
-      // If one or more staff are selected -> Match if ANY selected user is in task.assignees
-      const hasAssignee = task.assignees?.some(a => 
-        a && (selectedAssigneeFilters.includes(a.id) || selectedAssigneeFilters.includes(a.name))
-      );
+      // Gather all possible IDs and normalized names for selected staff members
+      const selectedIds = new Set<string>();
+      const selectedNames = new Set<string>();
+
+      selectedAssigneeFilters.forEach(selId => {
+        selectedIds.add(selId);
+        const staffObj = staffUsers.find(u => u.id === selId);
+        if (staffObj) {
+          selectedNames.add(staffObj.name.toLowerCase());
+          if (Array.isArray(staffObj.allUserIds)) {
+            staffObj.allUserIds.forEach((uid: string) => selectedIds.add(uid));
+          }
+        }
+      });
+
+      // Match if ANY selected user matches task.assignees
+      const hasAssignee = task.assignees?.some(a => {
+        if (!a) return false;
+        if (selectedIds.has(a.id)) return true;
+        if (a.name && selectedNames.has(String(a.name).toLowerCase())) return true;
+        return false;
+      });
+
       return Boolean(hasAssignee);
     });
-  }, [tasks, selectedAssigneeFilters, searchQuery]);
+  }, [tasks, selectedAssigneeFilters, searchQuery, staffUsers]);
 
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [dragOverColId, setDragOverColId] = useState<string | null>(null);

@@ -13,7 +13,7 @@ export async function GET() {
         ORDER BY order_index ASC, created_at DESC
       `,
       sql`
-        SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url
+        SELECT u.id, u.email, p.first_name, p.last_name, p.phone
         FROM auth.users u
         LEFT JOIN user_profiles p ON u.id = p.user_id
       `
@@ -26,7 +26,7 @@ export async function GET() {
         id: u.id,
         name: fullName,
         email: u.email || "",
-        avatar_url: u.avatar_url || null
+        avatar_url: null
       });
     });
 

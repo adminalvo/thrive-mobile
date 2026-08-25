@@ -33,6 +33,11 @@ interface KanbanTask {
   updated_at?: string;
 }
 
+const getInitial = (name?: any) => {
+  if (!name || typeof name !== "string" || !name.trim()) return "U";
+  return name.trim().charAt(0).toUpperCase();
+};
+
 export default function TasksPage() {
   const t = useTranslations("Tasks");
   const c = useTranslations("Common");
@@ -84,7 +89,7 @@ export default function TasksPage() {
       const res = await apiFetch("/api/tasks");
       if (res.ok) {
         const data = await res.json();
-        setTasks(data);
+        setTasks(Array.isArray(data) ? data : []);
       } else {
         toast.error("Tapşırıqları yükləmək mümkün olmadı");
       }
@@ -137,7 +142,9 @@ export default function TasksPage() {
 
   // Filter tasks by Assignee & Search
   const filteredTasks = useMemo(() => {
+    if (!Array.isArray(tasks)) return [];
     return tasks.filter(task => {
+      if (!task) return false;
       const matchesSearch = !searchQuery.trim() || 
         task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
         (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -470,7 +477,7 @@ export default function TasksPage() {
                               assignees.map(a => (
                                 <div key={a.id} className={styles.assigneeChip} title={a.name}>
                                   <span className={styles.userAvatarMini}>
-                                    {a.name.charAt(0)}
+                                    {getInitial(a?.name)}
                                   </span>
                                   <span>{a.name}</span>
                                 </div>
@@ -573,7 +580,7 @@ export default function TasksPage() {
                         className={`${styles.userOptionChip} ${isSelected ? styles.userOptionActive : ""}`}
                         onClick={() => toggleAssignee(user.id)}
                       >
-                        <span className={styles.userAvatarMini}>{user.name.charAt(0)}</span>
+                        <span className={styles.userAvatarMini}>{getInitial(user?.name)}</span>
                         <span>{user.name}</span>
                         {isSelected && <Check size={14} color="var(--aqua-teal, #00C4B5)" />}
                       </div>
@@ -672,7 +679,7 @@ export default function TasksPage() {
                         className={`${styles.userOptionChip} ${isSelected ? styles.userOptionActive : ""}`}
                         onClick={() => toggleAssignee(user.id)}
                       >
-                        <span className={styles.userAvatarMini}>{user.name.charAt(0)}</span>
+                        <span className={styles.userAvatarMini}>{getInitial(user?.name)}</span>
                         <span>{user.name}</span>
                         {isSelected && <Check size={14} color="var(--aqua-teal, #00C4B5)" />}
                       </div>
@@ -757,7 +764,7 @@ export default function TasksPage() {
                     {viewingTask.assignees && viewingTask.assignees.length > 0 ? (
                       viewingTask.assignees.map(a => (
                         <div key={a.id} className={styles.assigneeChip}>
-                          <span className={styles.userAvatarMini}>{a.name.charAt(0)}</span>
+                          <span className={styles.userAvatarMini}>{getInitial(a?.name)}</span>
                           <span>{a.name}</span>
                         </div>
                       ))

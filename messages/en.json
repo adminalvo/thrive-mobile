@@ -123,9 +123,9 @@
     "createBtn": "Create"
   },
   "Leads": {
-    "title": "Leads",
-    "subtitle": "Track new inquiries and convert them to students.",
-    "newLead": "+ New Lead",
+    "title": "Leads Management",
+    "subtitle": "Potential students, inquiries, and registration pipeline.",
+    "newLead": "+ Add New Lead",
     "addLeadTitle": "Add New Lead",
     "search": "Search by name, phone or email...",
     "table": {
@@ -143,18 +143,33 @@
       "LOST": "Lost"
     },
     "form": {
-      "nameLabel": "Full Name",
-      "namePlaceholder": "e.g., Aysel Mammadova",
-      "phoneLabel": "Phone",
-      "phonePlaceholder": "e.g., +994501234567",
-      "sourceLabel": "Source",
+      "studentNameLabel": "Student Full Name *",
+      "studentNamePlaceholder": "e.g. John Doe",
+      "studentPhoneLabel": "Student Phone Number *",
+      "studentPhonePlaceholder": "+994 XX XXX XX XX",
+      "parentNameLabel": "Parent Full Name",
+      "parentNamePlaceholder": "e.g. Robert Doe",
+      "parentPhoneLabel": "Parent Phone Number",
+      "parentPhonePlaceholder": "+994 XX XXX XX XX",
+      "programsLabel": "Enrolled Program / Programs (1+ choices)",
+      "lessonTypeLabel": "Lesson Format",
+      "lessonTypes": {
+        "group": "👥 Group",
+        "individual": "👤 Individual"
+      },
+      "sourceLabel": "Lead Source",
       "sources": {
         "instagram": "Instagram",
         "facebook": "Facebook",
+        "tiktok": "TikTok",
+        "whatsapp": "WhatsApp",
+        "referral": "Friend / Referral",
+        "website": "Website",
         "call": "Phone Call",
-        "referral": "Friend Referral",
         "other": "Other"
-      }
+      },
+      "notesLabel": "Additional Notes",
+      "notesPlaceholder": "Notes about the lead..."
     },
     "errors": {
       "loadFailed": "Failed to load leads",
@@ -163,15 +178,29 @@
     "loading": "Loading...",
     "empty": "No data found.",
     "detail": {
-      "title": "Detail View",
-      "name": "Full Name",
-      "phone": "Phone",
-      "email": "Email",
-      "status": "Status",
+      "title": "Lead Details",
+      "studentInfo": "Student Information",
+      "parentInfo": "Parent Information",
+      "programs": "Enrolled Programs",
+      "lessonType": "Lesson Format",
       "source": "Source",
+      "status": "Status / Stage",
       "notes": "Notes",
-      "nextFollowUp": "Next Follow-up",
-      "none": "None"
+      "none": "Not specified"
+    },
+    "editLeadTitle": "Edit Lead",
+    "sections": {
+      "student": "🎓 Student Information",
+      "parent": "👨‍👩‍👦 Parent Information",
+      "academic": "📚 Academic & Program Selection",
+      "other": "🌐 Source & Other"
+    },
+    "toasts": {
+      "createdSuccess": "Lead created successfully!",
+      "updatedSuccess": "Lead updated successfully!",
+      "deletedSuccess": "Lead deleted",
+      "statusUpdated": "Status updated",
+      "reqFields": "Please enter student name and phone"
     }
   },
   "Students": {

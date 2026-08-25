@@ -123,10 +123,10 @@
     "createBtn": "Создать"
   },
   "Leads": {
-    "title": "Лиды (Leads)",
-    "subtitle": "Отслеживайте новые заявки и превращайте их в студентов.",
-    "newLead": "+ Новый Лид",
-    "addLeadTitle": "Добавить Новый Лид",
+    "title": "Управление Лидами",
+    "subtitle": "Потенциальные студенты, заявки и этапы регистрации.",
+    "newLead": "+ Добавить Лид",
+    "addLeadTitle": "Добавить новый Лид",
     "search": "Поиск по имени, телефону или почте...",
     "table": {
       "name": "ФИО",
@@ -143,18 +143,33 @@
       "LOST": "Потерян"
     },
     "form": {
-      "nameLabel": "Имя и Фамилия",
-      "namePlaceholder": "напр: Айсель Мамедова",
-      "phoneLabel": "Телефон",
-      "phonePlaceholder": "напр: +994501234567",
-      "sourceLabel": "Источник (Откуда?)",
+      "studentNameLabel": "Имя и Фамилия студента *",
+      "studentNamePlaceholder": "Напр: Иван Иванов",
+      "studentPhoneLabel": "Номер телефона студента *",
+      "studentPhonePlaceholder": "+994 XX XXX XX XX",
+      "parentNameLabel": "Имя и Фамилия родителя",
+      "parentNamePlaceholder": "Напр: Петр Иванов",
+      "parentPhoneLabel": "Номер телефона родителя",
+      "parentPhonePlaceholder": "+994 XX XXX XX XX",
+      "programsLabel": "Выбранная программа / Программы (1+)",
+      "lessonTypeLabel": "Формат занятий",
+      "lessonTypes": {
+        "group": "👥 Групповые",
+        "individual": "👤 Индивидуальные"
+      },
+      "sourceLabel": "Источник",
       "sources": {
         "instagram": "Instagram",
         "facebook": "Facebook",
-        "call": "Звонок",
-        "referral": "По рекомендации",
+        "tiktok": "TikTok",
+        "whatsapp": "WhatsApp",
+        "referral": "Рекомендация",
+        "website": "Веб-сайт",
+        "call": "Звонок / Заявка",
         "other": "Другое"
-      }
+      },
+      "notesLabel": "Дополнительные заметки",
+      "notesPlaceholder": "Заметки о лиде..."
     },
     "errors": {
       "loadFailed": "Не удалось загрузить данные",
@@ -163,15 +178,29 @@
     "loading": "Загрузка...",
     "empty": "Данные не найдены.",
     "detail": {
-      "title": "Подробный просмотр",
-      "name": "Имя/Фамилия",
-      "phone": "Телефон",
-      "email": "Email",
-      "status": "Статус",
+      "title": "Детали Лида",
+      "studentInfo": "Информация о студенте",
+      "parentInfo": "Информация о родителе",
+      "programs": "Выбранные программы",
+      "lessonType": "Формат занятий",
       "source": "Источник",
+      "status": "Статус / Этап",
       "notes": "Заметки",
-      "nextFollowUp": "Следующий контакт",
-      "none": "Нет"
+      "none": "Не указано"
+    },
+    "editLeadTitle": "Редактировать Лид",
+    "sections": {
+      "student": "🎓 Информация о студенте",
+      "parent": "👨‍👩‍👦 Информация о родителях",
+      "academic": "📚 Обучение и Программы",
+      "other": "🌐 Источник и Прочее"
+    },
+    "toasts": {
+      "createdSuccess": "Лид успешно добавлен!",
+      "updatedSuccess": "Лид успешно обновлен!",
+      "deletedSuccess": "Лид удален",
+      "statusUpdated": "Статус обновлен",
+      "reqFields": "Пожалуйста, укажите имя и телефон студента"
     }
   },
   "Students": {

@@ -123,10 +123,10 @@
     "createBtn": "Yarat"
   },
   "Leads": {
-    "title": "Liderlər (Leads)",
-    "subtitle": "Yeni müraciətləri izləyin və onları tələbəyə çevirin.",
-    "newLead": "+ Yeni Müraciət",
-    "addLeadTitle": "Yeni Müraciət Əlavə Et",
+    "title": "Müştəri Namizədləri (Leads)",
+    "subtitle": "Potensial tələbələr, maraqlananlar və qeydiyyat mərhələləri.",
+    "newLead": "+ Yeni Lead Əlavə Et",
+    "addLeadTitle": "Yeni Lead Əlavə Et",
     "search": "Ad, telefon və ya e-poçt ilə axtar...",
     "table": {
       "name": "Ad Soyad",
@@ -143,18 +143,33 @@
       "LOST": "İtirilmiş"
     },
     "form": {
-      "nameLabel": "Ad və Soyad",
-      "namePlaceholder": "Məs: Aysel Məmmədova",
-      "phoneLabel": "Telefon",
-      "phonePlaceholder": "Məs: +994501234567",
-      "sourceLabel": "Mənbə (Haradan gəlib?)",
+      "studentNameLabel": "Tələbənin Adı və Soyadı *",
+      "studentNamePlaceholder": "Məs: Əli Əliyev",
+      "studentPhoneLabel": "Tələbənin Əlaqə Nömrəsi *",
+      "studentPhonePlaceholder": "+994 XX XXX XX XX",
+      "parentNameLabel": "Valideynin Adı və Soyadı",
+      "parentNamePlaceholder": "Məs: Vəli Əliyev",
+      "parentPhoneLabel": "Valideynin Əlaqə Nömrəsi",
+      "parentPhonePlaceholder": "+994 XX XXX XX XX",
+      "programsLabel": "Yazıldığı Proqram / Proqramlar (1+ seçim)",
+      "lessonTypeLabel": "Tədris Formatı",
+      "lessonTypes": {
+        "group": "👥 Qrup",
+        "individual": "👤 Fərdi"
+      },
+      "sourceLabel": "Mənbə (Haradan gəlib)",
       "sources": {
         "instagram": "Instagram",
         "facebook": "Facebook",
-        "call": "Zəng",
-        "referral": "Dost Tövsiyəsi",
+        "tiktok": "TikTok",
+        "whatsapp": "WhatsApp",
+        "referral": "Dost / Tanış Tövsiyəsi",
+        "website": "Vebsayt",
+        "call": "Zəng / Müraciət",
         "other": "Digər"
-      }
+      },
+      "notesLabel": "Əlavə Qeydlər",
+      "notesPlaceholder": "Müştəri haqqında əlavə qeyd..."
     },
     "errors": {
       "loadFailed": "Müştəri məlumatlarını yükləmək mümkün olmadı",
@@ -163,15 +178,29 @@
     "loading": "Yüklənir...",
     "empty": "Heç bir məlumat tapılmadı.",
     "detail": {
-      "title": "Detallı Baxış",
-      "name": "Ad/Soyad",
-      "phone": "Telefon",
-      "email": "Email",
-      "status": "Status",
-      "source": "Mənbə (Source)",
+      "title": "Lead Detalları",
+      "studentInfo": "Tələbə Məlumatları",
+      "parentInfo": "Valideyn Məlumatları",
+      "programs": "Yazıldığı Proqramlar",
+      "lessonType": "Tədris Formatı",
+      "source": "Mənbə",
+      "status": "Mərhələ / Status",
       "notes": "Qeydlər",
-      "nextFollowUp": "Növbəti əlaqə",
-      "none": "Yoxdur"
+      "none": "Qeyd edilməyib"
+    },
+    "editLeadTitle": "Leadi Redaktə Et",
+    "sections": {
+      "student": "🎓 Tələbə Məlumatları",
+      "parent": "👨‍👩‍👦 Valideyn Məlumatları",
+      "academic": "📚 Tədris və Proqram Seçimi",
+      "other": "🌐 Mənbə və Digər"
+    },
+    "toasts": {
+      "createdSuccess": "Lead uğurla əlavə edildi!",
+      "updatedSuccess": "Lead uğurla yeniləndi!",
+      "deletedSuccess": "Lead silindi",
+      "statusUpdated": "Status yeniləndi",
+      "reqFields": "Zəhmət olmasa tələbənin adı və nömrəsini daxil edin"
     }
   },
   "Students": {

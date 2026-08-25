@@ -15,12 +15,15 @@ export async function GET() {
     
     const formattedLeads = leads.map(l => ({
       ...l,
+      programs: Array.isArray(l.programs) 
+        ? l.programs 
+        : (typeof l.programs === 'string' ? JSON.parse(l.programs || '[]') : []),
       creatorName: l.first_name ? `${l.first_name} ${l.last_name || ''}`.trim() : null
     }));
 
     return NextResponse.json(formattedLeads);
   } catch (error) {
-    console.error(error);
+    console.error("Leads GET error:", error);
     return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
   }
 }
@@ -31,19 +34,53 @@ export async function POST(req: Request) {
     const userId = session?.user?.id || null;
 
     const body = await req.json();
-    const { name, phone, email, source, status } = body;
+    const { 
+      name, 
+      phone, 
+      email, 
+      source, 
+      status, 
+      parent_name, 
+      parent_phone, 
+      programs, 
+      lesson_type, 
+      notes 
+    } = body;
 
     const validStatus = ["NEW", "CONTACTED", "TRIAL", "REGISTERED", "LOST"].includes(status) ? status : "NEW";
+    const programsJson = Array.isArray(programs) ? JSON.stringify(programs) : '[]';
 
     const lead = await sql`
-      INSERT INTO leads (name, phone, email, source, status, created_by)
-      VALUES (${name}, ${phone}, ${email || null}, ${source || 'Digər'}, ${validStatus}, ${userId})
+      INSERT INTO leads (
+        name, phone, email, source, status, created_by,
+        parent_name, parent_phone, programs, lesson_type, notes
+      )
+      VALUES (
+        ${name}, 
+        ${phone}, 
+        ${email || null}, 
+        ${source || 'Instagram'}, 
+        ${validStatus}, 
+        ${userId},
+        ${parent_name || null}, 
+        ${parent_phone || null}, 
+        ${programsJson}::jsonb, 
+        ${lesson_type || 'group'}, 
+        ${notes || null}
+      )
       RETURNING *
     `;
 
-    return NextResponse.json(lead[0]);
+    const cleanLead = {
+      ...lead[0],
+      programs: Array.isArray(lead[0].programs) 
+        ? lead[0].programs 
+        : (typeof lead[0].programs === 'string' ? JSON.parse(lead[0].programs || '[]') : [])
+    };
+
+    return NextResponse.json(cleanLead);
   } catch (error) {
-    console.error(error);
+    console.error("Leads POST error:", error);
     return NextResponse.json({ error: "Failed to create lead" }, { status: 500 });
   }
 }

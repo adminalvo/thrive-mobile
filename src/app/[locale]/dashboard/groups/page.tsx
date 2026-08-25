@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "../students/page.module.css";
-import { Plus, Search, Filter, MoreHorizontal, Component, Trash2, Edit, X } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, Component, Trash2, Edit, X , ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -108,6 +108,16 @@ export default function GroupsPage() {
     (g.name || "").toLowerCase().includes(search.toLowerCase()) || 
     (g.program || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  if (userRole === "staff" && !permissions.view && !permissions.can_view) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px', color: '#ef4444' }}>
+        <ShieldAlert size={48} />
+        <h2>Giriş Qadağandır</h2>
+        <p>Qruplar bölməsinə baxmaq üçün icazəniz yoxdur.</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

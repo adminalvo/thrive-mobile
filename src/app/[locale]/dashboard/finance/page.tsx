@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
-import { CreditCard, AlertCircle, CheckCircle, Search, FileText, Plus, X, DollarSign, Trash2, ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
+import { CreditCard, AlertCircle, CheckCircle, Search, FileText, Plus, X, DollarSign, Trash2, ArrowUpRight, ArrowDownRight, TrendingUp , ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
@@ -312,6 +312,16 @@ export default function FinancePage() {
     if (s === "partial") return styles.partial;
     return styles.pending;
   };
+
+  if (userRole === "staff" && !permissions.view && !permissions.can_view) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px', color: '#ef4444' }}>
+        <ShieldAlert size={48} />
+        <h2>Giriş Qadağandır</h2>
+        <p>Maliyyə bölməsinə baxmaq üçün icazəniz yoxdur.</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

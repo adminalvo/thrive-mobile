@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
-import { Plus, Search, Filter, MoreHorizontal, UserCheck, UserX, Trash2, Edit, X, BookOpen } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, UserCheck, UserX, Trash2, Edit, X, BookOpen, ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -75,6 +75,16 @@ export default function StudentsPage() {
     }
     setActiveMenu(null);
   };
+
+  if (userRole === "staff" && !permissions.view && !permissions.can_view) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px', color: '#ef4444' }}>
+        <ShieldAlert size={48} />
+        <h2>Giriş Qadağandır</h2>
+        <p>Tələbələr bölməsinə baxmaq üçün icazəniz yoxdur.</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

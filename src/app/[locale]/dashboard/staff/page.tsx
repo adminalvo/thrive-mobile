@@ -44,7 +44,37 @@ export default function StaffPage() {
   const [addPermissions, setAddPermissions] = useState<any>({});
   const [addingStaff, setAddingStaff] = useState(false);
 
-  const modules = ["students", "finance", "groups", "tasks", "staff", "settings", "teachers", "parents"];
+  const modules = [
+    "tasks", 
+    "students", 
+    "schedule", 
+    "groups", 
+    "finance", 
+    "teachers", 
+    "parents", 
+    "leads", 
+    "programs", 
+    "universities", 
+    "ai", 
+    "staff", 
+    "settings"
+  ];
+
+  const moduleLabels: Record<string, string> = {
+    tasks: "Tapşırıqlar (Tasks)",
+    students: "Tələbələr (Students)",
+    schedule: "Cədvəl (Schedule)",
+    groups: "Qruplar (Groups)",
+    finance: "Maliyyə (Finance)",
+    teachers: "Müəllimlər (Teachers)",
+    parents: "Valideynlər (Parents)",
+    leads: "Lidelər (Leads)",
+    programs: "Proqramlar (Programs)",
+    universities: "Universitetlər (Universities)",
+    ai: "Thrive AI",
+    staff: "İşçilər (Staff/RBAC)",
+    settings: "Tənzimləmələr (Settings)"
+  };
 
   useEffect(() => {
     if (session?.user?.role === 'super_admin') {
@@ -322,7 +352,7 @@ export default function StaffPage() {
                   const p = permissions[mod] || {};
                   return (
                     <div key={mod} className={styles.permRow}>
-                      <div className={styles.modName}>{mod.charAt(0).toUpperCase() + mod.slice(1)}</div>
+                      <div className={styles.modName}>{moduleLabels[mod] || mod}</div>
                       <div className={styles.chkWrap}>
                         <input type="checkbox" checked={p.view || false} onChange={e => handlePermChange(mod, 'view', e.target.checked)} />
                       </div>
@@ -413,7 +443,7 @@ export default function StaffPage() {
                       };
                       return (
                         <div key={mod} className={styles.permRow}>
-                          <div className={styles.modName}>{mod.charAt(0).toUpperCase() + mod.slice(1)}</div>
+                          <div className={styles.modName}>{moduleLabels[mod] || mod}</div>
                           <div className={styles.chkWrap}>
                             <input type="checkbox" checked={p.view || false} onChange={e => handleAddPermChange(mod, 'view', e.target.checked)} />
                           </div>

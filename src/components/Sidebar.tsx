@@ -171,32 +171,36 @@ export default function Sidebar({
       return allowed.includes(item.href);
     }
 
-    if (userRole === "staff" || userRole === "admin") {
-      if (["/dashboard", "/dashboard/schedule", "/dashboard/ai", "/dashboard/programs", "/dashboard/universities", "/dashboard/leads"].includes(item.href)) {
-        return true;
+    // For staff, admin, sales, or any custom role:
+    if (item.href === "/dashboard") return true;
+
+    const permissions = (session?.user as any)?.permissions || {};
+    const modMap: Record<string, string> = {
+      "/dashboard/leads": "leads",
+      "/dashboard/students": "students",
+      "/dashboard/programs": "programs",
+      "/dashboard/universities": "universities",
+      "/dashboard/groups": "groups",
+      "/dashboard/parents": "parents",
+      "/dashboard/teachers": "teachers",
+      "/dashboard/schedule": "schedule",
+      "/dashboard/finance": "finance",
+      "/dashboard/tasks": "tasks",
+      "/dashboard/ai": "ai",
+      "/dashboard/staff": "staff",
+      "/dashboard/settings": "settings"
+    };
+    
+    const modKey = modMap[item.href];
+    if (modKey) {
+      const modPerm = permissions[modKey];
+      if (modPerm) {
+        return Boolean(modPerm.view || modPerm.can_view || modPerm.read);
       }
-      
-      const permissions = (session?.user as any)?.permissions || {};
-      const modMap: Record<string, string> = {
-        "/dashboard/students": "students",
-        "/dashboard/finance": "finance",
-        "/dashboard/groups": "groups",
-        "/dashboard/tasks": "tasks",
-        "/dashboard/teachers": "teachers",
-        "/dashboard/parents": "parents",
-        "/dashboard/staff": "staff"
-      };
-      
-      const modKey = modMap[item.href];
-      if (modKey && permissions[modKey]) {
-        return !!permissions[modKey].view;
-      }
-      
-      if (item.href.includes('/finance')) return false;
-      return true;
+      return false; // Strict RBAC: if permission is not granted, hide completely
     }
 
-    return true;
+    return false;
   });
 
   return (
@@ -259,7 +263,7 @@ export default function Sidebar({
       </nav>
 
       <div className={styles.sidebarFooter}>
-        {isSuperAdmin && (
+        {(isSuperAdmin || (session?.user as any)?.permissions?.staff?.view) && (
           <Link href={`/dashboard/staff`}>
             <div className={`${styles.navItem} ${pathname === '/dashboard/staff' ? styles.navActive : ""}`} title={isCollapsed ? t("staff") : undefined} style={{justifyContent: isCollapsed ? 'center' : 'flex-start'}}>
               <ShieldAlert size={20} className={pathname === '/dashboard/staff' ? styles.iconActive : styles.icon} />

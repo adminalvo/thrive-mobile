@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import styles from "./page.module.css";
-import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2, Search, Check, Users } from "lucide-react";
+import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2, Search, Check, Users, GripVertical } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -222,13 +222,34 @@ export default function TasksPage() {
     });
   }, [tasks, selectedAssigneeFilters, searchQuery]);
 
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverColId, setDragOverColId] = useState<string | null>(null);
+  const isDraggingRef = useRef(false);
+
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
-    e.dataTransfer.setData("taskId", taskId);
+    isDraggingRef.current = true;
+    setDraggedTaskId(taskId);
+    e.dataTransfer.setData("text/plain", taskId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragEnd = () => {
+    setDraggedTaskId(null);
+    setDragOverColId(null);
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 150);
   };
 
   const handleDrop = async (e: React.DragEvent, newStatus: KanbanTask["status"]) => {
     e.preventDefault();
-    const taskId = e.dataTransfer.getData("taskId");
+    setDragOverColId(null);
+    setDraggedTaskId(null);
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 150);
+
+    const taskId = e.dataTransfer.getData("text/plain") || draggedTaskId;
     if (!taskId) return;
 
     setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: newStatus } : t)));
@@ -240,14 +261,36 @@ export default function TasksPage() {
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) throw new Error("Update failed");
+      toast.success("Status yeniləndi");
     } catch (error) {
       toast.error("Tapşırıq statusunu dəyişmək mümkün olmadı");
       fetchTasks();
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, colId: string) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverColId !== colId) {
+      setDragOverColId(colId);
+    }
+  };
+
+  const handleDirectStatusChange = async (taskId: string, newStatus: KanbanTask["status"]) => {
+    setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: newStatus } : t)));
+
+    try {
+      const res = await apiFetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!res.ok) throw new Error("Update failed");
+      toast.success("Status yeniləndi");
+    } catch (error) {
+      toast.error("Tapşırıq statusunu dəyişmək mümkün olmadı");
+      fetchTasks();
+    }
   };
 
   const openCreateModal = () => {
@@ -483,9 +526,12 @@ export default function TasksPage() {
           return (
             <div
               key={col.id}
-              className={styles.column}
+              className={`${styles.column} ${dragOverColId === col.id ? styles.columnOver : ""}`}
               onDrop={e => handleDrop(e, col.id)}
-              onDragOver={handleDragOver}
+              onDragOver={e => handleDragOver(e, col.id)}
+              onDragLeave={e => {
+                if (e.currentTarget === e.target) setDragOverColId(null);
+              }}
             >
               <div className={styles.columnHeader}>
                 <div className={styles.colIndicator} style={{ backgroundColor: col.color }}></div>
@@ -513,22 +559,47 @@ export default function TasksPage() {
                         key={task.id}
                         draggable
                         onDragStart={e => handleDragStart(e, task.id)}
-                        className={styles.card}
-                        onClick={() => setViewingTask(task)}
-                        style={{ cursor: "pointer" }}
+                        onDragEnd={handleDragEnd}
+                        className={`${styles.card} ${draggedTaskId === task.id ? styles.cardDragging : ""}`}
+                        onClick={() => {
+                          if (isDraggingRef.current) return;
+                          setViewingTask(task);
+                        }}
+                        style={{ cursor: "grab" }}
                       >
                         <div className={styles.cardHeader}>
-                          <div
-                            className={styles.priorityBadge}
-                            style={{
-                              color: getPriorityColor(task.priority),
-                              backgroundColor: `${getPriorityColor(task.priority)}1A`
-                            }}
-                          >
-                            <Flag size={12} /> {task.priority}
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                            <div className={styles.dragHandle} title="Sürükləyin">
+                              <GripVertical size={16} />
+                            </div>
+                            <div
+                              className={styles.priorityBadge}
+                              style={{
+                                color: getPriorityColor(task.priority),
+                                backgroundColor: `${getPriorityColor(task.priority)}1A`
+                              }}
+                            >
+                              <Flag size={12} /> {task.priority}
+                            </div>
                           </div>
 
-                          <div className={styles.cardHeaderRight}>
+                          <div className={styles.cardHeaderRight} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                            <select
+                              className={styles.quickStatusSelect}
+                              value={task.status}
+                              onClick={e => e.stopPropagation()}
+                              onChange={e => {
+                                e.stopPropagation();
+                                handleDirectStatusChange(task.id, e.target.value as any);
+                              }}
+                              title="Statusu birbaşa dəyişin"
+                            >
+                              <option value="TODO">Gözləmədə</option>
+                              <option value="IN_PROGRESS">İcrada</option>
+                              <option value="REVIEW">Yoxlanışda</option>
+                              <option value="DONE">Tamamlandı</option>
+                            </select>
+
                             <button
                               className={styles.moreBtn}
                               onClick={e => {

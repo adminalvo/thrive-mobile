@@ -693,3 +693,51 @@
   background: rgba(239, 68, 68, 0.2);
   color: #ef4444;
 }
+
+/* Enhanced Drag and Drop & Quick Status */
+.columnOver {
+  background: rgba(0, 196, 181, 0.07) !important;
+  border: 2px dashed var(--aqua-teal, #00C4B5) !important;
+  box-shadow: 0 0 25px rgba(0, 196, 181, 0.12) !important;
+  transition: all 0.2s ease;
+}
+
+.cardDragging {
+  opacity: 0.35 !important;
+  transform: scale(0.97);
+  border: 2px dashed var(--aqua-teal, #00C4B5) !important;
+}
+
+.dragHandle {
+  color: var(--text-secondary);
+  opacity: 0.4;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  margin-right: 0.3rem;
+  transition: opacity 0.2s;
+}
+
+.card:hover .dragHandle {
+  opacity: 0.95;
+  color: var(--aqua-teal, #00C4B5);
+}
+
+.quickStatusSelect {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.quickStatusSelect:hover {
+  border-color: var(--aqua-teal, #00C4B5);
+  color: #ffffff;
+  background: rgba(0, 196, 181, 0.1);
+}

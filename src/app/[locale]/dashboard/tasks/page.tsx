@@ -348,18 +348,32 @@ export default function TasksPage() {
           />
         </div>
 
-        <select 
-          className={styles.filterSelect}
-          value={selectedAssigneeFilter}
-          onChange={e => setSelectedAssigneeFilter(e.target.value)}
-        >
-          <option value="all">Bütün İcraçılar (Hamısı)</option>
-          {staffUsers.map(user => (
-            <option key={user.id} value={user.id}>
-              {user.name} ({user.role})
-            </option>
-          ))}
-        </select>
+        {isSuperAdmin ? (
+          <select 
+            className={styles.filterSelect}
+            value={selectedAssigneeFilter}
+            onChange={e => setSelectedAssigneeFilter(e.target.value)}
+          >
+            <option value="all">Bütün İcraçılar (Hamısı)</option>
+            {staffUsers.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.role})
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div style={{
+            background: "rgba(0, 196, 181, 0.12)",
+            color: "var(--aqua-teal, #00C4B5)",
+            border: "1px solid rgba(0, 196, 181, 0.25)",
+            padding: "0.5rem 1rem",
+            borderRadius: "20px",
+            fontSize: "0.85rem",
+            fontWeight: 600
+          }}>
+            Mənə aid tapşırıqlar ({filteredTasks.length})
+          </div>
+        )}
       </div>
 
       <div className={styles.kanbanBoard}>

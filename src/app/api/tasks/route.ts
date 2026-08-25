@@ -3,9 +3,17 @@ import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import { logAction } from "@/lib/logger";
 import { checkApiPermission } from "@/lib/auth-utils";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    const userRole = session?.user?.role;
+    const currentUserId = session?.user?.id;
+    const currentUserEmail = session?.user?.email;
+    const currentUserName = session?.user?.name;
+
     const [tasks, users] = await Promise.all([
       sql`
         SELECT id, title, description, status, priority, due_date, assignee, order_index, created_at, updated_at
@@ -62,7 +70,22 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json(formattedTasks);
+    // If SuperAdmin -> Return ALL tasks across company
+    if (userRole === "super_admin" || !session) {
+      return NextResponse.json(formattedTasks);
+    }
+
+    // For other staff/users -> Return ONLY tasks assigned to this user
+    const userTasks = formattedTasks.filter((task: any) => {
+      if (!task.assignees || task.assignees.length === 0) return false;
+      return task.assignees.some((a: any) => 
+        (currentUserId && a.id === currentUserId) ||
+        (currentUserEmail && a.email && a.email.toLowerCase() === currentUserEmail.toLowerCase()) ||
+        (currentUserName && a.name && a.name.toLowerCase() === currentUserName.toLowerCase())
+      );
+    });
+
+    return NextResponse.json(userTasks);
   } catch (error) {
     console.error("Tasks GET error:", error);
     return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });

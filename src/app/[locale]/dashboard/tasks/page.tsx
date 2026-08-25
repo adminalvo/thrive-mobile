@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
-import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2, Search, Check } from "lucide-react";
+import { Plus, MoreVertical, Calendar, Flag, User, X, Edit2, Trash2, Search, Check, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
@@ -77,7 +77,7 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAssigneeFilter, setSelectedAssigneeFilter] = useState("all");
+  const [selectedAssigneeFilters, setSelectedAssigneeFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: session } = useSession();
@@ -185,7 +185,21 @@ export default function TasksPage() {
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
 
-  // Filter tasks by Assignee & Search
+  const handleSelectAll = () => {
+    setSelectedAssigneeFilters([]);
+  };
+
+  const handleToggleAssigneeFilter = (userId: string) => {
+    setSelectedAssigneeFilters(prev => {
+      if (prev.includes(userId)) {
+        return prev.filter(id => id !== userId);
+      } else {
+        return [...prev, userId];
+      }
+    });
+  };
+
+  // Filter tasks by Multi-Assignee & Search
   const filteredTasks = useMemo(() => {
     if (!Array.isArray(tasks)) return [];
     return tasks.filter(task => {
@@ -197,12 +211,16 @@ export default function TasksPage() {
       const matchesSearch = !q || title.includes(q) || desc.includes(q);
       if (!matchesSearch) return false;
 
-      if (selectedAssigneeFilter === "all") return true;
+      // If no individual filter selected -> Show All
+      if (selectedAssigneeFilters.length === 0) return true;
 
-      const hasAssignee = task.assignees?.some(a => a && (a.id === selectedAssigneeFilter || a.name === selectedAssigneeFilter));
+      // If one or more staff are selected -> Match if ANY selected user is in task.assignees
+      const hasAssignee = task.assignees?.some(a => 
+        a && (selectedAssigneeFilters.includes(a.id) || selectedAssigneeFilters.includes(a.name))
+      );
       return Boolean(hasAssignee);
     });
-  }, [tasks, selectedAssigneeFilter, searchQuery]);
+  }, [tasks, selectedAssigneeFilters, searchQuery]);
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     e.dataTransfer.setData("taskId", taskId);
@@ -393,42 +411,68 @@ export default function TasksPage() {
         )}
       </div>
 
-      {/* Assignee Filter & Search Bar */}
-      <div className={styles.filterBar}>
-        <div className={styles.searchFilter}>
-          <Search size={16} color="var(--text-secondary)" />
-          <input 
-            type="text" 
-            placeholder="Tapşırıq axtar..." 
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
+      {/* Modern Filter Container */}
+      <div className={styles.filterContainer}>
+        <div className={styles.filterTopRow}>
+          <div className={styles.searchFilter}>
+            <Search size={16} color="var(--text-secondary)" />
+            <input 
+              type="text" 
+              placeholder="Tapşırıq axtar..." 
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {!isSuperAdmin && (
+            <div style={{
+              background: "rgba(0, 196, 181, 0.12)",
+              color: "var(--aqua-teal, #00C4B5)",
+              border: "1px solid rgba(0, 196, 181, 0.25)",
+              padding: "0.45rem 1rem",
+              borderRadius: "20px",
+              fontSize: "0.85rem",
+              fontWeight: 600
+            }}>
+              Mənə aid tapşırıqlar ({filteredTasks.length})
+            </div>
+          )}
+
+          {isSuperAdmin && selectedAssigneeFilters.length > 0 && (
+            <button className={styles.filterClearBtn} onClick={handleSelectAll}>
+              Seçimləri sıfırla ({selectedAssigneeFilters.length})
+            </button>
+          )}
         </div>
 
-        {isSuperAdmin ? (
-          <select 
-            className={styles.filterSelect}
-            value={selectedAssigneeFilter}
-            onChange={e => setSelectedAssigneeFilter(e.target.value)}
-          >
-            <option value="all">Bütün İcraçılar (Hamısı)</option>
-            {staffUsers.map(user => (
-              <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
-              </option>
-            ))}
-          </select>
-        ) : (
-          <div style={{
-            background: "rgba(0, 196, 181, 0.12)",
-            color: "var(--aqua-teal, #00C4B5)",
-            border: "1px solid rgba(0, 196, 181, 0.25)",
-            padding: "0.5rem 1rem",
-            borderRadius: "20px",
-            fontSize: "0.85rem",
-            fontWeight: 600
-          }}>
-            Mənə aid tapşırıqlar ({filteredTasks.length})
+        {/* SuperAdmin Multi-Assignee Filter Chips */}
+        {isSuperAdmin && (
+          <div className={styles.filterChipsScroll}>
+            {/* Show All Persons Button */}
+            <div 
+              className={`${styles.filterChip} ${styles.filterChipAll} ${selectedAssigneeFilters.length === 0 ? styles.filterChipActive : ""}`}
+              onClick={handleSelectAll}
+            >
+              <Users size={14} />
+              <span>👥 Bütün Şəxsləri Göstər (Hamısı)</span>
+            </div>
+
+            {/* Individual Staff Chips */}
+            {staffUsers.map(user => {
+              const isSelected = selectedAssigneeFilters.includes(user.id);
+              return (
+                <div
+                  key={user.id}
+                  className={`${styles.filterChip} ${isSelected ? styles.filterChipActive : ""}`}
+                  onClick={() => handleToggleAssigneeFilter(user.id)}
+                  title={`${user.name} (${user.role})`}
+                >
+                  <span className={styles.userAvatarMini}>{getInitial(user?.name)}</span>
+                  <span>{user.name}</span>
+                  {isSelected && <Check size={13} color="var(--aqua-teal, #00C4B5)" />}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

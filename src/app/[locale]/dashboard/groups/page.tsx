@@ -10,6 +10,8 @@ import { Link } from "@/i18n/routing";
 import { useSession } from "next-auth/react";
 
 export default function GroupsPage() {
+  const tToast = useTranslations("Toasts");
+
   const t = useTranslations("Groups");
   const c = useTranslations("Common");
   const tp = useTranslations("Programs");
@@ -74,15 +76,15 @@ export default function GroupsPage() {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
-        toast.success("Qrup uğurla yaradıldı!");
+        toast.success(tToast("groupCreated"));
         setShowModal(false);
         setFormData({ name: "", program_id: "", teacher_id: "", room: "" });
         fetchGroups();
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tToast("genericError"));
       }
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     } finally {
       setSubmitting(false);
     }
@@ -93,13 +95,13 @@ export default function GroupsPage() {
     try {
       const res = await fetch(`/api/groups/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Silindi");
+        toast.success(tToast("deleteSuccess"));
         fetchGroups();
       } else {
-        toast.error("Silinmədi");
+        toast.error(tToast("deleteError"));
       }
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
     setActiveMenu(null);
   };

@@ -1,10 +1,16 @@
-export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import bcrypt from "bcrypt";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     const parents = await sql`
       SELECT p.id, p.fin_code, p.id_card_number, p.created_at, 
              COALESCE(NULLIF(TRIM(CONCAT(u.first_name, ' ', u.last_name)), ''), p.full_name) as full_name, 
@@ -34,6 +40,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { first_name, last_name, phone, email, fin_code, id_card_number, password } = body;
 

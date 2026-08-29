@@ -406,6 +406,24 @@
   }
 }
 
+@media (max-width: 768px) {
+  .container {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .header {
+    height: 52px;
+    padding: 0 0.85rem;
+  }
+
+  .pageContent {
+    padding: 0.75rem 0.75rem calc(66px + env(safe-area-inset-bottom, 0px)) 0.75rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .coursesWidget {
   margin: 1rem;
   padding: 1rem;

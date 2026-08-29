@@ -69,6 +69,8 @@ export default function TeacherDetailPage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
+  const tToast = useTranslations("Toasts");
+
   const resolvedParams = use(params);
   const { id } = resolvedParams;
   const router = useRouter();
@@ -128,10 +130,10 @@ export default function TeacherDetailPage({
         setShowEditModal(false);
         fetchProfile();
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tToast("genericError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -140,13 +142,13 @@ export default function TeacherDetailPage({
     try {
       const res = await fetch(`/api/teachers/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Silindi");
+        toast.success(tToast("teacherDeleted"));
         router.push("/dashboard/teachers");
       } else {
-        toast.error("Silinmədi");
+        toast.error(tToast("deleteError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 

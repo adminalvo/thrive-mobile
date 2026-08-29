@@ -3,11 +3,12 @@
 
 import { useState, useEffect } from "react";
 import styles from "./page.module.css";
-import { Plus, ChevronDown, Calendar, Clock, User, UserCheck, Search, BookOpen, X, Trash2 } from "lucide-react";
+import { Plus, ChevronDown, Calendar, Clock, User, UserCheck, Search, BookOpen, X, Trash2, Users, Phone, MapPin, Globe, Layers, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface ScheduleItem {
   id: string;
@@ -18,19 +19,36 @@ interface ScheduleItem {
   room?: string;
 }
 
+interface EnrolledStudent {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  studyMode?: 'offline' | 'online' | 'hybrid';
+}
+
 interface GroupWithSchedule {
   id: string;
   name: string;
   room?: string;
   teacher?: string;
+  teacherPhone?: string;
   language?: string;
   maxCapacity?: number;
   _count?: { students: number };
+  students?: EnrolledStudent[];
+  formatStats?: {
+    offline: number;
+    online: number;
+    hybrid: number;
+    primaryFormat: 'offline' | 'online' | 'hybrid';
+  };
   program?: { name: string };
   schedules: ScheduleItem[];
 }
 
 export default function SchedulePage() {
+  const tToast = useTranslations("Toasts");
   const t = useTranslations("Schedule");
   const c = useTranslations("Common");
   
@@ -44,9 +62,14 @@ export default function SchedulePage() {
 
   // Filters
   const [view, setView] = useState("week");
+  const [selectedMobileDay, setSelectedMobileDay] = useState<number>(() => {
+    const today = new Date().getDay();
+    return today === 0 ? 7 : today;
+  });
   const [selectedProgram, setSelectedProgram] = useState("all");
   const [selectedTeacher, setSelectedTeacher] = useState("all");
   const [selectedRoom, setSelectedRoom] = useState("all");
+  const [selectedFormat, setSelectedFormat] = useState("all"); // 'all' | 'offline' | 'online' | 'hybrid'
   const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [selectedClass, setSelectedClass] = useState<any>(null);
@@ -63,6 +86,26 @@ export default function SchedulePage() {
 
   useEffect(() => {
     fetchSchedules();
+  }, []);
+
+  // Supabase Realtime Live Synchronization: update instantly when student is added to group or schedule changes
+  useEffect(() => {
+    const channel = supabase
+      .channel("schedule-live-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_students" }, () => {
+        fetchSchedules();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "groups" }, () => {
+        fetchSchedules();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "group_schedules" }, () => {
+        fetchSchedules();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchSchedules = async () => {
@@ -103,14 +146,14 @@ export default function SchedulePage() {
     try {
       const res = await fetch(`/api/schedules/${selectedClass.schedule.id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Dərs cədvəldən uğurla silindi");
+        toast.success(tToast("scheduleDeleted"));
         setSelectedClass(null);
         fetchSchedules();
       } else {
-        toast.error("Dərsi silmək mümkün olmadı");
+        toast.error(tToast("scheduleDeleteError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -250,6 +293,8 @@ export default function SchedulePage() {
   const renderClassesForDay = (dayNum: number) => {
     const allValidClasses = groups.flatMap(g => {
       if (selectedProgram !== "all" && g.program?.name !== selectedProgram) return [];
+      if (selectedFormat !== "all" && (g.formatStats?.primaryFormat || 'offline') !== selectedFormat) return [];
+
       const daySchedules = (g.schedules || []).filter(s => {
         if (s.dayOfWeek !== dayNum) return false;
         if (selectedTeacher !== "all" && (g.teacher !== selectedTeacher)) return false;
@@ -304,6 +349,8 @@ export default function SchedulePage() {
          
          const width = `calc(${100 / maxCol}% - 4px)`;
          const left = `calc(${item.column * (100 / maxCol)}% + 2px)`;
+         const stCount = item.group._count?.students || 0;
+         const format = item.group.formatStats?.primaryFormat || 'offline';
          
          return (
           <div 
@@ -320,10 +367,90 @@ export default function SchedulePage() {
               <span className={styles.cardTime}>{item.schedule.startTime} - {item.schedule.endTime}</span>
               <span>• {item.group.teacher || t("unassigned")}</span>
             </div>
+
+            <div className={styles.cardMetaRow}>
+              <span className={styles.studentsBadge}>
+                <Users size={11} /> {stCount} {t("students") || "tələbə"}
+              </span>
+              {format === 'online' ? (
+                <span className={styles.formatBadgeOnline}><Globe size={10} /> Online</span>
+              ) : format === 'hybrid' ? (
+                <span className={styles.formatBadgeHybrid}><Layers size={10} /> Hibrid</span>
+              ) : (
+                <span className={styles.formatBadgeOffline}><MapPin size={10} /> Əyani</span>
+              )}
+            </div>
           </div>
          );
        });
     });
+  };
+
+  const renderMobileDayCards = (dayNum: number) => {
+    const dayClasses = groups.flatMap(g => 
+      g.schedules.filter(s => s.dayOfWeek === dayNum).map(s => ({ group: g, schedule: s }))
+    ).filter(({ group, schedule }) => {
+      if (selectedProgram !== "all" && group.program?.name !== selectedProgram) return false;
+      if (selectedTeacher !== "all" && group.teacher !== selectedTeacher) return false;
+      if (selectedRoom !== "all" && (schedule.room || group.room) !== selectedRoom) return false;
+      if (selectedFormat !== "all") {
+        const primary = group.formatStats?.primaryFormat || 'offline';
+        if (primary !== selectedFormat) return false;
+      }
+      return true;
+    }).sort((a, b) => a.schedule.startTime.localeCompare(b.schedule.startTime));
+
+    if (dayClasses.length === 0) {
+      return (
+        <div className={styles.mobileEmptyState}>
+          <Calendar size={28} style={{ opacity: 0.4, marginBottom: '0.4rem', color: '#38bdf8' }} />
+          <p>Bu gün üçün təyin edilmiş dərs yoxdur</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.mobileClassesList}>
+        {dayClasses.map((item, idx) => {
+          const stCount = item.group._count?.students || 0;
+          const format = item.group.formatStats?.primaryFormat || 'offline';
+          return (
+            <div
+              key={item.schedule.id || idx}
+              className={styles.mobileClassCard}
+              onClick={() => setSelectedClass(item)}
+            >
+              <div className={styles.mobileCardTop}>
+                <h4 className={styles.mobileCardTitle}>{item.group.name}</h4>
+                <span className={styles.mobileCardTimeBadge}>
+                  <Clock size={12} /> {item.schedule.startTime} - {item.schedule.endTime}
+                </span>
+              </div>
+              
+              <div className={styles.mobileCardProgram}>
+                <BookOpen size={13} /> {item.group.program?.name || t("noProgram")}
+              </div>
+
+              <div className={styles.mobileCardMeta}>
+                <span className={styles.mobileTeacherBadge}>
+                  <User size={12} /> {item.group.teacher || t("unassigned")}
+                </span>
+                <span className={styles.studentsBadge}>
+                  <Users size={11} /> {stCount} tələbə
+                </span>
+                {format === 'online' ? (
+                  <span className={styles.formatBadgeOnline}><Globe size={10} /> Online</span>
+                ) : format === 'hybrid' ? (
+                  <span className={styles.formatBadgeHybrid}><Layers size={10} /> Hibrid</span>
+                ) : (
+                  <span className={styles.formatBadgeOffline}><MapPin size={10} /> Əyani</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -388,6 +515,16 @@ export default function SchedulePage() {
             </select>
             <ChevronDown size={16} />
           </div>
+
+          <div className={styles.filterSelectWrapper}>
+            <select value={selectedFormat} onChange={e => setSelectedFormat(e.target.value)}>
+              <option value="all">Bütün Formatlar</option>
+              <option value="offline">📍 Əyani (Offline)</option>
+              <option value="online">🌐 Online</option>
+              <option value="hybrid">🔄 Hibrid</option>
+            </select>
+            <ChevronDown size={16} />
+          </div>
         </div>
         
         <div className={styles.viewToggle}>
@@ -402,31 +539,54 @@ export default function SchedulePage() {
       ) : (
         <>
           {view === "week" && (
-            <div className={styles.calendarWrapper}>
-              <div className={styles.calendarHeader}>
-                <div className={styles.timeSpacer}></div>
+            <>
+              {/* Mobile Day Selector Bar */}
+              <div className={styles.mobileDaySelector}>
                 {days.map(d => (
-                  <div key={d.num} className={styles.dayHeader}>
-                    <div className={styles.dayName}>{d.name}</div>
-                    <div className={styles.dayDate}>{d.date}</div>
-                  </div>
+                  <button
+                    key={d.num}
+                    type="button"
+                    className={`${styles.mobileDayBtn} ${selectedMobileDay === d.num ? styles.mobileDayBtnActive : ''}`}
+                    onClick={() => setSelectedMobileDay(d.num)}
+                  >
+                    <span className={styles.mobileDayName}>{d.name.substring(0, 3)}</span>
+                    <span className={styles.mobileDayNum}>{d.date.split(' ')[0]}</span>
+                  </button>
                 ))}
               </div>
-              <div className={styles.calendarGrid}>
-                <div className={styles.timeColumn}>
-                  {hours.map(h => (
-                    <div key={h} className={styles.timeLabel}>{h}</div>
-                  ))}
-                </div>
-                <div className={styles.daysColumns}>
+
+              {/* Mobile Selected Day Cards View */}
+              <div className={styles.mobileCalendarView}>
+                {renderMobileDayCards(selectedMobileDay)}
+              </div>
+
+              {/* Desktop 7-Column Grid */}
+              <div className={styles.calendarWrapper}>
+                <div className={styles.calendarHeader}>
+                  <div className={styles.timeSpacer}></div>
                   {days.map(d => (
-                    <div key={d.num} className={styles.dayColumn}>
-                      {renderClassesForDay(d.num)}
+                    <div key={d.num} className={styles.dayHeader}>
+                      <div className={styles.dayName}>{d.name}</div>
+                      <div className={styles.dayDate}>{d.date}</div>
                     </div>
                   ))}
                 </div>
+                <div className={styles.calendarGrid}>
+                  <div className={styles.timeColumn}>
+                    {hours.map(h => (
+                      <div key={h} className={styles.timeLabel}>{h}</div>
+                    ))}
+                  </div>
+                  <div className={styles.daysColumns}>
+                    {days.map(d => (
+                      <div key={d.num} className={styles.dayColumn}>
+                        {renderClassesForDay(d.num)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           {view === "day" && (
@@ -514,21 +674,23 @@ export default function SchedulePage() {
               {selectedClass ? (
                 <div>
                   <div className={styles.detailsHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <h3 className={styles.detailsTitle}>{selectedClass.group.name}</h3>
-                <p className={styles.detailsSubtitle}>{selectedClass.group.program?.name || t("noProgram")} • {selectedClass.group.teacher || t("unassigned")}</p>
-              </div>
-              {canEdit && (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <button onClick={openEditScheduleModal} style={{ background: "var(--aqua-teal, #00C4B5)", color: "#fff", border: "none", padding: "0.4rem 1rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500 }}>
-                    {t("edit")}
-                  </button>
-                  <button onClick={handleDeleteSchedule} style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.4rem 0.8rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: "4px" }}>
-                    <Trash2 size={14} /> Sil
-                  </button>
-                </div>
-              )}
-            </div>
+                    <div>
+                      <h3 className={styles.detailsTitle}>{selectedClass.group.name}</h3>
+                      <p className={styles.detailsSubtitle}>
+                        {selectedClass.group.program?.name || t("noProgram")} • {selectedClass.group.teacher || t("unassigned")}
+                      </p>
+                    </div>
+                    {canEdit && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <button onClick={openEditScheduleModal} style={{ background: "var(--aqua-teal, #00C4B5)", color: "#fff", border: "none", padding: "0.4rem 1rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500 }}>
+                          {t("edit")}
+                        </button>
+                        <button onClick={handleDeleteSchedule} style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.4rem 0.8rem", borderRadius: "6px", cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: "4px" }}>
+                          <Trash2 size={14} /> Sil
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   
                   <div className={styles.detailsGrid}>
                     <div>
@@ -542,7 +704,13 @@ export default function SchedulePage() {
                       </div>
                       <div className={styles.infoBlock}>
                         <div className={styles.infoLabel}>{t("students")}</div>
-                        <div className={styles.infoValue}>{selectedClass.group._count?.students || 0} Students</div>
+                        <div className={styles.infoValue}>
+                          {selectedClass.group._count?.students || 0} / {selectedClass.group.maxCapacity || 12} Tələbə
+                          <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
+                            <span className={styles.formatBadgeOffline}><MapPin size={10} /> {selectedClass.group.formatStats?.offline || 0} Əyani</span>
+                            <span className={styles.formatBadgeOnline}><Globe size={10} /> {selectedClass.group.formatStats?.online || 0} Online</span>
+                          </div>
+                        </div>
                       </div>
                       <div className={styles.infoBlock}>
                         <div className={styles.infoLabel}>{t("room")}</div>
@@ -569,6 +737,55 @@ export default function SchedulePage() {
                         })}
                       </div>
                     </div>
+                  </div>
+
+                  {/* Enrolled Students Live Roster */}
+                  <div className={styles.rosterCard}>
+                    <div className={styles.rosterHeader}>
+                      <h4 className={styles.rosterTitle}>
+                        <Users size={16} color="#00C4B5" />
+                        <span>Qrupdakı Tələbələr ({selectedClass.group.students?.length || 0})</span>
+                      </h4>
+                      <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>
+                        Maks. Tutum: {selectedClass.group.maxCapacity || 12}
+                      </span>
+                    </div>
+
+                    {selectedClass.group.students && selectedClass.group.students.length > 0 ? (
+                      <div className={styles.rosterList}>
+                        {selectedClass.group.students.map((st: EnrolledStudent) => (
+                          <div key={st.id} className={styles.rosterItem}>
+                            <div className={styles.studentInfo}>
+                              <div className={styles.studentAvatar}>
+                                {st.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <span className={styles.studentName}>{st.name}</span>
+                                {st.phone && st.phone !== "—" && (
+                                  <a href={`tel:${st.phone}`} className={styles.studentPhone} title="Zəng et">
+                                    <Phone size={10} /> {st.phone}
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+
+                            <div>
+                              {st.studyMode === "online" ? (
+                                <span className={styles.formatBadgeOnline}><Globe size={11} /> Online</span>
+                              ) : st.studyMode === "hybrid" ? (
+                                <span className={styles.formatBadgeHybrid}><Layers size={11} /> Hibrid</span>
+                              ) : (
+                                <span className={styles.formatBadgeOffline}><MapPin size={11} /> Əyani</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: "center", padding: "1rem", color: "#64748b", fontSize: "0.8rem" }}>
+                        Bu qrupda hələlik tələbə qeydiyyatı yoxdur.
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

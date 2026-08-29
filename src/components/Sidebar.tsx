@@ -159,6 +159,11 @@ export default function Sidebar({
   };
 
   const allowedNavItems = orderedItems.filter(item => {
+    // Strictly restrict Finance to super_admin only
+    if (item.id === "finance" || item.href === "/dashboard/finance") {
+      return userRole === "super_admin";
+    }
+
     if (userRole === "super_admin") return true;
 
     if (userRole === "teacher") {
@@ -184,7 +189,6 @@ export default function Sidebar({
       "/dashboard/parents": "parents",
       "/dashboard/teachers": "teachers",
       "/dashboard/schedule": "schedule",
-      "/dashboard/finance": "finance",
       "/dashboard/tasks": "tasks",
       "/dashboard/ai": "ai",
       "/dashboard/staff": "staff",
@@ -199,7 +203,6 @@ export default function Sidebar({
       }
       return false; // Strict RBAC: if permission is not granted, hide completely
     }
-
     return false;
   });
 

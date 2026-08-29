@@ -11,6 +11,8 @@ import { useSession } from "next-auth/react";
 import StudentRegistrationModal from "@/components/StudentRegistrationModal";
 
 export default function StudentsPage() {
+  const tToast = useTranslations("Toasts");
+
   const t = useTranslations("Students");
   const c = useTranslations("Common");
   const { data: session } = useSession();
@@ -49,10 +51,10 @@ export default function StudentsPage() {
         const data = await res.json();
         setStudents(data);
       } else {
-        toast.error("Tələbələri yükləmək mümkün olmadı");
+        toast.error(tToast("studentsLoadError"));
       }
     } catch (error) {
-      toast.error("Gözlənilməz xəta baş verdi");
+      toast.error(tToast("genericError"));
     } finally {
       setLoading(false);
     }
@@ -65,13 +67,13 @@ export default function StudentsPage() {
     try {
       const res = await fetch(`/api/students/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Silindi");
+        toast.success(tToast("studentDeleted"));
         fetchStudents();
       } else {
-        toast.error("Silinmədi");
+        toast.error(tToast("deleteError"));
       }
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
     setActiveMenu(null);
   };

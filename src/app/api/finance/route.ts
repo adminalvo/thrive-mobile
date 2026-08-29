@@ -7,6 +7,9 @@ import { checkApiPermission } from "@/lib/auth-utils";
 
 export async function GET() {
   try {
+    const authCheck = await checkApiPermission('finance', 'read');
+    if (!authCheck.authorized) return authCheck.error;
+
     const invoices = await sql`
       SELECT 
         i.id,

@@ -1,9 +1,15 @@
-export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     const body = await req.json();
     const invoiceId = body.invoiceId || body.invoice_id;
     const studentId = body.studentId || body.student_id;

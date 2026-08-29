@@ -64,6 +64,8 @@ const normalizePriority = (priority?: string): "LOW" | "MEDIUM" | "HIGH" => {
 };
 
 export default function TasksPage() {
+  const tPlh = useTranslations("Placeholders");
+
   const t = useTranslations("Tasks");
   const c = useTranslations("Common");
 
@@ -79,6 +81,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [selectedAssigneeFilters, setSelectedAssigneeFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileActiveColumn, setMobileActiveColumn] = useState<KanbanTask["status"]>("TODO");
 
   const { data: session } = useSession();
   const userRole = session?.user?.role || "staff";
@@ -539,13 +542,34 @@ export default function TasksPage() {
         )}
       </div>
 
+      {/* Mobile Column Tab Selector */}
+      <div className={styles.mobileColumnSelector}>
+        {COLUMNS.map(col => {
+          const count = filteredTasks.filter(t => t && t.status === col.id).length;
+          const isActive = mobileActiveColumn === col.id;
+          return (
+            <button
+              key={col.id}
+              type="button"
+              className={`${styles.mobileColBtn} ${isActive ? styles.mobileColBtnActive : ""}`}
+              onClick={() => setMobileActiveColumn(col.id)}
+              style={{ borderBottomColor: isActive ? col.color : "transparent" }}
+            >
+              <span className={styles.mobileColTitle}>{col.title}</span>
+              <span className={styles.mobileColCount} style={{ backgroundColor: `${col.color}25`, color: col.color }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className={styles.kanbanBoard}>
         {COLUMNS.map(col => {
           const colTasks = filteredTasks.filter(t => t && t.status === col.id);
+          const isMobileActive = mobileActiveColumn === col.id;
           return (
             <div
               key={col.id}
-              className={`${styles.column} ${dragOverColId === col.id ? styles.columnOver : ""}`}
+              className={`${styles.column} ${isMobileActive ? styles.columnMobileActive : ""} ${dragOverColId === col.id ? styles.columnOver : ""}`}
               onDrop={e => handleDrop(e, col.id)}
               onDragOver={e => handleDragOver(e, col.id)}
               onDragLeave={e => {
@@ -561,11 +585,11 @@ export default function TasksPage() {
               <div className={styles.taskList}>
                 {loading ? (
                   <div className={styles.loadingState}>
-                    <p>Yüklənir...</p>
+                    <p>{t("loading")}</p>
                   </div>
                 ) : colTasks.length === 0 ? (
                   <div className={styles.emptyColumn}>
-                    <p>Tapşırıq yoxdur</p>
+                    <p>{t("empty")}</p>
                   </div>
                 ) : (
                   colTasks.map(task => {
@@ -588,7 +612,7 @@ export default function TasksPage() {
                       >
                         <div className={styles.cardHeader}>
                           <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                            <div className={styles.dragHandle} title="Sürükləyin">
+                            <div className={styles.dragHandle} title="Drag">
                               <GripVertical size={16} />
                             </div>
                             <div
@@ -598,7 +622,7 @@ export default function TasksPage() {
                                 backgroundColor: `${getPriorityColor(task.priority)}1A`
                               }}
                             >
-                              <Flag size={12} /> {task.priority}
+                              <Flag size={12} /> {t(`priorities.${task.priority.toLowerCase()}`) || task.priority}
                             </div>
                           </div>
 
@@ -611,12 +635,12 @@ export default function TasksPage() {
                                 e.stopPropagation();
                                 handleDirectStatusChange(task.id, e.target.value as any);
                               }}
-                              title="Statusu birbaşa dəyişin"
+                              title="Status"
                             >
-                              <option value="TODO">Gözləmədə</option>
-                              <option value="IN_PROGRESS">İcrada</option>
-                              <option value="REVIEW">Yoxlanışda</option>
-                              <option value="DONE">Tamamlandı</option>
+                              <option value="TODO">{t("columns.TODO")}</option>
+                              <option value="IN_PROGRESS">{t("columns.IN_PROGRESS")}</option>
+                              <option value="REVIEW">{t("columns.REVIEW")}</option>
+                              <option value="DONE">{t("columns.DONE")}</option>
                             </select>
 
                             <button
@@ -692,7 +716,7 @@ export default function TasksPage() {
         <div className={styles.modalOverlay} onClick={() => setShowCreateModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>Yeni Tapşırıq</h2>
+              <h2>{t("newTask")}</h2>
               <button className={styles.closeModalBtn} onClick={() => setShowCreateModal(false)}>
                 <X size={20} />
               </button>
@@ -700,20 +724,20 @@ export default function TasksPage() {
 
             <form onSubmit={handleCreateSubmit} className={styles.form}>
               <div className={styles.inputGroup}>
-                <label>Başlıq *</label>
+                <label>{t("form.title")}</label>
                 <input
                   required
                   type="text"
-                  placeholder="Başlıq..."
+                  placeholder={t("form.titlePlaceholder")}
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
                 />
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Təsvir</label>
+                <label>{t("form.description")}</label>
                 <textarea
-                  placeholder="Detallar..."
+                  placeholder={t("form.descPlaceholder")}
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
@@ -721,33 +745,33 @@ export default function TasksPage() {
 
               <div className={styles.rowInputs}>
                 <div className={styles.inputGroup}>
-                  <label>Status</label>
+                  <label>{t("form.status")}</label>
                   <select
                     value={formData.status}
                     onChange={e => setFormData({ ...formData, status: e.target.value as any })}
                   >
-                    <option value="TODO">Gözləmədə</option>
-                    <option value="IN_PROGRESS">İcrada</option>
-                    <option value="REVIEW">Yoxlanışda</option>
-                    <option value="DONE">Tamamlandı</option>
+                    <option value="TODO">{t("columns.TODO")}</option>
+                    <option value="IN_PROGRESS">{t("columns.IN_PROGRESS")}</option>
+                    <option value="REVIEW">{t("columns.REVIEW")}</option>
+                    <option value="DONE">{t("columns.DONE")}</option>
                   </select>
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label>Prioritet</label>
+                  <label>{t("form.priority")}</label>
                   <select
                     value={formData.priority}
                     onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
                   >
-                    <option value="LOW">Aşağı</option>
-                    <option value="MEDIUM">Orta</option>
-                    <option value="HIGH">Yüksək</option>
+                    <option value="LOW">{t("priorities.low")}</option>
+                    <option value="MEDIUM">{t("priorities.medium")}</option>
+                    <option value="HIGH">{t("priorities.high")}</option>
                   </select>
                 </div>
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Bitmə Tarixi</label>
+                <label>{t("form.dueDate")}</label>
                 <input
                   type="date"
                   value={formData.dueDate}
@@ -801,18 +825,20 @@ export default function TasksPage() {
 
             <form onSubmit={handleEditSubmit} className={styles.form}>
               <div className={styles.inputGroup}>
-                <label>Başlıq *</label>
+                <label>{t("form.title")}</label>
                 <input
                   required
                   type="text"
+                  placeholder={t("form.titlePlaceholder")}
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
                 />
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Təsvir</label>
+                <label>{t("form.description")}</label>
                 <textarea
+                  placeholder={t("form.descPlaceholder")}
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
@@ -820,33 +846,33 @@ export default function TasksPage() {
 
               <div className={styles.rowInputs}>
                 <div className={styles.inputGroup}>
-                  <label>Status</label>
+                  <label>{t("form.status")}</label>
                   <select
                     value={formData.status}
                     onChange={e => setFormData({ ...formData, status: e.target.value as any })}
                   >
-                    <option value="TODO">Gözləmədə</option>
-                    <option value="IN_PROGRESS">İcrada</option>
-                    <option value="REVIEW">Yoxlanışda</option>
-                    <option value="DONE">Tamamlandı</option>
+                    <option value="TODO">{t("columns.TODO")}</option>
+                    <option value="IN_PROGRESS">{t("columns.IN_PROGRESS")}</option>
+                    <option value="REVIEW">{t("columns.REVIEW")}</option>
+                    <option value="DONE">{t("columns.DONE")}</option>
                   </select>
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label>Prioritet</label>
+                  <label>{t("form.priority")}</label>
                   <select
                     value={formData.priority}
                     onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
                   >
-                    <option value="LOW">Aşağı</option>
-                    <option value="MEDIUM">Orta</option>
-                    <option value="HIGH">Yüksək</option>
+                    <option value="LOW">{t("priorities.low")}</option>
+                    <option value="MEDIUM">{t("priorities.medium")}</option>
+                    <option value="HIGH">{t("priorities.high")}</option>
                   </select>
                 </div>
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Bitmə Tarixi</label>
+                <label>{t("form.dueDate")}</label>
                 <input
                   type="date"
                   value={formData.dueDate}
@@ -855,7 +881,7 @@ export default function TasksPage() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label>İcraçılar (Bir və ya bir neçə işçi seçin)</label>
+                <label>{t("form.assignedTo")}</label>
                 <div className={styles.multiUserPicker}>
                   {staffUsers.map(user => {
                     const isSelected = formData.selectedAssignees.includes(user.id);
@@ -876,10 +902,10 @@ export default function TasksPage() {
 
               <div className={styles.modalActions}>
                 <button type="button" className={styles.cancelBtn} onClick={() => setShowEditModal(false)}>
-                  Ləğv et
+                  {t("form.cancel")}
                 </button>
                 <button type="submit" className={styles.saveBtn}>
-                  Yadda saxla
+                  {t("form.save")}
                 </button>
               </div>
             </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./page.module.css";
 import { LogIn, Mail, Lock, LayoutDashboard, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "@/i18n/routing";
@@ -19,22 +19,37 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Pre-load dashboard bundle in background so transition is instant
+  useEffect(() => {
+    try {
+      router.prefetch("/dashboard");
+    } catch (_) {}
+  }, [router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError("");
     setLoading(true);
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: email.trim(),
+        password: password,
+      });
 
-    if (res?.error) {
-      setError(res.error);
+      if (res?.error) {
+        setError(res.error);
+        setLoading(false);
+      } else if (res?.ok) {
+        router.replace("/dashboard");
+      } else {
+        setLoading(false);
+      }
+    } catch (err) {
+      setError("Gözlənilməz xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
       setLoading(false);
-    } else {
-      router.push("/dashboard");
     }
   };
 

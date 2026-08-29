@@ -9,6 +9,9 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 
 export default function TeachersPage() {
+  const tToast = useTranslations("Toasts");
+  const tPlh = useTranslations("Placeholders");
+
   const t = useTranslations("Teachers");
   const c = useTranslations("Common");
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -86,13 +89,13 @@ export default function TeachersPage() {
     try {
       const res = await fetch(`/api/teachers/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Silindi");
+        toast.success(tToast("deleteSuccess"));
         fetchTeachers();
       } else {
-        toast.error("Silinmədi");
+        toast.error(tToast("deleteError"));
       }
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
     setActiveMenu(null);
   };
@@ -193,7 +196,7 @@ export default function TeachersPage() {
             <form onSubmit={createTeacher} className={styles.form}>
               <div className={styles.inputGroup}>
                 <label>Ad və Soyad</label>
-                <input required type="text" value={newTeacher.name} onChange={e => setNewTeacher({...newTeacher, name: e.target.value})} placeholder="Məs: Əli Əliyev" />
+                <input required type="text" value={newTeacher.name} onChange={e => setNewTeacher({...newTeacher, name: e.target.value})} placeholder={tPlh("nameExample")} />
               </div>
               <div className={styles.inputGroup}>
                 <label>Email</label>
@@ -211,7 +214,7 @@ export default function TeachersPage() {
               </div>
               <div className={styles.inputGroup}>
                 <label>Fənn / İxtisas</label>
-                <input type="text" value={newTeacher.specialty} onChange={e => setNewTeacher({...newTeacher, specialty: e.target.value})} placeholder="Məs: İngilis Dili" />
+                <input type="text" value={newTeacher.specialty} onChange={e => setNewTeacher({...newTeacher, specialty: e.target.value})} placeholder={tPlh("subjectExample")} />
               </div>
               <div className={styles.inputGroup}>
                 <label>Qruplar</label>

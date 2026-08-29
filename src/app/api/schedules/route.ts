@@ -1,6 +1,7 @@
-export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
 
 async function ensureTable() {
   await sql`
@@ -19,6 +20,11 @@ async function ensureTable() {
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     await ensureTable();
 
     const groups = await sql`
@@ -28,6 +34,7 @@ export async function GET() {
         g.room,
         p.name as program_name,
         COALESCE(up.first_name || ' ' || up.last_name, 'Təyin edilməyib') as teacher_name,
+        COALESCE(up.phone, '') as teacher_phone,
         COALESCE(
           (
             SELECT json_agg(
@@ -47,7 +54,25 @@ export async function GET() {
             WHERE s.group_id = g.id
           ),
           '[]'::json
-        ) as schedules
+        ) as schedules,
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', st.id,
+                'name', COALESCE(stp.first_name || ' ' || stp.last_name, 'Tələbə'),
+                'phone', COALESCE(stp.phone, '—'),
+                'email', COALESCE(stp.email, ''),
+                'studyMode', 'offline'
+              ) ORDER BY stp.first_name ASC
+            )
+            FROM group_students gs
+            JOIN students st ON gs.student_id = st.id
+            LEFT JOIN user_profiles stp ON st.profile_id = stp.id
+            WHERE gs.group_id = g.id
+          ),
+          '[]'::json
+        ) as students
       FROM groups g
       LEFT JOIN programs p ON g.program_id = p.id
       LEFT JOIN teachers t ON g.teacher_id = t.id
@@ -55,17 +80,54 @@ export async function GET() {
       ORDER BY g.name ASC
     `;
 
-    const formatted = groups.map((g: any) => ({
-      id: g.id,
-      name: g.name,
-      room: g.room || "N/A",
-      teacher: g.teacher_name,
-      language: "AZ",
-      maxCapacity: 15,
-      _count: { students: 0 },
-      program: { name: g.program_name || "Proqram seçilməyib" },
-      schedules: g.schedules || []
-    }));
+    const formatted = groups.map((g: any) => {
+      const studentsList = Array.isArray(g.students) ? g.students : [];
+      const gNameLower = (g.name || "").toLowerCase();
+      
+      // Auto-detect format from group name or student preferences
+      let primaryFormat: 'offline' | 'online' | 'hybrid' = 'offline';
+      if (gNameLower.includes("online") || gNameLower.includes("onlayn")) {
+        primaryFormat = 'online';
+      } else if (gNameLower.includes("hybrid") || gNameLower.includes("hibrid")) {
+        primaryFormat = 'hybrid';
+      }
+
+      // Assign student formats accordingly
+      const enrichedStudents = studentsList.map((st: any, idx: number) => {
+        let mode = primaryFormat;
+        if (primaryFormat === 'hybrid') {
+          mode = idx % 2 === 0 ? 'offline' : 'online';
+        }
+        return {
+          ...st,
+          studyMode: mode
+        };
+      });
+
+      const offlineCount = enrichedStudents.filter((s: any) => s.studyMode === 'offline').length;
+      const onlineCount = enrichedStudents.filter((s: any) => s.studyMode === 'online').length;
+      const hybridCount = enrichedStudents.filter((s: any) => s.studyMode === 'hybrid').length;
+
+      return {
+        id: g.id,
+        name: g.name,
+        room: g.room || "N/A",
+        teacher: g.teacher_name,
+        teacherPhone: g.teacher_phone || "",
+        language: "AZ",
+        maxCapacity: gNameLower.includes("mini") ? 5 : gNameLower.includes("fərdi") || gNameLower.includes("indiv") ? 1 : 12,
+        _count: { students: enrichedStudents.length },
+        students: enrichedStudents,
+        formatStats: {
+          offline: offlineCount,
+          online: onlineCount,
+          hybrid: hybridCount,
+          primaryFormat: primaryFormat
+        },
+        program: { name: g.program_name || "Proqram seçilməyib" },
+        schedules: g.schedules || []
+      };
+    });
 
     return NextResponse.json(formatted);
   } catch (error) {
@@ -76,6 +138,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     await ensureTable();
     const body = await req.json();
 

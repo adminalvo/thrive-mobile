@@ -8,6 +8,9 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
 export default function StudentDashboard() {
+  const tToast = useTranslations("Toasts");
+  const tPlh = useTranslations("Placeholders");
+
   const t = useTranslations("Dashboard");
   
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -32,13 +35,13 @@ export default function StudentDashboard() {
         body: JSON.stringify({ assignmentId: submitAssignmentModal.id, content: submissionContent })
       });
       if (res.ok) {
-        alert("Tapşırıq uğurla göndərildi!");
+        alert(tToast("assignmentSubmitted"));
         setSubmitAssignmentModal(null);
         setSubmissionContent("");
         // Reload page to reflect changes
         window.location.reload();
       } else {
-        alert("Xəta baş verdi");
+        alert(tToast("genericError"));
       }
     } catch (e) {
       console.error(e);
@@ -61,13 +64,13 @@ export default function StudentDashboard() {
       if (res.ok) {
         const data = await res.json();
         setContractUrl(data.url);
-        alert("Müqavilə uğurla yükləndi!");
+        alert(tToast("contractUploaded"));
       } else {
-        alert("Faylı yükləmək mümkün olmadı");
+        alert(tToast("fileUploadError"));
       }
     } catch (err) {
       console.error(err);
-      alert("Şəbəkə xətası");
+      alert(tToast("networkError"));
     } finally {
       setUploadingContract(false);
     }
@@ -399,7 +402,7 @@ export default function StudentDashboard() {
               <textarea 
                 value={submissionContent}
                 onChange={(e) => setSubmissionContent(e.target.value)}
-                placeholder="Müəllimə cavabınızı bura yazın və ya Google Drive linki əlavə edin..."
+                placeholder={tPlh("studentAnswer")}
                 style={{ width: "100%", padding: "1rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", borderRadius: "8px", minHeight: "150px", fontSize: "0.95rem" }}
               />
             </div>

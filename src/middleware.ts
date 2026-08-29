@@ -22,10 +22,12 @@ export default async function middleware(req: NextRequest) {
     }
   }
 
+  const secret = process.env.NEXTAUTH_SECRET || "ThriveCRM_Secret_Key_2026!@#";
+
   // API Route Protection
   if (isApiRoute) {
     if (!req.nextUrl.pathname.startsWith('/api/auth') && !req.nextUrl.pathname.startsWith('/api/unlock')) {
-      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      const token = await getToken({ req, secret });
       if (!token) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
@@ -36,25 +38,27 @@ export default async function middleware(req: NextRequest) {
   const isProtectedRoute = req.nextUrl.pathname.includes('/dashboard');
 
   if (isProtectedRoute) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({ req, secret });
     
+    // Extract locale if present
+    const pathSegments = req.nextUrl.pathname.split('/').filter(Boolean);
+    const firstSegment = pathSegments[0];
+    const hasLocale = ['az', 'en', 'ru'].includes(firstSegment);
+    const localePrefix = hasLocale ? `/${firstSegment}` : '';
+
     if (!token) {
       const url = req.nextUrl.clone();
-      url.pathname = '/login';
+      url.pathname = `${localePrefix}/login`;
       url.searchParams.set('callbackUrl', req.nextUrl.pathname);
       return NextResponse.redirect(url);
     }
 
     const role = token.role as string;
     
-    // 1. Students and parents access restricted areas? No, they have their own dashboards
-    // We handle their restrictions inside the dashboard/page.tsx or specific route segments.
-    // They are allowed to access /dashboard base route.
-    
-    // 2. Staff cannot access finance or settings
+    // Only non-super_admin staff cannot access finance or settings
     if (role === 'staff' && (req.nextUrl.pathname.includes('/finance') || req.nextUrl.pathname.includes('/settings'))) {
       const url = req.nextUrl.clone();
-      url.pathname = '/dashboard'; 
+      url.pathname = `${localePrefix}/dashboard`; 
       return NextResponse.redirect(url);
     }
   }
@@ -65,3 +69,4 @@ export default async function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/((?!_next|_vercel|.*\\..*).*)']
 };
+

@@ -77,6 +77,8 @@ export default function StudentDetailPage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
+  const tToast = useTranslations("Toasts");
+
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -192,10 +194,10 @@ export default function StudentDetailPage({
         setShowEditModal(false);
         fetchProfile();
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tToast("genericError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -232,13 +234,13 @@ export default function StudentDetailPage({
     try {
       const res = await fetch(`/api/students/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Silindi");
+        toast.success(tToast("studentDeleted"));
         router.push("/dashboard/students");
       } else {
-        toast.error("Silinmədi");
+        toast.error(tToast("deleteError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -247,7 +249,7 @@ export default function StudentDetailPage({
     try {
       const res = await fetch(`/api/finance/${paymentId}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Ödəniş silindi");
+        toast.success(tToast("paymentDeleted"));
         fetchProfile();
       } else {
         toast.error(c("errorDelete"));
@@ -263,7 +265,7 @@ export default function StudentDetailPage({
       const list = await res.json();
       setAvailableParents(list);
     } catch {
-      toast.error("Valideynləri yükləmək mümkün olmadı");
+      toast.error(tToast("parentsLoadError"));
     }
   };
 
@@ -278,7 +280,7 @@ export default function StudentDetailPage({
         body: JSON.stringify({ parent_id: selectedParentId })
       });
       if (res.ok) {
-        toast.success("Valideyn uğurla əlaqələndirildi");
+        toast.success(tToast("parentLinked"));
         setShowParentModal(false);
         fetchProfile();
       } else {
@@ -286,7 +288,7 @@ export default function StudentDetailPage({
         toast.error(`Xəta baş verdi: ${errorData.details || errorData.error || "Unknown Error"}`);
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     } finally {
       setLinkingParent(false);
     }
@@ -299,13 +301,13 @@ export default function StudentDetailPage({
         method: "DELETE"
       });
       if (res.ok) {
-        toast.success("Valideyn silindi");
+        toast.success(tToast("parentDeleted"));
         fetchProfile();
       } else {
-        toast.error("Silinmədi");
+        toast.error(tToast("deleteError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -315,7 +317,7 @@ export default function StudentDetailPage({
       const list = await res.json();
       setAvailableGroups(list);
     } catch {
-      toast.error("Qrupları yükləmək mümkün olmadı");
+      toast.error(tToast("groupsLoadError"));
     }
   };
 
@@ -330,7 +332,7 @@ export default function StudentDetailPage({
         body: JSON.stringify({ group_id: selectedGroupId })
       });
       if (res.ok) {
-        toast.success("Qrup uğurla əlaqələndirildi");
+        toast.success(tToast("groupLinked"));
         setShowGroupModal(false);
         fetchProfile();
       } else {
@@ -338,7 +340,7 @@ export default function StudentDetailPage({
         toast.error(`Xəta baş verdi: ${errorData.details || errorData.error || "Unknown Error"}`);
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     } finally {
       setLinkingGroup(false);
     }
@@ -351,13 +353,13 @@ export default function StudentDetailPage({
         method: "DELETE"
       });
       if (res.ok) {
-        toast.success("Qrupdan çıxarıldı");
+        toast.success(tToast("studentRemovedFromGroup"));
         fetchProfile();
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tToast("genericError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -956,10 +958,10 @@ export default function StudentDetailPage({
                     setEditProgramId(null);
                     toast.success(editProgramId ? "Uğurla yeniləndi!" : "Yeni proqram uğurla əlavə edildi!");
                   } else {
-                    toast.error("Xəta baş verdi");
+                    toast.error(tToast("genericError"));
                   }
                 } catch(e) {
-                  toast.error("Xəta baş verdi");
+                  toast.error(tToast("genericError"));
                 }
               }} className={styles.form}>
                 <div className={styles.inputGroup}>

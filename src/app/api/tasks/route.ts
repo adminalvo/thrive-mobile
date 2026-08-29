@@ -42,26 +42,26 @@ export async function GET() {
       let assigneeIds: string[] = [];
       if (task.assignee) {
         try {
-          if (task.assignee.startsWith("[") && task.assignee.endsWith("]")) {
-            assigneeIds = JSON.parse(task.assignee);
-          } else if (task.assignee.includes(",")) {
-            assigneeIds = task.assignee.split(",").map((s: string) => s.trim()).filter(Boolean);
-          } else {
-            assigneeIds = [task.assignee.trim()];
+          const raw = String(task.assignee).trim();
+          if (raw.startsWith("[") && raw.endsWith("]")) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              assigneeIds = parsed.map((item: any) => typeof item === 'string' ? item : item?.id).filter(Boolean);
+            }
+          } else if (raw.includes(",")) {
+            assigneeIds = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
+          } else if (raw) {
+            assigneeIds = [raw];
           }
         } catch {
           assigneeIds = [task.assignee];
         }
       }
 
-      const assignees = assigneeIds.map(id => {
-        const found = userMap.get(id);
-        if (found) return found;
-        if (!id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-          return { id, name: id, email: "" };
-        }
-        return { id, name: "Təyin edilib", email: "" };
-      });
+      // ONLY match real existing users from userMap
+      const assignees = assigneeIds
+        .map(id => userMap.get(id))
+        .filter(Boolean);
 
       return {
         ...task,

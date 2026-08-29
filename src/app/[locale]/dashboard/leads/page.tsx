@@ -33,6 +33,8 @@ const COLUMNS = [
 ];
 
 export default function LeadsPage() {
+  const tToast = useTranslations("Toasts");
+
   const t = useTranslations("Leads");
   const c = useTranslations("Common");
   
@@ -47,6 +49,7 @@ export default function LeadsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [viewingLead, setViewingLead] = useState<Lead | null>(null);
+  const [mobileActiveColumn, setMobileActiveColumn] = useState<string>("NEW");
 
   // Form State with all 7 fields
   const initialForm = {
@@ -122,7 +125,7 @@ export default function LeadsPage() {
       if (!res.ok) throw new Error();
       toast.success(t("toasts.statusUpdated") || "Status yeniləndi");
     } catch (error) {
-      toast.error("Statusu dəyişmək mümkün olmadı");
+      toast.error(tToast("statusUpdateError"));
       fetchLeads();
     }
   };
@@ -198,7 +201,7 @@ export default function LeadsPage() {
         setFormData(initialForm);
         toast.success(t("toasts.createdSuccess") || "Lead uğurla əlavə edildi!");
       } else {
-        toast.error("Lead əlavə edilərkən xəta baş verdi");
+        toast.error(tToast("leadError"));
       }
     } catch (error) {
       toast.error(c("errors.unexpected") || "Gözlənilməz xəta baş verdi");
@@ -268,13 +271,34 @@ export default function LeadsPage() {
         </div>
       </div>
 
+      {/* Mobile Status Selector */}
+      <div className={styles.mobileColumnSelector}>
+        {COLUMNS.map(col => {
+          const count = leads.filter(l => l.status === col.id && matchesSearch(l)).length;
+          const isActive = mobileActiveColumn === col.id;
+          return (
+            <button
+              key={col.id}
+              type="button"
+              className={`${styles.mobileColBtn} ${isActive ? styles.mobileColBtnActive : ""}`}
+              onClick={() => setMobileActiveColumn(col.id)}
+              style={{ borderBottomColor: isActive ? col.color : "transparent" }}
+            >
+              <span className={styles.mobileColTitle}>{t(`statuses.${col.id}`)}</span>
+              <span className={styles.mobileColCount} style={{ backgroundColor: `${col.color}25`, color: col.color }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className={styles.kanbanBoard}>
         {COLUMNS.map(col => {
           const colLeads = leads.filter(l => l.status === col.id && matchesSearch(l));
+          const isMobileActive = mobileActiveColumn === col.id;
           return (
             <div 
               key={col.id} 
-              className={styles.column}
+              className={`${styles.column} ${isMobileActive ? styles.columnMobileActive : ""}`}
               onDrop={(e) => handleDrop(e, col.id)}
               onDragOver={handleDragOver}
             >

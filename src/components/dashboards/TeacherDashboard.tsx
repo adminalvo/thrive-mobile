@@ -7,6 +7,9 @@ import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 
 export default function TeacherDashboard() {
+  const tToast = useTranslations("Toasts");
+  const tPlh = useTranslations("Placeholders");
+
   const t = useTranslations("Dashboard");
   const c = useTranslations("Common");
   
@@ -68,11 +71,11 @@ export default function TeacherDashboard() {
         body: JSON.stringify(assignmentForm)
       });
       if (res.ok) {
-        alert("Tapşırıq yaradıldı");
+        alert(tToast("assignmentCreated"));
         setCreateAssignmentModal(false);
         setAssignmentForm({ title: "", description: "", groupId: "", dueDate: new Date().toISOString().split("T")[0], maxScore: 100 });
       } else {
-        alert("Xəta baş verdi");
+        alert(tToast("genericError"));
       }
     } catch (e) {
       console.error(e);
@@ -92,11 +95,11 @@ export default function TeacherDashboard() {
         })
       });
       if (res.ok) {
-        alert("Qiymət qeyd edildi");
+        alert(tToast("gradeSaved"));
         setGradingForm(null);
         fetchSubmissions(); // refresh
       } else {
-        alert("Xəta baş verdi");
+        alert(tToast("genericError"));
       }
     } catch (e) {
       console.error(e);
@@ -151,7 +154,7 @@ export default function TeacherDashboard() {
         alert(c("success") || t("attendanceRecorded"));
         setAttendanceModal(null);
       } else {
-        alert("Xəta baş verdi. Zəhmət olmasa bir daha yoxlayın.");
+        alert(tToast("genericError"));
       }
     } catch (err) {
       console.error(err);
@@ -175,7 +178,7 @@ export default function TeacherDashboard() {
         alert(t("resultRecorded"));
         setExamModal(null);
       } else {
-        alert("Xəta baş verdi");
+        alert(tToast("genericError"));
       }
     } catch (err) {
       console.error(err);
@@ -195,7 +198,7 @@ export default function TeacherDashboard() {
         setCreateExamModal(false);
         setNewExamForm({ title: "", groupId: "", date: new Date().toISOString().split("T")[0], maxScore: 100 });
       } else {
-        alert("Xəta baş verdi");
+        alert(tToast("genericError"));
       }
     } catch (err) {
       console.error(err);
@@ -397,7 +400,7 @@ export default function TeacherDashboard() {
             <textarea 
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
-              placeholder="Qeydinizin məzmunu..."
+              placeholder={tPlh("noteContent")}
               style={{ width: "100%", height: "100px", marginBottom: "1rem", background: "transparent", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", padding: "0.5rem", borderRadius: "8px" }}
             />
             <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: "1.5rem", cursor: "pointer" }}>
@@ -492,7 +495,7 @@ export default function TeacherDashboard() {
                     type="number" 
                     value={examForm.score}
                     onChange={(e) => setExamForm({...examForm, score: e.target.value})}
-                    placeholder="Məs: 85"
+                    placeholder={tPlh("scoreExample")}
                     style={{ width: "100%", padding: "0.8rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", borderRadius: "8px" }}
                   />
                 </div>
@@ -502,7 +505,7 @@ export default function TeacherDashboard() {
                   <textarea 
                     value={examForm.feedback}
                     onChange={(e) => setExamForm({...examForm, feedback: e.target.value})}
-                    placeholder="Tələbə haqqında rəyiniz..."
+                    placeholder={tPlh("studentFeedback")}
                     style={{ width: "100%", padding: "0.8rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", borderRadius: "8px", minHeight: "80px" }}
                   />
                 </div>
@@ -537,7 +540,7 @@ export default function TeacherDashboard() {
                 type="text" 
                 value={newExamForm.title}
                 onChange={(e) => setNewExamForm({...newExamForm, title: e.target.value})}
-                placeholder="Məs: Fevral Sınaq İmtahanı"
+                placeholder={tPlh("examTitle")}
                 style={{ width: "100%", padding: "0.8rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", borderRadius: "8px" }}
               />
             </div>
@@ -602,7 +605,7 @@ export default function TeacherDashboard() {
                 type="text" 
                 value={assignmentForm.title}
                 onChange={(e) => setAssignmentForm({...assignmentForm, title: e.target.value})}
-                placeholder="Məs: Riyaziyyat Fəsil 2 Testi"
+                placeholder={tPlh("quizTitle")}
                 style={{ width: "100%", padding: "0.8rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", borderRadius: "8px" }}
               />
             </div>
@@ -612,7 +615,7 @@ export default function TeacherDashboard() {
               <textarea 
                 value={assignmentForm.description}
                 onChange={(e) => setAssignmentForm({...assignmentForm, description: e.target.value})}
-                placeholder="Tapşırıq haqqında ətraflı..."
+                placeholder={tPlh("taskDescription")}
                 style={{ width: "100%", padding: "0.8rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", borderRadius: "8px", minHeight: "80px" }}
               />
             </div>
@@ -699,7 +702,7 @@ export default function TeacherDashboard() {
                           <label style={{ fontSize: "0.9rem", color: "#ccc" }}>Bal (Max: {sub.max_score}):</label>
                           <input type="number" value={gradingForm.score} onChange={e => setGradingForm({...gradingForm, score: e.target.value})} style={{ width: "80px", padding: "0.5rem", borderRadius: "4px", border: "1px solid rgba(var(--glass-color), 0.1)", background: "rgba(var(--glass-color), 0.1)", color: "var(--text-primary)" }} />
                         </div>
-                        <input type="text" placeholder="Rəy (istəyə bağlı)..." value={gradingForm.feedback} onChange={e => setGradingForm({...gradingForm, feedback: e.target.value})} style={{ width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid rgba(var(--glass-color), 0.1)", background: "rgba(var(--glass-color), 0.1)", color: "var(--text-primary)" }} />
+                        <input type="text" placeholder={tPlh("optionalFeedback")} value={gradingForm.feedback} onChange={e => setGradingForm({...gradingForm, feedback: e.target.value})} style={{ width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid rgba(var(--glass-color), 0.1)", background: "rgba(var(--glass-color), 0.1)", color: "var(--text-primary)" }} />
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem", marginTop: "0.5rem" }}>
                           <button onClick={() => setGradingForm(null)} style={{ background: "transparent", color: "var(--text-primary)", border: "none", cursor: "pointer", fontSize: "0.85rem" }}>Ləğv et</button>
                           <button onClick={gradeSubmission} style={{ background: "#10b981", color: "var(--text-primary)", border: "none", padding: "0.4rem 1rem", borderRadius: "4px", cursor: "pointer", fontSize: "0.85rem" }}>Qiymətləndir</button>

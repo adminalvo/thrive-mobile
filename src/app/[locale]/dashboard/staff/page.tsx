@@ -18,6 +18,8 @@ interface StaffMember {
 }
 
 export default function StaffPage() {
+  const tToast = useTranslations("Toasts");
+
   const { data: session } = useSession();
   const t = useTranslations("Staff");
   
@@ -126,7 +128,7 @@ export default function StaffPage() {
         toast.error(data.error || "Xəta baş verdi");
       }
     } catch (e) {
-      toast.error("Şəbəkə xətası");
+      toast.error(tToast("networkError"));
     }
   };
 
@@ -148,7 +150,7 @@ export default function StaffPage() {
         setPermissions(fullPerms);
       }
     } catch (e) {
-      toast.error("İcazələri yükləmək mümkün olmadı");
+      toast.error(tToast("permissionsLoadError"));
     }
   };
 
@@ -175,10 +177,10 @@ export default function StaffPage() {
         toast.success(t("save"));
         setShowPermModal(false);
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tToast("genericError"));
       }
     } catch (e) {
-      toast.error("Şəbəkə xətası");
+      toast.error(tToast("networkError"));
     } finally {
       setSavingPerms(false);
     }
@@ -204,7 +206,7 @@ export default function StaffPage() {
         toast.error(data.error || "Xəta baş verdi");
       }
     } catch (e) {
-      toast.error("Şəbəkə xətası");
+      toast.error(tToast("networkError"));
     } finally {
       setAddingStaff(false);
     }
@@ -215,14 +217,14 @@ export default function StaffPage() {
     try {
       const res = await fetch(`/api/staff/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Uğurla silindi");
+        toast.success(tToast("deleteSuccess"));
         setStaff(prev => prev.filter(s => s.id !== id));
       } else {
         const data = await res.json();
         toast.error(data.error || "Silinmə xətası");
       }
     } catch (e) {
-      toast.error("Şəbəkə xətası");
+      toast.error(tToast("networkError"));
     }
   };
 

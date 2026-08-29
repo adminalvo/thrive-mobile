@@ -16,6 +16,11 @@ export async function checkApiPermission(
   if (userRole === "super_admin") {
     return { authorized: true, error: null, session };
   }
+
+  // Finance is strictly reserved for super_admin
+  if (moduleName === "finance") {
+    return { authorized: false, error: NextResponse.json({ error: "Forbidden: Finance module is restricted to Super Admin only." }, { status: 403 }), session };
+  }
   
   const perms = (session.user as any).permissions?.[moduleName];
   if (perms) {

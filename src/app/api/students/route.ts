@@ -1,11 +1,17 @@
-export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import bcrypt from "bcrypt";
 import { logAction } from "@/lib/logger";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     const [students, studentProgramsList, groupStudentsList] = await Promise.all([
       sql`
         SELECT 
@@ -77,6 +83,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     const data = await req.json();
     const { 
       name, email, phone, programs, password,

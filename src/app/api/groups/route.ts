@@ -1,9 +1,15 @@
-export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/authOptions";
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     const groups = await sql`
       SELECT g.id, g.name, g.room, g.created_at, p.name as program, 
              COALESCE(up.first_name || ' ' || up.last_name, up.email) as teacher
@@ -31,6 +37,11 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { name, program_id, teacher_id, room } = body;
 

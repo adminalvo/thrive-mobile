@@ -7,7 +7,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Activity, Clock } from "lucide-react";
 
 export default function LogsPage() {
-  const t = useTranslations("Common");
+  const tLogs = useTranslations("Logs");
   const locale = useLocale();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,8 +32,8 @@ export default function LogsPage() {
         className={styles.pageHeader}
       >
         <div>
-          <h1 className={styles.pageTitle}>Fəaliyyət Tarixçəsi (Logs)</h1>
-          <p className={styles.pageSubtitle}>Sistemdə baş verən bütün əməliyyatların qeydləri</p>
+          <h1 className={styles.pageTitle}>{tLogs("title")}</h1>
+          <p className={styles.pageSubtitle}>{tLogs("subtitle")}</p>
         </div>
       </motion.div>
 
@@ -42,16 +42,16 @@ export default function LogsPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Vaxt</th>
-                <th>İstifadəçi</th>
-                <th>Əməliyyat</th>
-                <th>Detallar</th>
+                <th>{tLogs("time")}</th>
+                <th>{tLogs("user")}</th>
+                <th>{tLogs("action")}</th>
+                <th>{tLogs("details")}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", padding: "2rem" }}>Yüklənir...</td>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "2rem" }}>{tLogs("loading")}</td>
                 </tr>
               ) : logs.length > 0 ? (
                 logs.map(log => (
@@ -62,7 +62,7 @@ export default function LogsPage() {
                         {new Date(log.created_at).toLocaleString(locale)}
                       </div>
                     </td>
-                    <td>{log.user_email || "Sistem"}</td>
+                    <td>{log.user_email || "System"}</td>
                     <td>
                       <span style={{ 
                         background: "rgba(43, 217, 185, 0.1)", 
@@ -81,7 +81,7 @@ export default function LogsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", padding: "2rem" }}>Qeyd tapılmadı.</td>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "2rem" }}>{tLogs("empty")}</td>
                 </tr>
               )}
             </tbody>

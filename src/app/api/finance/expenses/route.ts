@@ -1,9 +1,13 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
+import { checkApiPermission } from "@/lib/auth-utils";
 
 export async function GET() {
   try {
+    const authCheck = await checkApiPermission('finance', 'read');
+    if (!authCheck.authorized) return authCheck.error;
+
     const expenses = await sql`
       SELECT 
         id, 
@@ -25,6 +29,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const authCheck = await checkApiPermission('finance', 'create');
+    if (!authCheck.authorized) return authCheck.error;
+
     const { category, amount, date, description } = await req.json();
 
     if (!category || !amount || !date) {

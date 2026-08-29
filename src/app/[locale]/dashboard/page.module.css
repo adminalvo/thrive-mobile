@@ -245,3 +245,21 @@
     gap: 1rem;
   }
 }
+
+@media (max-width: 600px) {
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .statCard {
+    padding: 1rem;
+  }
+  .statValue {
+    font-size: 1.4rem;
+  }
+  .statIcon {
+    width: 36px;
+    height: 36px;
+  }
+}
+

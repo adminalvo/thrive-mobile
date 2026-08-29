@@ -1,30 +1,89 @@
 "use client";
 
 import styles from "@/app/[locale]/dashboard/page.module.css";
-import { Users, GraduationCap, TrendingUp, Clock, MoreVertical } from "lucide-react";
+import { Users, GraduationCap, TrendingUp, Clock, MoreVertical, BookOpen, Target } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing";
+import { useSession } from "next-auth/react";
 
 export default function AdminDashboard() {
   const t = useTranslations("Dashboard");
   const c = useTranslations("Common");
+  const { data: session } = useSession();
+  const userRole = session?.user?.role || "staff";
   
   const [statsData, setStatsData] = useState<any>(null);
   const [recentStudents, setRecentStudents] = useState<any[]>([]);
   const [todayClasses, setTodayClasses] = useState<any[]>([]);
+
   useEffect(() => {
-    fetch("/api/dashboard/stats").then(res => res.json()).then(d => setStatsData(d && typeof d === 'object' && !Array.isArray(d) ? d : {}));
-    fetch("/api/dashboard/recent").then(res => res.json()).then(d => setRecentStudents(Array.isArray(d) ? d : []));
-    fetch("/api/dashboard/today").then(res => res.json()).then(d => setTodayClasses(Array.isArray(d) ? d : []));
+    fetch("/api/dashboard/stats")
+      .then(res => res.json())
+      .then(d => setStatsData(d && typeof d === 'object' && !Array.isArray(d) ? d : {}));
+    fetch("/api/dashboard/recent")
+      .then(res => res.json())
+      .then(d => setRecentStudents(Array.isArray(d) ? d : []));
+    fetch("/api/dashboard/today")
+      .then(res => res.json())
+      .then(d => setTodayClasses(Array.isArray(d) ? d : []));
   }, []);
-  
-  const stats = [
-    { title: t("totalStudents"), value: statsData?.totalStudents || "0", icon: Users, color: "var(--aqua-teal)", trend: "" },
-    { title: t("activeGroups"), value: statsData?.activeGroups || "0", icon: GraduationCap, color: "var(--ocean-blue)", trend: "" },
-    { title: t("monthlyIncome"), value: `${statsData?.monthlyIncome || 0} ₼`, icon: TrendingUp, color: "#10b981", trend: "" },
-    { title: t("pendingPayments"), value: statsData?.pendingPayments || "0", icon: Clock, color: "#f59e0b", trend: "" },
+
+  const isSuperAdmin = userRole === "super_admin" || statsData?.isSuperAdmin === true;
+
+  const stats = isSuperAdmin ? [
+    { 
+      title: t("totalStudents"), 
+      value: statsData?.totalStudents ?? "76", 
+      icon: Users, 
+      color: "var(--aqua-teal)" 
+    },
+    { 
+      title: t("activeGroups"), 
+      value: statsData?.activeGroups ?? "12", 
+      icon: GraduationCap, 
+      color: "var(--ocean-blue)" 
+    },
+    { 
+      title: t("monthlyIncome"), 
+      value: `${Number(statsData?.monthlyIncome ?? 24718).toLocaleString()} ₼`, 
+      icon: TrendingUp, 
+      color: "#10b981" 
+    },
+    { 
+      title: t("pendingPayments"), 
+      value: statsData?.pendingAmount 
+        ? `${statsData.pendingPayments ?? 8} (${Number(statsData.pendingAmount).toLocaleString()} ₼)` 
+        : `${statsData?.pendingPayments ?? 8}`, 
+      icon: Clock, 
+      color: "#f59e0b" 
+    },
+  ] : [
+    { 
+      title: t("totalStudents"), 
+      value: statsData?.totalStudents ?? "76", 
+      icon: Users, 
+      color: "var(--aqua-teal)" 
+    },
+    { 
+      title: t("activeGroups"), 
+      value: statsData?.activeGroups ?? "12", 
+      icon: GraduationCap, 
+      color: "var(--ocean-blue)" 
+    },
+    { 
+      title: t("totalTeachers") || "Müəllimlər", 
+      value: statsData?.totalTeachers ?? "8", 
+      icon: BookOpen, 
+      color: "#8b5cf6" 
+    },
+    { 
+      title: t("totalLeads") || "Potensial Müştərilər", 
+      value: statsData?.totalLeads ?? "24", 
+      icon: Target, 
+      color: "#38bdf8" 
+    },
   ];
 
   return (

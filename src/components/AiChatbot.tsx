@@ -2,8 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Bot, User, Loader2, Mic, Paperclip, Image as ImageIcon, Sparkles } from "lucide-react";
-import { usePathname } from "@/i18n/routing";
+import { 
+  X, 
+  Send, 
+  User, 
+  Loader2, 
+  Paperclip, 
+  Maximize2,
+  Trash2
+} from "lucide-react";
+import { usePathname, useRouter } from "@/i18n/routing";
 
 export interface MessageContentText {
   type: "text";
@@ -21,106 +29,79 @@ export type MessageContentPart = MessageContentText | MessageContentImage;
 export type MessageContent = string | MessageContentPart[];
 
 export interface ChatMessage {
+  id?: string;
   role: "assistant" | "user" | "system";
   content: MessageContent;
 }
 
 export default function AiChatbot() {
   const pathname = usePathname();
+  const router = useRouter();
+
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: "Hello! I am ThrAIve, your CRM assistant. How can I help you today? Please let me know which language you prefer to continue in (English, Azerbaijani, or Russian)." }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Restore messages and active session from localStorage
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isOpen, selectedImage]);
-
-  // Clean up speech recognition on unmount
-  useEffect(() => {
-    return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {
-          // ignore
+    try {
+      const savedSession = localStorage.getItem("thrive_active_ai_session");
+      if (savedSession) {
+        setSessionId(savedSession);
+        fetch(`/api/ai/sessions/${savedSession}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+              setMessages(data.messages);
+            } else {
+              setMessages([
+                { 
+                  role: "assistant", 
+                  content: "Hello! I am ThrAIve — powered by Gamma A5 (v1.0.0) from HacTag Development. How can I help you today?" 
+                }
+              ]);
+            }
+          })
+          .catch(() => {});
+      } else {
+        const savedMessages = localStorage.getItem("thrive_floating_ai_msgs");
+        if (savedMessages) {
+          setMessages(JSON.parse(savedMessages));
+        } else {
+          setMessages([
+            { 
+              role: "assistant", 
+              content: "Hello! I am ThrAIve — powered by Gamma A5 (v1.0.0) from HacTag Development. How can I help you today?" 
+            }
+          ]);
         }
       }
-    };
+    } catch {
+      // ignore
+    }
   }, []);
 
-  // Toggle speech recognition
-  const toggleRecording = () => {
-    if (typeof window === "undefined") return;
-
-    if (isRecording) {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {
-          // ignore
-        }
+  // Save messages to localStorage when updated
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem("thrive_floating_ai_msgs", JSON.stringify(messages));
+      } catch {
+        // ignore
       }
-      setIsRecording(false);
-      return;
     }
-
-    const SpeechRecognitionClass =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognitionClass) {
-      alert("Brauzeriniz səs tanıma (Speech Recognition) funksiyasını dəstəkləmir.");
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognitionClass();
-      recognition.lang = "az-AZ";
-      recognition.interimResults = true;
-      recognition.continuous = true;
-
-      recognition.onstart = () => {
-        setIsRecording(true);
-      };
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        if (transcript.trim()) {
-          setInput(prev => (prev ? `${prev} ${transcript}` : transcript));
-        }
-      };
-
-      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error("Speech recognition error:", event.error);
-        setIsRecording(false);
-      };
-
-      recognition.onend = () => {
-        setIsRecording(false);
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-    } catch (err) {
-      console.error("Failed to start speech recognition:", err);
-      setIsRecording(false);
-    }
-  };
+    scrollToBottom();
+  }, [messages, isOpen, selectedImage]);
 
   // Image Selection Handler
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,7 +109,7 @@ export default function AiChatbot() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Zəhmət olmasa şəkil faylı seçin.");
+      alert("Please upload an image file.");
       return;
     }
 
@@ -144,24 +125,25 @@ export default function AiChatbot() {
     setSelectedImage(null);
   };
 
+  const clearChat = () => {
+    const defaultMsg: ChatMessage = {
+      role: "assistant",
+      content: "New conversation started. How can I help you today?"
+    };
+    setMessages([defaultMsg]);
+    localStorage.removeItem("thrive_active_ai_session");
+    localStorage.setItem("thrive_floating_ai_msgs", JSON.stringify([defaultMsg]));
+    setSessionId(null);
+  };
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!input.trim() && !selectedImage) || loading) return;
 
-    // Stop recording if active
-    if (isRecording && recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {
-        // ignore
-      }
-      setIsRecording(false);
-    }
-
     let userContent: MessageContent;
     if (selectedImage) {
       userContent = [
-        { type: "text", text: input.trim() || "Şəkil əlavə edildi" },
+        { type: "text", text: input.trim() || "Image attached" },
         { type: "image_url", image_url: { url: selectedImage } }
       ];
     } else {
@@ -169,7 +151,8 @@ export default function AiChatbot() {
     }
 
     const userMessage: ChatMessage = { role: "user", content: userContent };
-    setMessages(prev => [...prev, userMessage]);
+    const updated = [...messages, userMessage];
+    setMessages(updated);
     setInput("");
     setSelectedImage(null);
     setLoading(true);
@@ -178,17 +161,24 @@ export default function AiChatbot() {
       const res = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMessage] })
+        body: JSON.stringify({ 
+          messages: updated,
+          sessionId: sessionId
+        })
       });
 
       if (res.ok) {
         const data = await res.json();
         setMessages(prev => [...prev, { role: "assistant", content: data.content }]);
+        if (data.sessionId) {
+          setSessionId(data.sessionId);
+          localStorage.setItem("thrive_active_ai_session", data.sessionId);
+        }
       } else {
-        setMessages(prev => [...prev, { role: "assistant", content: "Bağışlayın, xəta baş verdi. Zəhmət olmasa bir az sonra təkrar cəhd edin." }]);
+        setMessages(prev => [...prev, { role: "assistant", content: "⚠️ An error occurred. Please try again." }]);
       }
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Şəbəkə xətası baş verdi." }]);
+      setMessages(prev => [...prev, { role: "assistant", content: "⚠️ Network error occurred." }]);
     } finally {
       setLoading(false);
     }
@@ -201,63 +191,57 @@ export default function AiChatbot() {
 
   return (
     <>
+      {/* Floating launcher button with custom AI icon */}
       <button 
         onClick={() => setIsOpen(true)}
-        aria-label="Open AI Chatbot"
+        aria-label="Open AI Assistant"
         style={{
           position: "fixed",
           bottom: "2rem",
           right: "2rem",
-          width: "60px",
-          height: "60px",
-          borderRadius: "30px",
-          background: "linear-gradient(135deg, var(--aqua-teal), #2b6cb0)",
-          color: "white",
-          border: "none",
-          boxShadow: "0 10px 25px rgba(76, 162, 181, 0.4), 0 0 15px rgba(76, 162, 181, 0.6)",
+          width: "58px",
+          height: "58px",
+          borderRadius: "18px",
+          background: "#020c24",
+          border: "2px solid rgba(255, 255, 255, 0.2)",
+          boxShadow: "0 10px 30px rgba(2, 132, 199, 0.45), 0 0 20px rgba(2, 132, 199, 0.35)",
           cursor: "pointer",
           display: isOpen ? "none" : "flex",
           alignItems: "center",
           justifyContent: "center",
           zIndex: 9999,
+          padding: 0,
+          overflow: "hidden",
           transition: "transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
         }}
-        onMouseOver={e => e.currentTarget.style.transform = "scale(1.15) rotate(5deg)"}
-        onMouseOut={e => e.currentTarget.style.transform = "scale(1) rotate(0deg)"}
+        onMouseOver={e => e.currentTarget.style.transform = "scale(1.1)"}
+        onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
       >
-        <motion.div
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 10, -10, 0] 
-          }}
-          transition={{ 
-            duration: 2.5, 
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-        >
-          <Sparkles size={28} />
-        </motion.div>
+        <img 
+          src="/ai-icon.png" 
+          alt="AI Assistant" 
+          style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+        />
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.8, rotateX: 15 }}
-            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-            exit={{ opacity: 0, y: 30, scale: 0.8, rotateX: 15 }}
-            transition={{ type: "spring", stiffness: 280, damping: 22 }}
+            initial={{ opacity: 0, y: 30, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.85 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
             style={{
               position: "fixed",
               bottom: "2rem",
               right: "2rem",
-              width: "360px",
-              height: "520px",
+              width: "380px",
+              height: "540px",
               background: "rgba(15, 23, 42, 0.95)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(var(--glass-color), 0.12)",
-              borderRadius: "16px",
-              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.55)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              borderRadius: "20px",
+              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.65)",
               display: "flex",
               flexDirection: "column",
               zIndex: 10000,
@@ -267,33 +251,76 @@ export default function AiChatbot() {
             {/* Header */}
             <div style={{
               padding: "0.85rem 1rem",
-              background: "rgba(76, 162, 181, 0.12)",
-              borderBottom: "1px solid rgba(var(--glass-color), 0.08)",
+              background: "rgba(2, 132, 199, 0.12)",
+              borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center"
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <Bot size={20} color="var(--aqua-teal)" />
-                <span style={{ fontWeight: 600, color: "white", fontSize: "0.95rem" }}>ThrAIve Assistant</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div style={{
+                  width: "30px", height: "30px", borderRadius: "8px",
+                  overflow: "hidden", border: "1px solid rgba(255, 255, 255, 0.15)",
+                  background: "#020c24"
+                }}>
+                  <img src="/ai-icon.png" alt="AI Icon" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, color: "white", fontSize: "0.92rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    ThrAIve
+                    <span style={{ fontSize: "0.65rem", padding: "0.1rem 0.4rem", borderRadius: "10px", background: "rgba(14, 165, 233, 0.2)", color: "#38bdf8", border: "1px solid rgba(14, 165, 233, 0.3)" }}>
+                      Gamma A5
+                    </span>
+                  </div>
+                </div>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                aria-label="Close Chatbot"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "var(--text-secondary)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "4px",
-                  borderRadius: "6px"
-                }}
-              >
-                <X size={18} />
-              </button>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                <button
+                  onClick={clearChat}
+                  title="Clear conversation"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                    padding: "4px",
+                    borderRadius: "6px"
+                  }}
+                >
+                  <Trash2 size={15} />
+                </button>
+
+                <button
+                  onClick={() => router.push("/dashboard/ai")}
+                  title="Open full page"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                    padding: "4px",
+                    borderRadius: "6px"
+                  }}
+                >
+                  <Maximize2 size={15} />
+                </button>
+
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Close Assistant"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                    padding: "4px",
+                    borderRadius: "6px"
+                  }}
+                >
+                  <X size={17} />
+                </button>
+              </div>
             </div>
 
             {/* Messages Container */}
@@ -315,50 +342,48 @@ export default function AiChatbot() {
                   <div style={{
                     width: "28px",
                     height: "28px",
-                    borderRadius: "14px",
-                    background: m.role === "user" ? "rgba(var(--glass-color), 0.15)" : "var(--aqua-teal)",
+                    borderRadius: "8px",
+                    background: m.role === "user" ? "linear-gradient(135deg, #6366f1, #a855f7)" : "#020c24",
+                    border: m.role === "user" ? "none" : "1px solid rgba(255, 255, 255, 0.15)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    flexShrink: 0
+                    flexShrink: 0,
+                    overflow: "hidden"
                   }}>
-                    {m.role === "user" ? <User size={14} color="white" /> : <Bot size={14} color="white" />}
+                    {m.role === "user" ? (
+                      <User size={14} color="white" />
+                    ) : (
+                      <img src="/ai-icon.png" alt="Bot" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    )}
                   </div>
                   <div style={{
-                    background: m.role === "user" ? "rgba(76, 162, 181, 0.25)" : "rgba(var(--glass-color), 0.08)",
-                    border: m.role === "user" ? "1px solid rgba(76, 162, 181, 0.35)" : "1px solid rgba(var(--glass-color), 0.08)",
-                    padding: "0.75rem 0.95rem",
+                    background: m.role === "user" ? "linear-gradient(135deg, #0284c7, #2563eb)" : "rgba(30, 41, 59, 0.7)",
+                    border: m.role === "user" ? "none" : "1px solid rgba(255, 255, 255, 0.08)",
+                    padding: "0.65rem 0.85rem",
                     borderRadius: "14px",
                     borderBottomRightRadius: m.role === "user" ? "2px" : "14px",
                     borderBottomLeftRadius: m.role === "assistant" ? "2px" : "14px",
-                    color: "var(--text-primary)",
-                    fontSize: "0.88rem",
+                    color: "white",
+                    fontSize: "0.85rem",
                     maxWidth: "80%",
-                    lineHeight: "1.4",
-                    wordBreak: "break-word"
+                    lineHeight: "1.45",
+                    wordBreak: "break-word",
+                    whiteSpace: "pre-wrap"
                   }}>
                     {typeof m.content === "string" ? (
                       m.content
                     ) : Array.isArray(m.content) ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <div>
                         {m.content.map((part, pIdx) => {
-                          if (part.type === "text" && part.text) {
-                            return <p key={pIdx} style={{ margin: 0 }}>{part.text}</p>;
-                          }
-                          if (part.type === "image_url" && part.image_url?.url) {
+                          if (part.type === "text") return <div key={pIdx}>{part.text}</div>;
+                          if (part.type === "image_url") {
                             return (
                               <img
                                 key={pIdx}
                                 src={part.image_url.url}
-                                alt="Attached content"
-                                style={{
-                                  maxWidth: "100%",
-                                  maxHeight: "160px",
-                                  borderRadius: "8px",
-                                  objectFit: "cover",
-                                  display: "block",
-                                  border: "1px solid rgba(var(--glass-color), 0.15)"
-                                }}
+                                alt="Attachment"
+                                style={{ maxWidth: "100%", maxHeight: "140px", borderRadius: "6px", marginTop: "0.35rem" }}
                               />
                             );
                           }
@@ -369,85 +394,64 @@ export default function AiChatbot() {
                   </div>
                 </div>
               ))}
+
               {loading && (
                 <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                   <div style={{
-                    width: "28px", height: "28px", borderRadius: "14px",
-                    background: "var(--aqua-teal)", display: "flex", alignItems: "center", justifyContent: "center"
+                    width: "28px", height: "28px", borderRadius: "8px",
+                    overflow: "hidden", border: "1px solid rgba(255, 255, 255, 0.15)",
+                    background: "#020c24"
                   }}>
-                    <Bot size={14} color="white" />
+                    <img src="/ai-icon.png" alt="Bot" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
-                  <div style={{ padding: "0.5rem", color: "var(--aqua-teal)" }}>
-                    <Loader2 size={16} className="animate-spin" style={{ animation: "spin 1s linear infinite" }} />
+                  <div style={{ padding: "0.4rem 0.6rem", color: "#38bdf8", display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.8rem" }}>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Gamma A5 is thinking...</span>
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Thumbnail Preview if Image Attached */}
+            {/* Thumbnail Preview */}
             {selectedImage && (
               <div style={{
-                padding: "0.5rem 1rem",
-                background: "rgba(0, 0, 0, 0.3)",
-                borderTop: "1px solid rgba(var(--glass-color), 0.06)",
+                padding: "0.4rem 0.8rem",
+                background: "rgba(0, 0, 0, 0.4)",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem"
               }}>
-                <div style={{
-                  position: "relative",
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                  border: "1px solid var(--aqua-teal)"
-                }}>
-                  <img
-                    src={selectedImage}
-                    alt="Preview"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
+                <div style={{ position: "relative", width: "40px", height: "40px", borderRadius: "6px", overflow: "hidden" }}>
+                  <img src={selectedImage} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    aria-label="Remove image"
                     style={{
-                      position: "absolute",
-                      top: "2px",
-                      right: "2px",
-                      background: "rgba(0, 0, 0, 0.7)",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "50%",
-                      width: "16px",
-                      height: "16px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      padding: 0
+                      position: "absolute", top: "1px", right: "1px",
+                      background: "#ef4444", color: "white", border: "none",
+                      borderRadius: "50%", width: "14px", height: "14px",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer", padding: 0
                     }}
                   >
-                    <X size={10} />
+                    <X size={8} />
                   </button>
                 </div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                  Şəkil əlavə edildi
-                </span>
+                <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Image attached</span>
               </div>
             )}
 
             {/* Input Form */}
             <form onSubmit={sendMessage} style={{
-              padding: "0.75rem 1rem",
-              borderTop: "1px solid rgba(var(--glass-color), 0.08)",
+              padding: "0.65rem 0.85rem",
+              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
               display: "flex",
               alignItems: "center",
               gap: "0.4rem",
-              background: "rgba(10, 16, 30, 0.6)"
+              background: "rgba(10, 15, 30, 0.7)"
             }}>
-              {/* Hidden File Input */}
               <input
                 type="file"
                 ref={fileInputRef}
@@ -456,111 +460,69 @@ export default function AiChatbot() {
                 style={{ display: "none" }}
               />
 
-              {/* Paperclip Button */}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
-                title="Şəkil əlavə et"
+                title="Attach image"
                 style={{
                   width: "32px",
                   height: "32px",
-                  borderRadius: "16px",
-                  background: selectedImage ? "rgba(76, 162, 181, 0.3)" : "rgba(var(--glass-color), 0.08)",
-                  border: "1px solid rgba(var(--glass-color), 0.1)",
-                  color: selectedImage ? "var(--aqua-teal)" : "var(--text-secondary)",
+                  borderRadius: "8px",
+                  background: selectedImage ? "rgba(14, 165, 233, 0.3)" : "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  color: selectedImage ? "#38bdf8" : "#94a3b8",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  flexShrink: 0,
-                  transition: "all 0.2s"
+                  cursor: loading ? "not-allowed" : "pointer"
                 }}
               >
-                <Paperclip size={16} />
+                <Paperclip size={15} />
               </button>
 
-              {/* Microphone Dictation Button */}
-              <button
-                type="button"
-                onClick={toggleRecording}
-                disabled={loading}
-                title={isRecording ? "Səsi dayandır" : "Səslə daxil et"}
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  borderRadius: "16px",
-                  background: isRecording ? "#ef4444" : "rgba(var(--glass-color), 0.08)",
-                  border: isRecording ? "1px solid #ef4444" : "1px solid rgba(var(--glass-color), 0.1)",
-                  color: isRecording ? "white" : "var(--text-secondary)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  flexShrink: 0,
-                  animation: isRecording ? "pulseRed 1.5s infinite" : "none",
-                  transition: "all 0.2s"
-                }}
-              >
-                <Mic size={16} />
-              </button>
-
-              {/* Text Input */}
               <input
                 type="text"
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder={isRecording ? "Dinlənilir..." : "Nəsə soruşun..."}
+                placeholder="Ask Gamma A5..."
                 disabled={loading}
                 style={{
                   flex: 1,
-                  background: "rgba(var(--glass-color), 0.05)",
-                  border: "1px solid rgba(var(--glass-color), 0.12)",
-                  borderRadius: "18px",
-                  padding: "0.5rem 0.85rem",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  borderRadius: "10px",
+                  padding: "0.45rem 0.75rem",
                   color: "white",
                   outline: "none",
-                  fontSize: "0.88rem",
-                  minWidth: 0
+                  fontSize: "0.85rem"
                 }}
               />
 
-              {/* Send Button */}
               <button 
                 type="submit"
                 disabled={loading || (!input.trim() && !selectedImage)}
-                title="Göndər"
+                title="Send"
                 style={{
-                  width: "34px",
-                  height: "34px",
-                  borderRadius: "17px",
-                  background: "var(--aqua-teal)",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "8px",
+                  background: "linear-gradient(135deg, #0284c7, #2563eb)",
                   border: "none",
                   color: "white",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: (loading || (!input.trim() && !selectedImage)) ? "not-allowed" : "pointer",
-                  opacity: (loading || (!input.trim() && !selectedImage)) ? 0.4 : 1,
-                  flexShrink: 0,
-                  transition: "opacity 0.2s"
+                  opacity: (loading || (!input.trim() && !selectedImage)) ? 0.4 : 1
                 }}
               >
-                <Send size={15} />
+                <Send size={14} />
               </button>
             </form>
           </motion.div>
         )}
       </AnimatePresence>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes pulseRed {
-          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-          70% { transform: scale(1.12); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-      `}} />
     </>
   );
 }

@@ -76,6 +76,8 @@ export default function GroupDetailPage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
+  const tToast = useTranslations("Toasts");
+
   const resolvedParams = use(params);
   const { id } = resolvedParams;
   const router = useRouter();
@@ -173,10 +175,10 @@ export default function GroupDetailPage({
         setShowEditModal(false);
         fetchProfile();
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tToast("genericError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -199,7 +201,7 @@ export default function GroupDetailPage({
         toast.error(`Xəta baş verdi: ${errorData.details || errorData.error || "Məlumatsız xəta"}`);
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -208,13 +210,13 @@ export default function GroupDetailPage({
     try {
       const res = await fetch(`/api/groups/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Silindi");
+        toast.success(tToast("deleteSuccess"));
         router.push("/dashboard/groups");
       } else {
-        toast.error("Silinmədi");
+        toast.error(tToast("deleteError"));
       }
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 

@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 
 export default function ParentsPage() {
+  const tToast = useTranslations("Toasts");
+
   const t = useTranslations("Parents");
   const c = useTranslations("Common");
   
@@ -64,12 +66,12 @@ export default function ParentsPage() {
         body: JSON.stringify({ student_id: selectedStudentToAdd })
       });
       if(res.ok) {
-        toast.success("Tələbə uğurla əlavə edildi");
+        toast.success(tToast("studentCreated"));
         fetchLinkedStudents(selectedParentId);
         setSelectedStudentToAdd("");
-      } else toast.error("Xəta baş verdi");
+      } else toast.error(tToast("genericError"));
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -80,11 +82,11 @@ export default function ParentsPage() {
         method: "DELETE"
       });
       if(res.ok) {
-        toast.success("Tələbə silindi");
+        toast.success(tToast("studentDeleted"));
         fetchLinkedStudents(selectedParentId);
-      } else toast.error("Xəta baş verdi");
+      } else toast.error(tToast("genericError"));
     } catch {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -117,15 +119,15 @@ export default function ParentsPage() {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
-        toast.success("Valideyn uğurla yaradıldı!");
+        toast.success(tToast("parentAdded"));
         setShowModal(false);
         setFormData({ first_name: "", last_name: "", email: "", phone: "", fin_code: "", id_card_number: "", password: "" });
         fetchParents();
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tToast("genericError"));
       }
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     } finally {
       setSubmitting(false);
     }
@@ -136,13 +138,13 @@ export default function ParentsPage() {
     try {
       const res = await fetch(`/api/parents/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Silindi");
+        toast.success(tToast("parentDeleted"));
         fetchParents();
       } else {
-        toast.error("Silinmədi");
+        toast.error(tToast("deleteError"));
       }
     } catch (e) {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     }
   };
 
@@ -159,14 +161,14 @@ export default function ParentsPage() {
         })
       });
       if (res.ok) {
-        toast.success("Valideyn məlumatları yeniləndi!");
+        toast.success(tToast("parentUpdated"));
         setShowEditModal(false);
         fetchParents();
       } else {
-        toast.error("Xəta baş verdi");
+        toast.error(tToast("genericError"));
       }
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error(tToast("genericError"));
     } finally {
       setSubmitting(false);
     }

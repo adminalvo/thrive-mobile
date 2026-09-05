@@ -192,10 +192,11 @@ export default function GroupDetailPage({
         body: JSON.stringify({ student_id: selectedStudentToAdd })
       });
       if (res.ok) {
-        toast.success(t("addStudent"));
+        toast.success("Tələbə uğurla qrupa əlavə edildi");
         setShowAddStudentModal(false);
         setSelectedStudentToAdd("");
-        fetchProfile();
+        setActiveTab("students");
+        await fetchProfile();
       } else {
         const errorData = await res.json();
         toast.error(`Xəta baş verdi: ${errorData.details || errorData.error || "Məlumatsız xəta"}`);
@@ -676,16 +677,24 @@ export default function GroupDetailPage({
               <form onSubmit={handleAddStudent} className={styles.form}>
                 <div className={styles.inputGroup}>
                   <label>Tələbə Seçin</label>
-                  <select 
-                    required 
-                    value={selectedStudentToAdd} 
-                    onChange={e => setSelectedStudentToAdd(e.target.value)} 
-                  >
-                    <option value="">-- Tələbə Seç --</option>
-                    {availableStudents.map(s => (
-                      <option key={s.id} value={s.id}>{s.name} ({s.email || s.phone})</option>
-                    ))}
-                  </select>
+                  {(() => {
+                    const enrolledIds = new Set((students || []).map(s => s.id));
+                    const eligible = availableStudents.filter(s => !enrolledIds.has(s.id));
+                    return (
+                      <select 
+                        required 
+                        value={selectedStudentToAdd} 
+                        onChange={e => setSelectedStudentToAdd(e.target.value)} 
+                      >
+                        <option value="">-- Tələbə Seçin ({eligible.length} tələbə mövcuddur) --</option>
+                        {eligible.map(s => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} {s.phone ? `(${s.phone})` : s.email ? `(${s.email})` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  })()}
                 </div>
                 <div className={styles.modalActions}>
                   <button type="button" className={styles.cancelBtn} onClick={() => setShowAddStudentModal(false)}>

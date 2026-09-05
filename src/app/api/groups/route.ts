@@ -12,7 +12,8 @@ export async function GET() {
 
     const groups = await sql`
       SELECT g.id, g.name, g.room, g.created_at, p.name as program, 
-             COALESCE(up.first_name || ' ' || up.last_name, up.email) as teacher
+             COALESCE(up.first_name || ' ' || up.last_name, up.email) as teacher,
+             (SELECT COUNT(*)::int FROM group_students gs WHERE gs.group_id = g.id) as students_count
       FROM groups g
       LEFT JOIN programs p ON g.program_id = p.id
       LEFT JOIN teachers t ON g.teacher_id = t.id
@@ -25,7 +26,8 @@ export async function GET() {
       name: g.name,
       program: g.program || "N/A",
       teacher: g.teacher || "N/A", 
-      room: g.room || "N/A"
+      room: g.room || "N/A",
+      students_count: g.students_count || 0
     }));
 
     return NextResponse.json(formatted);

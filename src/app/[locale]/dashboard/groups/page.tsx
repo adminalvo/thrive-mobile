@@ -180,6 +180,7 @@ export default function GroupsPage() {
                         </div>
                         <div>
                           <div className={styles.name} style={{ color: "var(--white)", transition: "color 0.2s" }}>{g.name}</div>
+                          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>{g.students_count || 0} tələbə</div>
                         </div>
                       </div>
                     </Link>

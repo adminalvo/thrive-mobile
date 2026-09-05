@@ -20,11 +20,13 @@ import {
   RefreshCw,
   Loader2,
   PlayCircle,
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 interface TaskSchedule {
   id: string;
@@ -41,7 +43,23 @@ interface TaskSchedule {
   createdAt: string;
 }
 
+const CORE_TEAM_MEMBERS = [
+  "Tural Zeynalov",
+  "Zeynmedia",
+  "Yusif Verdiyev",
+  "Tamerlan",
+  "Mehti"
+];
+
+const LOCATION_SUGGESTIONS = [
+  "Əsas Studiya (Otaq 3)",
+  "Nizami Filialı",
+  "İclas Otağı (Konfrans)",
+  "Online (Zoom / Google Meet)"
+];
+
 export default function TasksSchedulePage() {
+  const t = useTranslations("TasksSchedule");
   const { data: session, status: sessionStatus } = useSession();
   const userRole = (session?.user?.role || "").toLowerCase();
   const userEmail = (session?.user?.email || "").toLowerCase();
@@ -67,12 +85,6 @@ export default function TasksSchedulePage() {
   }, [userRole, userEmail, userName, sessionStatus]);
 
   const [schedules, setSchedules] = useState<TaskSchedule[]>([]);
-  const [teamMembers, setTeamMembers] = useState<string[]>([
-    "Tural Zeynalov",
-    "Zeynmedia",
-    "Tamerlan",
-    "Yusif Verdiyev"
-  ]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string>("");
@@ -107,15 +119,12 @@ export default function TasksSchedulePage() {
           setSchedules(data);
         } else if (data?.schedules) {
           setSchedules(data.schedules);
-          if (Array.isArray(data.teamMembers) && data.teamMembers.length > 0) {
-            setTeamMembers(data.teamMembers);
-          }
         }
-        setLastSyncTime(new Date().toLocaleTimeString("az-AZ", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+        setLastSyncTime(new Date().toLocaleTimeString());
       } else if (!silent) {
         toast.error("Qrafik məlumatlarını yükləmək mümkün olmadı");
       }
-    } catch (e) {
+    } catch {
       if (!silent) toast.error("Şəbəkə xətası baş verdi");
     } finally {
       setLoading(false);
@@ -141,7 +150,7 @@ export default function TasksSchedulePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.date) {
-      toast.error("Başlıq və tarix daxil edilməlidir");
+      toast.error(t("formTitlePlaceholder"));
       return;
     }
 
@@ -150,7 +159,7 @@ export default function TasksSchedulePage() {
         const updatedItem: TaskSchedule = { ...editItem, ...formData };
         setSchedules(prev => prev.map(s => s.id === editItem.id ? updatedItem : s));
         setShowModal(false);
-        toast.success("Qrafik yeniləndi");
+        toast.success(t("updateSuccess"));
 
         const res = await fetch("/api/tasks-schedule", {
           method: "PUT",
@@ -168,7 +177,7 @@ export default function TasksSchedulePage() {
         };
         setSchedules(prev => [newItem, ...prev]);
         setShowModal(false);
-        toast.success("Yeni qrafik əlavə olundu");
+        toast.success(t("createSuccess"));
 
         const res = await fetch("/api/tasks-schedule", {
           method: "POST",
@@ -182,16 +191,16 @@ export default function TasksSchedulePage() {
         }
       }
     } catch {
-      toast.error("Əməliyyat uğursuz oldu");
+      toast.error("Xəta baş verdi");
       fetchSchedules(true);
     }
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`"${title}" qrafikini silmək istədiyinizə əminsiniz?`)) return;
+    if (!confirm(t("deleteConfirm", { title }))) return;
 
     setSchedules(prev => prev.filter(s => s.id !== id));
-    toast.success("Qrafik silindi");
+    toast.success(t("deleteSuccess"));
 
     try {
       await fetch(`/api/tasks-schedule?id=${id}`, { method: "DELETE" });
@@ -202,7 +211,7 @@ export default function TasksSchedulePage() {
 
   const handleStatusChange = async (id: string, status: TaskSchedule["status"]) => {
     setSchedules(prev => prev.map(s => s.id === id ? { ...s, status } : s));
-    toast.success("Status yeniləndi");
+    toast.success(t("statusSuccess"));
 
     try {
       await fetch("/api/tasks-schedule", {
@@ -235,7 +244,7 @@ export default function TasksSchedulePage() {
       startTime: "14:00",
       endTime: "15:30",
       location: "",
-      participants: "",
+      participants: "Tural Zeynalov, Zeynmedia",
       description: "",
       status: "PLANNED"
     });
@@ -263,8 +272,8 @@ export default function TasksSchedulePage() {
       ? formData.participants.split(",").map(p => p.trim()).filter(Boolean) 
       : [];
     
-    if (current.includes(name)) {
-      const updated = current.filter(p => p !== name);
+    if (current.some(p => p.toLowerCase() === name.toLowerCase())) {
+      const updated = current.filter(p => p.toLowerCase() !== name.toLowerCase());
       setFormData({ ...formData, participants: updated.join(", ") });
     } else {
       current.push(name);
@@ -327,7 +336,7 @@ export default function TasksSchedulePage() {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: "1rem", color: "#38bdf8" }}>
         <Loader2 size={40} className={styles.spin} />
-        <p style={{ color: "#94a3b8" }}>Sessiya yoxlanılır...</p>
+        <p style={{ color: "#94a3b8" }}>{t("checkingSession")}</p>
       </div>
     );
   }
@@ -336,9 +345,9 @@ export default function TasksSchedulePage() {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: "1rem", color: "#ef4444" }}>
         <ShieldAlert size={56} />
-        <h2 style={{ color: "#fff", margin: 0 }}>Giriş Məhdudlaşdırılıb</h2>
+        <h2 style={{ color: "#fff", margin: 0 }}>{t("unauthorizedTitle")}</h2>
         <p style={{ color: "#94a3b8", maxWidth: "420px", textAlign: "center" }}>
-          Tasks schedule bölməsi yalnız Super Admin, Zeynmedia, Tural Zeynalov və Yusif Verdiyev hesabları üçün aktivdir.
+          {t("unauthorizedDesc")}
         </p>
       </div>
     );
@@ -346,22 +355,23 @@ export default function TasksSchedulePage() {
 
   return (
     <div className={styles.container}>
+      {/* Header */}
       <div className={styles.header}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", flexWrap: "wrap" }}>
             <h1 className={styles.title} style={{ margin: 0 }}>
               <CalendarCheck size={28} style={{ color: "#00c4b5" }} />
-              Tasks schedule
+              {t("title")}
             </h1>
-            <div className={styles.liveBadge} title="Real-time avtomatik 4 saniyədən bir sinxronizasiya olunur">
+            <div className={styles.liveBadge} title="Real-time 4s">
               <span className={styles.pulseDot} />
-              <span>Real-Time Canlı</span>
+              <span>{t("liveSync")}</span>
               {lastSyncTime && (
                 <span style={{ fontSize: "0.7rem", opacity: 0.8, marginLeft: "2px" }}>({lastSyncTime})</span>
               )}
               <button 
                 onClick={() => fetchSchedules(true)} 
-                title="İndi yenilə"
+                title={t("refresh")}
                 style={{ background: "transparent", border: "none", color: "#10b981", cursor: "pointer", display: "inline-flex", alignItems: "center", padding: "1px" }}
               >
                 <RefreshCw size={12} className={isRefreshing ? styles.spin : ""} />
@@ -369,23 +379,24 @@ export default function TasksSchedulePage() {
             </div>
           </div>
           <p className={styles.subtitle} style={{ marginTop: "0.4rem" }}>
-            Çəkilişlər, işgüzar görüşlər, iclaslar və komanda tapşırıqlarının real-time idarəetmə qrafiki
+            {t("subtitle")}
           </p>
         </div>
 
         <button className={styles.btnPrimary} onClick={openCreateModal}>
           <Plus size={16} />
-          <span>Yeni Çəkiliş / Görüş</span>
+          <span>{t("newScheduleBtn")}</span>
         </button>
       </div>
 
+      {/* KPI Cards */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statIcon} style={{ background: "rgba(236, 72, 153, 0.15)", color: "#f472b6" }}>
             <Video size={22} />
           </div>
           <div className={styles.statDetails}>
-            <span className={styles.statLabel}>Çəkilişlər</span>
+            <span className={styles.statLabel}>{t("statsShootings")}</span>
             <span className={styles.statValue}>{stats.shootings}</span>
           </div>
         </div>
@@ -395,7 +406,7 @@ export default function TasksSchedulePage() {
             <Users size={22} />
           </div>
           <div className={styles.statDetails}>
-            <span className={styles.statLabel}>Görüşlər & İclaslar</span>
+            <span className={styles.statLabel}>{t("statsMeetings")}</span>
             <span className={styles.statValue}>{stats.meetings}</span>
           </div>
         </div>
@@ -405,7 +416,7 @@ export default function TasksSchedulePage() {
             <CheckCircle2 size={22} />
           </div>
           <div className={styles.statDetails}>
-            <span className={styles.statLabel}>Tamamlanmış</span>
+            <span className={styles.statLabel}>{t("statsCompleted")}</span>
             <span className={styles.statValue}>{stats.completed}</span>
           </div>
         </div>
@@ -415,70 +426,72 @@ export default function TasksSchedulePage() {
             <Calendar size={22} />
           </div>
           <div className={styles.statDetails}>
-            <span className={styles.statLabel}>Ümumi Hadisələr</span>
+            <span className={styles.statLabel}>{t("statsTotal")}</span>
             <span className={styles.statValue}>{stats.total}</span>
           </div>
         </div>
       </div>
 
+      {/* Filter Bar */}
       <div className={styles.filterBar}>
         <div className={styles.filterPills}>
           <button 
             className={`${styles.filterPill} ${typeFilter === "all" ? styles.filterPillActive : ""}`}
             onClick={() => setTypeFilter("all")}
           >
-            Bütün Qrafik ({schedules.length})
+            {t("filterAll")} ({schedules.length})
           </button>
           <button 
             className={`${styles.filterPill} ${typeFilter === "Shooting" ? styles.filterPillActive : ""}`}
             onClick={() => setTypeFilter("Shooting")}
           >
-            🎬 Çəkilişlər ({schedules.filter(s => s.type === "Shooting").length})
+            {t("filterShooting")} ({schedules.filter(s => s.type === "Shooting").length})
           </button>
           <button 
             className={`${styles.filterPill} ${typeFilter === "Meeting" ? styles.filterPillActive : ""}`}
             onClick={() => setTypeFilter("Meeting")}
           >
-            🤝 Görüşlər ({schedules.filter(s => s.type === "Meeting").length})
+            {t("filterMeeting")} ({schedules.filter(s => s.type === "Meeting").length})
           </button>
           <button 
             className={`${styles.filterPill} ${typeFilter === "Conference" ? styles.filterPillActive : ""}`}
             onClick={() => setTypeFilter("Conference")}
           >
-            👥 İclaslar ({schedules.filter(s => s.type === "Conference").length})
+            {t("filterConference")} ({schedules.filter(s => s.type === "Conference").length})
           </button>
           <button 
             className={`${styles.filterPill} ${typeFilter === "Task" ? styles.filterPillActive : ""}`}
             onClick={() => setTypeFilter("Task")}
           >
-            📋 Tapşırıqlar ({schedules.filter(s => s.type === "Task").length})
+            {t("filterTask")} ({schedules.filter(s => s.type === "Task").length})
           </button>
         </div>
 
+        {/* Date Filters */}
         <div className={styles.dateFilterGroup}>
           <button 
             className={`${styles.dateFilterBtn} ${dateFilter === "all" ? styles.dateFilterBtnActive : ""}`}
             onClick={() => setDateFilter("all")}
           >
-            Bütün Vaxtlar
+            {t("dateAll")}
           </button>
           <button 
             className={`${styles.dateFilterBtn} ${dateFilter === "today" ? styles.dateFilterBtnActive : ""}`}
             onClick={() => setDateFilter("today")}
           >
-            🟢 Bugün
+            {t("dateToday")}
           </button>
           <button 
             className={`${styles.dateFilterBtn} ${dateFilter === "tomorrow" ? styles.dateFilterBtnActive : ""}`}
             onClick={() => setDateFilter("tomorrow")}
           >
-            🟡 Sabah
+            {t("dateTomorrow")}
           </button>
           <button 
             className={`${styles.dateFilterBtn} ${dateFilter === "this_week" ? styles.dateFilterBtnActive : ""}`}
             onClick={() => setDateFilter("this_week")}
           >
-            🔵 Bu Həftə
+            {t("dateThisWeek")}
           </button>
         </div>
 
@@ -486,7 +499,7 @@ export default function TasksSchedulePage() {
           <Search size={15} style={{ color: "#64748b" }} />
           <input 
             type="text"
-            placeholder="Axtar (çəkiliş, şəxs, məkan)..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className={styles.searchInput}
@@ -494,15 +507,16 @@ export default function TasksSchedulePage() {
         </div>
       </div>
 
+      {/* Grid */}
       {loading ? (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "4rem", color: "#94a3b8", gap: "0.5rem" }}>
           <Loader2 size={24} className={styles.spin} />
-          <span>Real-time qrafik yüklənir...</span>
+          <span>{t("loading")}</span>
         </div>
       ) : filteredSchedules.length === 0 ? (
         <div className={styles.emptyState}>
           <Calendar size={48} style={{ opacity: 0.3, marginBottom: "0.75rem" }} />
-          <div>Bu süzgəc üzrə heç bir çəkiliş və ya görüş tapılmadı.</div>
+          <div>{t("emptyState")}</div>
         </div>
       ) : (
         <div className={styles.scheduleGrid}>
@@ -513,9 +527,9 @@ export default function TasksSchedulePage() {
               item.type === "Conference" ? styles.typeConference : styles.typeTask;
 
             const typeLabel = 
-              item.type === "Shooting" ? "🎬 Çəkiliş" :
-              item.type === "Meeting" ? "🤝 Görüş" :
-              item.type === "Conference" ? "👥 İclas" : "📋 Tapşırıq";
+              item.type === "Shooting" ? t("typeShooting") :
+              item.type === "Meeting" ? t("typeMeeting") :
+              item.type === "Conference" ? t("typeConference") : t("typeTask");
 
             return (
               <motion.div 
@@ -555,7 +569,7 @@ export default function TasksSchedulePage() {
                     <div>
                       <div className={styles.metaItem} style={{ marginBottom: "2px" }}>
                         <Users size={14} style={{ color: "#60a5fa" }} />
-                        <span>İştirakçılar:</span>
+                        <span>{t("participantsLabel")}</span>
                       </div>
                       <div className={styles.participantsList}>
                         {item.participants.split(",").map((p, idx) => (
@@ -589,16 +603,16 @@ export default function TasksSchedulePage() {
                           item.status === "CANCELLED" ? "#f87171" : "#fbbf24"
                       }}
                     >
-                      <option value="PLANNED">Planlaşdırılıb</option>
-                      <option value="IN_PROGRESS">Davam edir</option>
-                      <option value="COMPLETED">Tamamlandı</option>
-                      <option value="CANCELLED">Təxirə salındı</option>
+                      <option value="PLANNED">{t("statusPlanned")}</option>
+                      <option value="IN_PROGRESS">{t("statusInProgress")}</option>
+                      <option value="COMPLETED">{t("statusCompleted")}</option>
+                      <option value="CANCELLED">{t("statusCancelled")}</option>
                     </select>
 
                     <button
                       type="button"
                       onClick={() => handleQuickStatusCycle(item)}
-                      title="Növbəti statusa keçir"
+                      title="Statusu Dəyiş"
                       className={styles.iconBtn}
                       style={{ padding: "5px 7px", fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: "2px" }}
                     >
@@ -632,6 +646,7 @@ export default function TasksSchedulePage() {
         </div>
       )}
 
+      {/* Clean, compact Modal */}
       <AnimatePresence>
         {showModal && (
           <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
@@ -641,21 +656,22 @@ export default function TasksSchedulePage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
+              style={{ maxWidth: "560px", width: "95%" }}
             >
               <div className={styles.modalHeader}>
-                <h3>{editItem ? "Qrafiki Redaktə Et" : "Yeni Çəkiliş / Görüş Əlavə Et"}</h3>
+                <h3>{editItem ? t("modalTitleEdit") : t("modalTitleNew")}</h3>
                 <button className={styles.closeBtn} onClick={() => setShowModal(false)}>
                   <X size={18} />
                 </button>
               </div>
 
               <form onSubmit={handleSave}>
-                <div className={styles.modalBody}>
+                <div className={styles.modalBody} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                   <div className={styles.formGroup}>
-                    <label>Başlıq / Mövzu *</label>
+                    <label>{t("formTitle")}</label>
                     <input 
                       type="text"
-                      placeholder="Məsələn: YouTube Podkast Çəkilişi"
+                      placeholder={t("formTitlePlaceholder")}
                       value={formData.title}
                       onChange={e => setFormData({ ...formData, title: e.target.value })}
                       required
@@ -664,20 +680,20 @@ export default function TasksSchedulePage() {
 
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label>Hadisə Növü</label>
+                      <label>{t("formType")}</label>
                       <select 
                         value={formData.type}
                         onChange={e => setFormData({ ...formData, type: e.target.value as any })}
                       >
-                        <option value="Shooting">🎬 Çəkiliş (Shooting)</option>
-                        <option value="Meeting">🤝 Görüş (Meeting)</option>
-                        <option value="Conference">👥 İclas (Conference)</option>
-                        <option value="Task">📋 Tapşırıq (Task)</option>
+                        <option value="Shooting">{t("typeShooting")}</option>
+                        <option value="Meeting">{t("typeMeeting")}</option>
+                        <option value="Conference">{t("typeConference")}</option>
+                        <option value="Task">{t("typeTask")}</option>
                       </select>
                     </div>
 
                     <div className={styles.formGroup}>
-                      <label>Tarix *</label>
+                      <label>{t("formDate")}</label>
                       <input 
                         type="date"
                         value={formData.date}
@@ -689,7 +705,7 @@ export default function TasksSchedulePage() {
 
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label>Başlama Saatı</label>
+                      <label>{t("formStartTime")}</label>
                       <input 
                         type="time"
                         value={formData.startTime}
@@ -698,7 +714,7 @@ export default function TasksSchedulePage() {
                     </div>
 
                     <div className={styles.formGroup}>
-                      <label>Bitmə Saatı</label>
+                      <label>{t("formEndTime")}</label>
                       <input 
                         type="time"
                         value={formData.endTime}
@@ -708,51 +724,62 @@ export default function TasksSchedulePage() {
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label>Məkan / Studiya</label>
+                    <label>{t("formLocation")}</label>
                     <input 
                       type="text"
-                      placeholder="Məsələn: Əsas Studiya (Otaq 3), Nizami Filialı..."
+                      placeholder={t("formLocationPlaceholder")}
                       value={formData.location}
                       onChange={e => setFormData({ ...formData, location: e.target.value })}
                     />
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginTop: "0.35rem" }}>
+                      {LOCATION_SUGGESTIONS.map(loc => (
+                        <button
+                          key={loc}
+                          type="button"
+                          className={styles.participantChip}
+                          style={{ fontSize: "0.72rem", padding: "0.2rem 0.5rem" }}
+                          onClick={() => setFormData({ ...formData, location: loc })}
+                        >
+                          📍 {loc}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label>İştirakçılar (Toxunaraq əlavə/çıxar edin)</label>
+                    <label>{t("formParticipants")}</label>
                     <input 
                       type="text"
-                      placeholder="Vergüllə ayırın: Tural Zeynalov, Zeynmedia..."
+                      placeholder={t("formParticipantsPlaceholder")}
                       value={formData.participants}
                       onChange={e => setFormData({ ...formData, participants: e.target.value })}
                     />
-                    {teamMembers.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginTop: "0.45rem" }}>
-                        {teamMembers.map(name => {
-                          const isSelected = formData.participants
-                            .toLowerCase()
-                            .split(",")
-                            .map(p => p.trim())
-                            .includes(name.toLowerCase());
-                          return (
-                            <button
-                              key={name}
-                              type="button"
-                              className={`${styles.participantChip} ${isSelected ? styles.participantChipActive : ""}`}
-                              onClick={() => toggleParticipant(name)}
-                            >
-                              {isSelected ? "✓ " : "+ "}{name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginTop: "0.45rem" }}>
+                      {CORE_TEAM_MEMBERS.map(name => {
+                        const isSelected = formData.participants
+                          .toLowerCase()
+                          .split(",")
+                          .map(p => p.trim())
+                          .includes(name.toLowerCase());
+                        return (
+                          <button
+                            key={name}
+                            type="button"
+                            className={`${styles.participantChip} ${isSelected ? styles.participantChipActive : ""}`}
+                            onClick={() => toggleParticipant(name)}
+                          >
+                            {isSelected ? "✓ " : "+ "}{name}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label>Təfərrüat / Qeydlər</label>
+                    <label>{t("formDesc")}</label>
                     <textarea 
-                      rows={3}
-                      placeholder="Çəkiliş və ya görüşlə bağlı vacib detallar..."
+                      rows={2}
+                      placeholder={t("formDescPlaceholder")}
                       value={formData.description}
                       onChange={e => setFormData({ ...formData, description: e.target.value })}
                     />
@@ -761,10 +788,10 @@ export default function TasksSchedulePage() {
 
                 <div className={styles.modalFooter}>
                   <button type="button" className={styles.btnSecondary} onClick={() => setShowModal(false)}>
-                    İmtina
+                    {t("btnCancel")}
                   </button>
                   <button type="submit" className={styles.btnPrimary}>
-                    {editItem ? "Yadda Saxla" : "Qrafikə Əlavə Et"}
+                    {editItem ? t("btnSave") : t("btnAdd")}
                   </button>
                 </div>
               </form>

@@ -181,19 +181,25 @@ export async function PUT(req: Request) {
     // B. Edit Bank Account
     if (!id) return NextResponse.json({ error: "Hesab ID tələb olunur" }, { status: 400 });
 
+    const finalName = name !== undefined ? (name || "").trim() : (body.name !== undefined ? (body.name || "").trim() : undefined);
+    const finalBankName = bank_name !== undefined ? (bank_name || "").trim() : (body.bankName !== undefined ? (body.bankName || "").trim() : undefined);
+    const finalAccountNumber = account_number !== undefined ? (account_number || "").trim() : (body.accountNumber !== undefined ? (body.accountNumber || "").trim() : undefined);
+    const rawBalance = initial_balance !== undefined ? initial_balance : body.initialBalance;
+    const finalInitialBalance = rawBalance !== undefined && rawBalance !== null && rawBalance !== "" ? Number(rawBalance) : undefined;
+
     const [updatedAcc] = await sql`
       UPDATE bank_accounts
       SET 
-        name = COALESCE(${name}, name),
-        bank_name = COALESCE(${bank_name}, bank_name),
-        account_number = COALESCE(${account_number}, account_number),
-        initial_balance = COALESCE(${initial_balance ? Number(initial_balance) : undefined}, initial_balance),
+        name = COALESCE(${finalName}, name),
+        bank_name = COALESCE(${finalBankName}, bank_name),
+        account_number = COALESCE(${finalAccountNumber}, account_number),
+        initial_balance = COALESCE(${finalInitialBalance}, initial_balance),
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *;
     `;
 
-    await logAction("UPDATE_BANK_ACCOUNT", { id, name }, (session?.user as any)?.id);
+    await logAction("UPDATE_BANK_ACCOUNT", { id, name: finalName }, (session?.user as any)?.id);
     return NextResponse.json({ success: true, data: updatedAcc });
   } catch (error: any) {
     console.error("Accounts PUT error:", error);
@@ -203,7 +209,7 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const { authorized, errorResponse, session } = await checkRoleGuard(["super_admin", "admin"]);
+    const { authorized, errorResponse, session } = await checkRoleGuard(["super_admin", "admin", "staff"]);
     if (!authorized) return errorResponse;
 
     const { searchParams } = new URL(req.url);
@@ -218,6 +224,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: true, message: "Əməliyyat silindi" });
     }
 
+    // Account delete / deactivation
     await sql`UPDATE bank_accounts SET is_active = false WHERE id = ${id}`;
     await logAction("DEACTIVATE_BANK_ACCOUNT", { id }, (session?.user as any)?.id);
 

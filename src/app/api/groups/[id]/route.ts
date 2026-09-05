@@ -44,7 +44,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       const studentRows = await sql`
         SELECT 
           s.id,
-          COALESCE(gs.created_at, s.created_at) as "enrolledAt",
+          COALESCE(gs.joined_at, s.created_at) as "enrolledAt",
           p.first_name,
           p.last_name,
           p.email,
@@ -53,7 +53,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         JOIN students s ON gs.student_id = s.id
         LEFT JOIN user_profiles p ON s.profile_id = p.id
         WHERE gs.group_id = ${id}
-        ORDER BY gs.created_at DESC
+        ORDER BY gs.joined_at DESC
       `;
       students = studentRows.map((s: any) => ({
         id: s.id,

@@ -135,6 +135,11 @@ export default function FinanceDashboardPage() {
     code: '2026-10', name: '2026 Oktyabr', startDate: '2026-10-01', endDate: '2026-10-31', cloneFrom: '2026-09'
   });
 
+  const [showAddAccountModal, setShowAddAccountModal] = useState<boolean>(false);
+  const [newAccountForm, setNewAccountForm] = useState({
+    name: '', bankName: '', initialBalance: '', currency: 'AZN'
+  });
+
   // Edit State
   const [editEnrollment, setEditEnrollment] = useState<StudentEnrollment | null>(null);
   const [editExpense, setEditExpense] = useState<ExpenseRecord | null>(null);
@@ -526,7 +531,38 @@ export default function FinanceDashboardPage() {
     }
   };
 
-  // Edit / Delete Account
+  // Create, Edit & Delete Account
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAccountForm.name.trim()) {
+      toast.error("Hesab adı daxil edilməlidir");
+      return;
+    }
+    try {
+      const res = await fetch("/api/finance/accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "CREATE_ACCOUNT",
+          name: newAccountForm.name.trim(),
+          bank_name: newAccountForm.bankName.trim() || "Standart Bank",
+          initial_balance: Number(newAccountForm.initialBalance) || 0,
+          currency: newAccountForm.currency || "AZN"
+        })
+      });
+      if (res.ok) {
+        toast.success("Yeni hesab əlavə edildi!");
+        setShowAddAccountModal(false);
+        setNewAccountForm({ name: '', bankName: '', initialBalance: '', currency: 'AZN' });
+        loadFinanceData(selectedPeriodCode);
+      } else {
+        toast.error("Hesab yaradıla bilmədi");
+      }
+    } catch {
+      toast.error("Xəta baş verdi");
+    }
+  };
+
   const handleSaveEditAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editAccount) return;
@@ -534,15 +570,40 @@ export default function FinanceDashboardPage() {
       const res = await fetch("/api/finance/accounts", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editAccount)
+        body: JSON.stringify({
+          id: editAccount.id,
+          name: editAccount.name,
+          bankName: editAccount.bankName,
+          bank_name: editAccount.bankName,
+          initialBalance: editAccount.initialBalance,
+          initial_balance: editAccount.initialBalance
+        })
       });
       if (res.ok) {
         toast.success("Hesab məlumatları yeniləndi!");
         setEditAccount(null);
         loadFinanceData(selectedPeriodCode);
+      } else {
+        toast.error("Yenilənmə xətası");
       }
     } catch {
       toast.error("Xəta baş verdi");
+    }
+  };
+
+  const handleDeleteAccount = async (id: string, name: string) => {
+    if (!confirm(`"${name}" hesabını silmək istədiyinizə əminsiniz?`)) return;
+    try {
+      const res = await fetch(`/api/finance/accounts?id=${id}&target=ACCOUNT`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Hesab silindi");
+        if (editAccount?.id === id) setEditAccount(null);
+        loadFinanceData(selectedPeriodCode);
+      } else {
+        toast.error("Hesabı silmək mümkün olmadı");
+      }
+    } catch {
+      toast.error("Silinmə xətası");
     }
   };
 
@@ -1322,13 +1383,32 @@ export default function FinanceDashboardPage() {
       {/* ========================================================================= */}
       {activeTab === 'accounts' && (
         <div className={styles.tabContent}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "#ffffff" }}>
+                {t("tabs.accounts")}
+              </h3>
+              <p style={{ margin: 0, fontSize: "0.78rem", color: "#94a3b8" }}>
+                Kassalar, bank hesabları və cari qalıqlar
+              </p>
+            </div>
+            <button 
+              className={styles.btnPrimary}
+              onClick={() => setShowAddAccountModal(true)}
+              style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
+            >
+              <Plus size={15} />
+              <span>Yeni Kassa / Hesab Əlavə Et</span>
+            </button>
+          </div>
+
           <div className={styles.kpiGrid}>
             {accounts.map((acc) => (
               <div key={acc.id} className={styles.kpiCard} style={{ position: "relative" }}>
                 <div className={styles.kpiIconWrapper} style={{ background: "rgba(56, 189, 248, 0.12)", color: "#38bdf8" }}>
                   <Building2 size={22} />
                 </div>
-                <div className={styles.kpiDetails} style={{ flex: 1 }}>
+                <div className={styles.kpiDetails} style={{ flex: 1, paddingRight: "3.5rem" }}>
                   <span className={styles.kpiLabel}>{acc.name}</span>
                   <div className={styles.kpiValue} style={{ color: "#38bdf8", fontSize: "1.45rem" }}>
                     {acc.initialBalance.toFixed(2)} {acc.currency}
@@ -1337,14 +1417,24 @@ export default function FinanceDashboardPage() {
                     {acc.bankName} • {acc.code}
                   </span>
                 </div>
-                <button 
-                  className={styles.btnSecondary} 
-                  style={{ padding: "0.25rem 0.45rem", position: "absolute", top: "12px", right: "12px" }}
-                  onClick={() => setEditAccount(acc)}
-                  title={t("table.actions")}
-                >
-                  <Edit size={13} />
-                </button>
+                <div style={{ display: "flex", gap: "0.3rem", position: "absolute", top: "12px", right: "12px" }}>
+                  <button 
+                    className={styles.btnSecondary} 
+                    style={{ padding: "0.25rem 0.45rem" }}
+                    onClick={() => setEditAccount(acc)}
+                    title="Redaktə et"
+                  >
+                    <Edit size={13} />
+                  </button>
+                  <button 
+                    className={styles.btnSecondary} 
+                    style={{ padding: "0.25rem 0.45rem", color: "#ef4444", background: "rgba(239, 68, 68, 0.08)", borderColor: "rgba(239, 68, 68, 0.25)" }}
+                    onClick={() => handleDeleteAccount(acc.id, acc.name)}
+                    title="Sil"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -1907,9 +1997,78 @@ export default function FinanceDashboardPage() {
                   </div>
                 </div>
 
+                <div className={styles.modalActions} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <button 
+                    type="button" 
+                    className={styles.btnSecondary} 
+                    style={{ background: "rgba(239, 68, 68, 0.12)", color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)" }}
+                    onClick={() => handleDeleteAccount(editAccount.id, editAccount.name)}
+                  >
+                    <Trash2 size={13} style={{ verticalAlign: "middle", marginRight: "4px" }} />
+                    Hesabı Sil
+                  </button>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button type="button" className={styles.btnSecondary} onClick={() => setEditAccount(null)}>{t("modals.cancel")}</button>
+                    <button type="submit" className={styles.btnPrimary}>{t("modals.save")}</button>
+                  </div>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Yeni Kassa / Hesab Əlavə Et Modal */}
+      <AnimatePresence>
+        {showAddAccountModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowAddAccountModal(false)}>
+            <motion.div className={styles.modalContent} onClick={e => e.stopPropagation()} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}>
+              <h3 className={styles.modalTitle}>Yeni Kassa / Hesab Əlavə Et</h3>
+
+              <form onSubmit={handleCreateAccount}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Hesab Adı *</label>
+                  <input 
+                    type="text" 
+                    placeholder="Məsələn: Əsas Nəğd Kassa, Paşa Bank Kart..." 
+                    value={newAccountForm.name} 
+                    onChange={(e) => setNewAccountForm({ ...newAccountForm, name: e.target.value })} 
+                    className={styles.input} 
+                    required 
+                  />
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Bank / Filial</label>
+                    <input 
+                      type="text" 
+                      placeholder="Məsələn: Kapital Bank, Resepşn..." 
+                      value={newAccountForm.bankName} 
+                      onChange={(e) => setNewAccountForm({ ...newAccountForm, bankName: e.target.value })} 
+                      className={styles.input} 
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>İlkin Balans (₼)</label>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      placeholder="0.00" 
+                      value={newAccountForm.initialBalance} 
+                      onChange={(e) => setNewAccountForm({ ...newAccountForm, initialBalance: e.target.value })} 
+                      className={styles.input} 
+                    />
+                  </div>
+                </div>
+
                 <div className={styles.modalActions}>
-                  <button type="button" className={styles.btnSecondary} onClick={() => setEditAccount(null)}>{t("modals.cancel")}</button>
-                  <button type="submit" className={styles.btnPrimary}>{t("modals.save")}</button>
+                  <button type="button" className={styles.btnSecondary} onClick={() => setShowAddAccountModal(false)}>
+                    {t("modals.cancel")}
+                  </button>
+                  <button type="submit" className={styles.btnPrimary}>
+                    Hesabı Yarat
+                  </button>
                 </div>
               </form>
             </motion.div>

@@ -78,22 +78,8 @@ export async function GET(req: Request) {
       `;
     }
 
-    // Dynamic Team Members for 1-click selection
-    const teamMembersRaw = await sql`
-      SELECT DISTINCT 
-        TRIM(CONCAT(p.first_name, ' ', COALESCE(p.last_name, ''))) as name
-      FROM auth.users u
-      JOIN public.user_profiles p ON u.id = p.user_id
-      WHERE p.first_name IS NOT NULL AND TRIM(p.first_name) != ''
-      ORDER BY name ASC
-    `.catch(() => []);
-
-    const standardNames = ["Tural Zeynalov", "Zeynmedia", "Tamerlan", "Yusif Verdiyev"];
-    const allNamesSet = new Set(standardNames);
-    teamMembersRaw.forEach((m: any) => {
-      if (m.name && m.name.trim().length > 1) allNamesSet.add(m.name.trim());
-    });
-    const teamMembers = Array.from(allNamesSet);
+    // Dynamic Core Team Members for 1-click selection
+    const teamMembers = ["Tural Zeynalov", "Zeynmedia", "Yusif Verdiyev", "Tamerlan", "Mehti"];
 
     return NextResponse.json({
       schedules,

@@ -20,7 +20,8 @@ import {
   Library,
   ShieldAlert,
   GripVertical,
-  Search
+  Search,
+  Video
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
@@ -65,6 +66,7 @@ const ALL_NAV_ITEMS = [
   { id: "schedule", href: `/dashboard/schedule`, icon: Calendar },
   { id: "finance", href: `/dashboard/finance`, icon: CreditCard },
   { id: "tasks", href: `/dashboard/tasks`, icon: KanbanSquare },
+  { id: "tasksSchedule", href: `/dashboard/tasks-schedule`, icon: Video },
   { id: "ai", href: "/dashboard/ai", icon: Bot },
 ];
 
@@ -162,6 +164,22 @@ export default function Sidebar({
     // Strictly restrict Finance to super_admin only
     if (item.id === "finance" || item.href === "/dashboard/finance") {
       return userRole === "super_admin";
+    }
+
+    // Tasks schedule: super_admin or zeynmedia, tural, yusif
+    if (item.id === "tasksSchedule" || item.href === "/dashboard/tasks-schedule") {
+      if (userRole === "super_admin") return true;
+      const email = ((session?.user as any)?.email || "").toLowerCase();
+      const name = ((session?.user as any)?.name || "").toLowerCase();
+      return (
+        email.includes("zeyn") ||
+        email.includes("turalzeynalov") ||
+        email.includes("yusifverdiyev") ||
+        name.includes("tural") ||
+        name.includes("zeynalov") ||
+        name.includes("yusif") ||
+        name.includes("zeyn")
+      );
     }
 
     if (userRole === "super_admin") return true;

@@ -39,6 +39,7 @@
     "schedule": "Schedule",
     "finance": "Finance",
     "tasks": "Tasks",
+    "tasksSchedule": "Tasks schedule",
     "ai": "AI Assistant",
     "aiAssistant": "AI Assistant",
     "settings": "Settings",
@@ -470,6 +471,20 @@
       "income": "Income (+)",
       "expense": "Expense (-)",
       "transfer": "Transfer"
+    },
+    "pie": {
+      "title": "Expense Breakdown (Pie Chart)",
+      "subtitle": "Percentage breakdown of operational expenses and payroll",
+      "totalExpenses": "Total Expenses",
+      "paidExpenses": "Paid Expenses",
+      "remainingDebt": "Remaining Debt",
+      "payroll": "Payroll & Staff",
+      "rent": "Rent & Facilities",
+      "marketing": "Marketing & SMM",
+      "utilities": "Utilities & Internet",
+      "taxes": "Taxes & Official",
+      "other": "Other Operations",
+      "empty": "No expenses recorded for this period."
     },
     "expenses": {
       "btnAddExpense": "+ Add Expense / Salary",

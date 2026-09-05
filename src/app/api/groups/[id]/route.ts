@@ -38,30 +38,31 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const g = groupRows[0];
 
-    // 2. Fetch enrolled students
+    // 2. Fetch enrolled students (Real group_students link)
     let students: any[] = [];
     try {
       const studentRows = await sql`
         SELECT 
           s.id,
-          s.created_at as "enrolledAt",
+          COALESCE(gs.created_at, s.created_at) as "enrolledAt",
           p.first_name,
           p.last_name,
           p.email,
           p.phone
-        FROM students s
+        FROM group_students gs
+        JOIN students s ON gs.student_id = s.id
         LEFT JOIN user_profiles p ON s.profile_id = p.id
-        ORDER BY s.created_at DESC
-        LIMIT 12
+        WHERE gs.group_id = ${id}
+        ORDER BY gs.created_at DESC
       `;
-      students = studentRows.map((s: any, idx: number) => ({
+      students = studentRows.map((s: any) => ({
         id: s.id,
         name: `${s.first_name || ""} ${s.last_name || ""}`.trim() || "Tələbə",
         email: s.email || "",
         phone: s.phone || "",
         enrolledAt: s.enrolledAt || new Date().toISOString(),
-        paymentStatus: idx % 4 === 0 ? "PENDING" : "PAID",
-        attendanceRate: idx % 3 === 0 ? "90%" : "96%"
+        paymentStatus: "PAID",
+        attendanceRate: "100%"
       }));
     } catch (e) {
       console.error("Fetch group students error:", e);

@@ -6,7 +6,7 @@ import {
   CreditCard, Search, Download, Plus, Filter, 
   Calendar, CheckCircle2, AlertCircle, Clock, 
   ArrowRightLeft, Wallet, Building2, Phone, MessageSquare,
-  Sparkles, RefreshCw, Layers, ShieldCheck, Tag, Trash2, Edit, X
+  Sparkles, RefreshCw, Layers, ShieldCheck, Tag, Trash2, Edit, X, PieChart
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -139,6 +139,7 @@ export default function FinanceDashboardPage() {
   const [editExpense, setEditExpense] = useState<ExpenseRecord | null>(null);
   const [editAccount, setEditAccount] = useState<BankAccount | null>(null);
   const [editTx, setEditTx] = useState<DailyTransaction | null>(null);
+  const [hoveredPieIndex, setHoveredPieIndex] = useState<number | null>(null);
 
   // Dynamic Teachers & Subjects
   const [liveTeachers, setLiveTeachers] = useState<any[]>([]);
@@ -263,6 +264,75 @@ export default function FinanceDashboardPage() {
     });
     return { operationalExpenses: op, payrollExpenses: pay };
   }, [expenses]);
+
+  // Dynamic Expenses Pie Chart Data Breakdown
+  const expensePieData = useMemo(() => {
+    if (!expenses || expenses.length === 0) {
+      return { total: 0, items: [] };
+    }
+
+    const categoriesMap: Record<string, { key: string; label: string; color: string; paid: number; remaining: number; contract: number }> = {
+      payroll: { key: "payroll", label: t("pie.payroll"), color: "#38bdf8", paid: 0, remaining: 0, contract: 0 },
+      rent: { key: "rent", label: t("pie.rent"), color: "#818cf8", paid: 0, remaining: 0, contract: 0 },
+      marketing: { key: "marketing", label: t("pie.marketing"), color: "#f472b6", paid: 0, remaining: 0, contract: 0 },
+      utilities: { key: "utilities", label: t("pie.utilities"), color: "#fb923c", paid: 0, remaining: 0, contract: 0 },
+      taxes: { key: "taxes", label: t("pie.taxes"), color: "#34d399", paid: 0, remaining: 0, contract: 0 },
+      other: { key: "other", label: t("pie.other"), color: "#a78bfa", paid: 0, remaining: 0, contract: 0 },
+    };
+
+    expenses.forEach((e) => {
+      const cat = (e.category || "").toLowerCase();
+      const paid = Number(e.paid_amount || e.amount || 0);
+      const rem = Number(e.remaining_amount || 0);
+      const contract = Number(e.contract_amount || (paid + rem) || 0);
+
+      if (cat.includes("maaş") || cat.includes("tamerlan") || cat.includes("nadir") || cat.includes("nərgiz") || cat.includes("orxan") || cat.includes("humay") || cat.includes("adil") || cat.includes("javid") || cat.includes("ayan") || cat.includes("nailə")) {
+        categoriesMap.payroll.paid += paid;
+        categoriesMap.payroll.remaining += rem;
+        categoriesMap.payroll.contract += contract;
+      } else if (cat.includes("icarə") || cat.includes("rent") || cat.includes("ofis")) {
+        categoriesMap.rent.paid += paid;
+        categoriesMap.rent.remaining += rem;
+        categoriesMap.rent.contract += contract;
+      } else if (cat.includes("market") || cat.includes("smm") || cat.includes("reklam") || cat.includes("zeyn")) {
+        categoriesMap.marketing.paid += paid;
+        categoriesMap.marketing.remaining += rem;
+        categoriesMap.marketing.contract += contract;
+      } else if (cat.includes("kommunal") || cat.includes("internet") || cat.includes("rabitə") || cat.includes("işıq") || cat.includes("su") || cat.includes("qaz") || cat.includes("dəftərxana")) {
+        categoriesMap.utilities.paid += paid;
+        categoriesMap.utilities.remaining += rem;
+        categoriesMap.utilities.contract += contract;
+      } else if (cat.includes("vergi") || cat.includes("dsmf") || cat.includes("rəsmi") || cat.includes("bank")) {
+        categoriesMap.taxes.paid += paid;
+        categoriesMap.taxes.remaining += rem;
+        categoriesMap.taxes.contract += contract;
+      } else {
+        categoriesMap.other.paid += paid;
+        categoriesMap.other.remaining += rem;
+        categoriesMap.other.contract += contract;
+      }
+    });
+
+    const activeItems = Object.values(categoriesMap).filter((item) => item.contract > 0 || item.paid > 0);
+    const totalExpenses = activeItems.reduce((sum, item) => sum + (item.paid > 0 ? item.paid : item.contract), 0);
+
+    let accumulatedPercentage = 0;
+    const itemsWithPerc = activeItems.map((item, idx) => {
+      const val = item.paid > 0 ? item.paid : item.contract;
+      const percentage = totalExpenses > 0 ? (val / totalExpenses) * 100 : 0;
+      const startPerc = accumulatedPercentage;
+      accumulatedPercentage += percentage;
+      return {
+        ...item,
+        id: idx,
+        value: val,
+        percentage,
+        startPerc,
+      };
+    });
+
+    return { total: totalExpenses, items: itemsWithPerc };
+  }, [expenses, t]);
 
   // Teacher badge style
   const getTeacherBadgeClass = (teacher: string) => {
@@ -640,6 +710,144 @@ export default function FinanceDashboardPage() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* --- XƏRCLƏRİN PARÇALARA BÖLGÜSÜ (PIE CHART) --- */}
+      <div className={styles.pieSection}>
+        <div className={styles.pieHeader}>
+          <div className={styles.pieTitleGroup}>
+            <h3 className={styles.pieTitle}>
+              <PieChart size={20} style={{ color: "#38bdf8" }} />
+              <span>{t("pie.title")}</span>
+            </h3>
+            <p className={styles.pieSubtitle}>{t("pie.subtitle")}</p>
+          </div>
+          <span className={styles.pieBadge}>
+            {expensePieData.items.length} {t("pie.title").toLowerCase().includes("pie") ? "kateqoriya" : "kateqoriya"}
+          </span>
+        </div>
+
+        {expensePieData.items.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "2rem", color: "#64748b", fontSize: "0.9rem" }}>
+            {t("pie.empty")}
+          </div>
+        ) : (
+          <div className={styles.pieBody}>
+            {/* Donut Chart SVG */}
+            <div className={styles.pieSvgWrapper}>
+              <svg width="220" height="220" viewBox="0 0 220 220" style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
+                {/* Background Ring */}
+                <circle
+                  cx="110"
+                  cy="110"
+                  r="70"
+                  fill="none"
+                  stroke="rgba(255, 255, 255, 0.05)"
+                  strokeWidth="24"
+                />
+
+                {/* Data Segments */}
+                {expensePieData.items.map((item, idx) => {
+                  const circumference = 2 * Math.PI * 70; // ~439.82
+                  const strokeDasharray = `${Math.max(0.1, (item.percentage / 100) * circumference)} ${circumference}`;
+                  const strokeDashoffset = -((item.startPerc / 100) * circumference);
+                  const isHovered = hoveredPieIndex === idx;
+
+                  return (
+                    <circle
+                      key={item.id}
+                      cx="110"
+                      cy="110"
+                      r="70"
+                      fill="none"
+                      stroke={item.color}
+                      strokeWidth={isHovered ? 32 : 24}
+                      strokeDasharray={strokeDasharray}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      style={{
+                        cursor: "pointer",
+                        transition: "all 0.25s ease",
+                        opacity: hoveredPieIndex === null || isHovered ? 1 : 0.45,
+                        filter: isHovered ? `drop-shadow(0 0 8px ${item.color})` : "none",
+                      }}
+                      onMouseEnter={() => setHoveredPieIndex(idx)}
+                      onMouseLeave={() => setHoveredPieIndex(null)}
+                    />
+                  );
+                })}
+              </svg>
+
+              {/* Center Details */}
+              <div className={styles.pieCenterText}>
+                {hoveredPieIndex !== null && expensePieData.items[hoveredPieIndex] ? (
+                  <>
+                    <div className={styles.pieCenterAmount} style={{ color: expensePieData.items[hoveredPieIndex].color }}>
+                      {expensePieData.items[hoveredPieIndex].percentage.toFixed(1)}%
+                    </div>
+                    <div className={styles.pieCenterLabel} title={expensePieData.items[hoveredPieIndex].label}>
+                      {expensePieData.items[hoveredPieIndex].label}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "#f8fafc", fontWeight: 700, marginTop: "2px" }}>
+                      {expensePieData.items[hoveredPieIndex].value.toLocaleString()} ₼
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className={styles.pieCenterAmount} style={{ color: "#38bdf8" }}>
+                      {expensePieData.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ₼
+                    </div>
+                    <div className={styles.pieCenterLabel}>
+                      {t("pie.totalExpenses")}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Legend Cards */}
+            <div className={styles.pieLegendGrid}>
+              {expensePieData.items.map((item, idx) => {
+                const isHovered = hoveredPieIndex === idx;
+                return (
+                  <div
+                    key={item.id}
+                    className={`${styles.pieLegendItem} ${isHovered ? styles.pieLegendItemActive : ''}`}
+                    onMouseEnter={() => setHoveredPieIndex(idx)}
+                    onMouseLeave={() => setHoveredPieIndex(null)}
+                  >
+                    <div className={styles.pieLegendTop}>
+                      <div className={styles.pieLegendCategory}>
+                        <span className={styles.pieDot} style={{ background: item.color, boxShadow: isHovered ? `0 0 8px ${item.color}` : 'none' }} />
+                        <span>{item.label}</span>
+                      </div>
+                      <span className={styles.pieLegendPercent} style={{ color: item.color }}>
+                        {item.percentage.toFixed(1)}%
+                      </span>
+                    </div>
+
+                    <div className={styles.pieProgressBarBg}>
+                      <div
+                        className={styles.pieProgressBarFill}
+                        style={{
+                          width: `${Math.min(100, Math.max(2, item.percentage))}%`,
+                          backgroundColor: item.color
+                        }}
+                      />
+                    </div>
+
+                    <div className={styles.pieLegendBottom}>
+                      <span>{t("pie.paidExpenses")}: <strong style={{ color: "#10b981" }}>{item.paid.toLocaleString()} ₼</strong></span>
+                      {item.remaining > 0 && (
+                        <span>{t("pie.remainingDebt")}: <strong style={{ color: "#f87171" }}>-{item.remaining.toLocaleString()} ₼</strong></span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* --- 4 ƏSAS TAB --- */}
@@ -1727,6 +1935,17 @@ export default function FinanceDashboardPage() {
                   <div className={styles.formGroup}>
                     <label className={styles.label}>{t("modals.txAmount")}</label>
                     <input type="number" step="0.01" value={editTx.amount} onChange={(e) => setEditTx({ ...editTx, amount: Number(e.target.value) })} className={styles.input} required />
+                  </div>
+                </div>
+
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>{t("accounts.tableDate")}</label>
+                    <input type="date" value={editTx.date ? editTx.date.split("T")[0] : ""} onChange={(e) => setEditTx({ ...editTx, date: e.target.value })} className={styles.input} required />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>{t("accounts.tableCategory")}</label>
+                    <input type="text" value={editTx.category || ''} onChange={(e) => setEditTx({ ...editTx, category: e.target.value })} className={styles.input} />
                   </div>
                 </div>
 

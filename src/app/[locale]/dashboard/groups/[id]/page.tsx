@@ -205,6 +205,23 @@ export default function GroupDetailPage({
     }
   };
 
+  const handleRemoveStudent = async (studentId: string, studentName: string) => {
+    if (!confirm(`${studentName || "Tələbəni"} bu qrupdan çıxarmaq istədiyinizə əminsiniz?`)) return;
+    try {
+      const res = await fetch(`/api/groups/${id}/students?student_id=${studentId}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        toast.success("Tələbə qrupdan çıxarıldı");
+        fetchProfile();
+      } else {
+        toast.error(tToast("genericError"));
+      }
+    } catch {
+      toast.error(tToast("genericError"));
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm("Bu qrupu silmək istədiyinizə əminsiniz?")) return;
     try {
@@ -444,6 +461,7 @@ export default function GroupDetailPage({
                       <th>{t("email")}</th>
                       <th>{t("status")}</th>
                       <th>{t("attendanceRate")}</th>
+                      <th style={{ textAlign: "right" }}>Əməliyyat</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -462,6 +480,27 @@ export default function GroupDetailPage({
                           </span>
                         </td>
                         <td>{s.attendanceRate}</td>
+                        <td style={{ textAlign: "right" }}>
+                          <button 
+                            onClick={() => handleRemoveStudent(s.id, s.name)}
+                            style={{ 
+                              background: "rgba(239, 68, 68, 0.1)", 
+                              border: "1px solid rgba(239, 68, 68, 0.25)", 
+                              color: "#ef4444", 
+                              borderRadius: "6px", 
+                              padding: "4px 10px", 
+                              cursor: "pointer", 
+                              display: "inline-flex", 
+                              alignItems: "center", 
+                              gap: "4px", 
+                              fontSize: "0.8rem",
+                              fontWeight: 600
+                            }}
+                            title="Qrupdan çıxar"
+                          >
+                            <Trash2 size={13} /> Çıxar
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

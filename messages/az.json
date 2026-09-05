@@ -39,6 +39,7 @@
     "schedule": "Cədvəl",
     "finance": "Maliyyə",
     "tasks": "Tapşırıqlar",
+    "tasksSchedule": "Tasks schedule",
     "ai": "AI Köməkçi",
     "aiAssistant": "AI Köməkçi",
     "settings": "Tənzimləmələr",
@@ -470,6 +471,20 @@
       "income": "Mədaxil (+)",
       "expense": "Məxaric (-)",
       "transfer": "Transfer"
+    },
+    "pie": {
+      "title": "Xərclərin Parçalara Bölgüsü (Pie Chart)",
+      "subtitle": "Xərc maddələrinin və maaş fondunun ümumi xərclərdə faiz payı",
+      "totalExpenses": "Cəmi Xərclər",
+      "paidExpenses": "Ödənilən Xərclər",
+      "remainingDebt": "Qalıq Borc",
+      "payroll": "Maaş Fondu",
+      "rent": "İcarə & Ofis",
+      "marketing": "Marketinq & SMM",
+      "utilities": "Kommunal & İnternet",
+      "taxes": "Vergilər & Rəsmi",
+      "other": "Digər Əməliyyat",
+      "empty": "Bu dövr üzrə xərc qeydi yoxdur."
     },
     "expenses": {
       "btnAddExpense": "+ Yeni Xərc / Maaş Əlavə Et",

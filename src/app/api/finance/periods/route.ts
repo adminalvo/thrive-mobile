@@ -142,16 +142,22 @@ export async function POST(req: Request) {
       // Checks if new period already has enrollments, if not, clone from cloneFromPeriod!
       const existingEnrollments = await sql`SELECT id FROM student_course_enrollments WHERE period_code = ${code} LIMIT 1`;
       if (existingEnrollments.length === 0) {
+        // First try to clone from selected cloneFromPeriod
+        const sourceEnrollments = await sql`SELECT id FROM student_course_enrollments WHERE period_code = ${cloneFromPeriod} LIMIT 1`;
+        const effectiveSourcePeriod = sourceEnrollments.length > 0 
+          ? cloneFromPeriod 
+          : (await sql`SELECT period_code FROM student_course_enrollments ORDER BY created_at DESC LIMIT 1`)[0]?.period_code || cloneFromPeriod;
+
         await sql`
           INSERT INTO student_course_enrollments (
-            student_name, subject, type, teacher_name, payment_day, amount, lesson_count, 
+            student_id, student_name, subject, type, teacher_name, payment_day, amount, lesson_count, 
             status, payment_method, student_phone, parent_name, parent_phone, period_code
           )
           SELECT 
-            student_name, subject, type, teacher_name, payment_day, amount, lesson_count,
+            student_id, student_name, subject, type, teacher_name, payment_day, amount, lesson_count,
             'Not asked', NULL, student_phone, parent_name, parent_phone, ${code}
           FROM student_course_enrollments
-          WHERE period_code = ${cloneFromPeriod};
+          WHERE period_code = ${effectiveSourcePeriod};
         `;
       }
 
@@ -163,21 +169,49 @@ export async function POST(req: Request) {
         LIMIT 1
       `;
       if (existingExpenses.length === 0) {
-        // Fetch unique latest recurring expenses from previous period
-        await sql`
-          INSERT INTO expenses (category, amount, contract_amount, paid_amount, remaining_amount, expense_date, description)
-          SELECT 
-            category, 
-            0, 
-            COALESCE(contract_amount, amount, 0), 
-            0, 
-            COALESCE(contract_amount, amount, 0), 
-            ${startDate}::date, 
-            description
-          FROM expenses
-          WHERE (expense_date >= ${cloneFromPeriod + '-01'} AND expense_date <= ${cloneFromPeriod + '-31'})
+        // Fetch unique latest recurring expenses from previous period or overall standard expenses
+        const fromDate = cloneFromPeriod ? `${cloneFromPeriod}-01` : '2026-09-01';
+        const toDate = cloneFromPeriod ? `${cloneFromPeriod}-31` : '2026-09-31';
+
+        const sourceExpenses = await sql`
+          SELECT id FROM expenses 
+          WHERE (expense_date >= ${fromDate} AND expense_date <= ${toDate})
              OR created_at::text LIKE ${cloneFromPeriod + '%'}
+          LIMIT 1
         `;
+
+        if (sourceExpenses.length > 0) {
+          await sql`
+            INSERT INTO expenses (category, amount, contract_amount, paid_amount, remaining_amount, expense_date, description)
+            SELECT DISTINCT ON (category)
+              category, 
+              0, 
+              COALESCE(contract_amount, amount, 0), 
+              0, 
+              COALESCE(contract_amount, amount, 0), 
+              ${startDate}::date, 
+              description
+            FROM expenses
+            WHERE (expense_date >= ${fromDate} AND expense_date <= ${toDate})
+               OR created_at::text LIKE ${cloneFromPeriod + '%'}
+            ORDER BY category, created_at DESC
+          `;
+        } else {
+          // Fallback to distinct existing standard categories from the entire expenses table
+          await sql`
+            INSERT INTO expenses (category, amount, contract_amount, paid_amount, remaining_amount, expense_date, description)
+            SELECT DISTINCT ON (category)
+              category, 
+              0, 
+              COALESCE(contract_amount, amount, 0), 
+              0, 
+              COALESCE(contract_amount, amount, 0), 
+              ${startDate}::date, 
+              description
+            FROM expenses
+            ORDER BY category, created_at DESC
+          `;
+        }
       }
     });
 

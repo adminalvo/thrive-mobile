@@ -7,7 +7,7 @@ import { logAction } from "@/lib/logger";
 
 function isAuthorized(session: any) {
   if (!session?.user) return false;
-  const role = session.user.role || "";
+  const role = (session.user.role || "").toLowerCase();
   if (role === "super_admin" || role === "admin") return true;
 
   const email = (session.user.email || "").toLowerCase();
@@ -17,10 +17,13 @@ function isAuthorized(session: any) {
     email.includes("zeyn") ||
     email.includes("turalzeynalov") ||
     email.includes("yusifverdiyev") ||
+    email.includes("tamerlan") ||
+    email.includes("mehti") ||
     name.includes("tural") ||
     name.includes("zeynalov") ||
     name.includes("yusif") ||
-    name.includes("zeyn")
+    name.includes("zeyn") ||
+    name.includes("tamerlan")
   );
 }
 
@@ -33,6 +36,7 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
+    const dateFilter = searchParams.get("dateFilter");
 
     let schedules;
     if (type && type !== "all") {
@@ -74,7 +78,28 @@ export async function GET(req: Request) {
       `;
     }
 
-    return NextResponse.json(schedules);
+    // Dynamic Team Members for 1-click selection
+    const teamMembersRaw = await sql`
+      SELECT DISTINCT 
+        TRIM(CONCAT(p.first_name, ' ', COALESCE(p.last_name, ''))) as name
+      FROM auth.users u
+      JOIN public.user_profiles p ON u.id = p.user_id
+      WHERE p.first_name IS NOT NULL AND TRIM(p.first_name) != ''
+      ORDER BY name ASC
+    `.catch(() => []);
+
+    const standardNames = ["Tural Zeynalov", "Zeynmedia", "Tamerlan", "Yusif Verdiyev"];
+    const allNamesSet = new Set(standardNames);
+    teamMembersRaw.forEach((m: any) => {
+      if (m.name && m.name.trim().length > 1) allNamesSet.add(m.name.trim());
+    });
+    const teamMembers = Array.from(allNamesSet);
+
+    return NextResponse.json({
+      schedules,
+      teamMembers,
+      serverTime: new Date().toISOString()
+    });
   } catch (error: any) {
     console.error("Task Schedule GET Error:", error);
     return NextResponse.json({ error: error.message || "Failed to fetch schedules" }, { status: 500 });

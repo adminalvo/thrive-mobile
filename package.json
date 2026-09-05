@@ -45,6 +45,8 @@
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "adm-zip": "^0.6.0",
+    "archiver": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "prisma": "5.22.0",

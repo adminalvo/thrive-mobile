@@ -11,6 +11,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import styles from "./page.module.css";
 
 interface StudentEnrollment {

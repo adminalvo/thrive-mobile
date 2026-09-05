@@ -158,48 +158,88 @@ export async function PUT(req: Request) {
     if (!authorized) return errorResponse;
 
     const body = await req.json();
-    const { target, id, name, bank_name, account_number, initial_balance, amount, comment, category, date, type } = body;
+    const { target, id } = body;
 
     // A. Edit Daily Transaction
     if (target === "TRANSACTION") {
       if (!id) return NextResponse.json({ error: "Tranzaksiya ID tələb olunur" }, { status: 400 });
 
+      const txData: Record<string, any> = {};
+      if (body.amount !== undefined && body.amount !== null && body.amount !== "") {
+        txData.amount = Number(body.amount);
+      }
+      const finalComment = body.comment !== undefined ? body.comment : (body.description !== undefined ? body.description : undefined);
+      if (finalComment !== undefined) {
+        txData.comment = finalComment;
+      }
+      if (body.category !== undefined) {
+        txData.category = body.category;
+      }
+      if (body.type !== undefined) {
+        txData.type = body.type;
+      }
+      if (body.date !== undefined && body.date !== null && body.date !== "") {
+        txData.date = typeof body.date === "string" ? body.date.split("T")[0] : body.date;
+      }
+
+      if (Object.keys(txData).length === 0) {
+        return NextResponse.json({ error: "Yeniləmək üçün məlumat təqdim edilməyib" }, { status: 400 });
+      }
+
       const [updatedTx] = await sql`
         UPDATE account_transactions
-        SET 
-          amount = COALESCE(${amount ? Number(amount) : undefined}, amount),
-          comment = COALESCE(${comment}, comment),
-          category = COALESCE(${category}, category),
-          date = COALESCE(${date}::date, date),
-          type = COALESCE(${type}, type)
-        WHERE id = ${id}
+        SET ${sql(txData)}
+        WHERE id::text = ${String(id)}
         RETURNING *;
       `;
+
+      if (!updatedTx) {
+        return NextResponse.json({ error: "Tranzaksiya tapılmadı" }, { status: 404 });
+      }
+
+      await logAction("UPDATE_ACCOUNT_TRANSACTION", { id, ...txData }, (session?.user as any)?.id);
       return NextResponse.json({ success: true, data: updatedTx });
     }
 
     // B. Edit Bank Account
     if (!id) return NextResponse.json({ error: "Hesab ID tələb olunur" }, { status: 400 });
 
-    const finalName = name !== undefined ? (name || "").trim() : (body.name !== undefined ? (body.name || "").trim() : undefined);
-    const finalBankName = bank_name !== undefined ? (bank_name || "").trim() : (body.bankName !== undefined ? (body.bankName || "").trim() : undefined);
-    const finalAccountNumber = account_number !== undefined ? (account_number || "").trim() : (body.accountNumber !== undefined ? (body.accountNumber || "").trim() : undefined);
-    const rawBalance = initial_balance !== undefined ? initial_balance : body.initialBalance;
-    const finalInitialBalance = rawBalance !== undefined && rawBalance !== null && rawBalance !== "" ? Number(rawBalance) : undefined;
+    const updateData: Record<string, any> = {
+      updated_at: sql`NOW()`
+    };
+
+    const finalName = body.name !== undefined ? String(body.name).trim() : undefined;
+    if (finalName !== undefined && finalName !== "") {
+      updateData.name = finalName;
+    }
+
+    const finalBankName = body.bank_name !== undefined ? String(body.bank_name).trim() : (body.bankName !== undefined ? String(body.bankName).trim() : undefined);
+    if (finalBankName !== undefined && finalBankName !== "") {
+      updateData.bank_name = finalBankName;
+    }
+
+    const finalAccountNumber = body.account_number !== undefined ? String(body.account_number).trim() : (body.accountNumber !== undefined ? String(body.accountNumber).trim() : undefined);
+    if (finalAccountNumber !== undefined) {
+      updateData.account_number = finalAccountNumber;
+    }
+
+    const rawBalance = body.initial_balance !== undefined ? body.initial_balance : body.initialBalance;
+    if (rawBalance !== undefined && rawBalance !== null && rawBalance !== "") {
+      updateData.initial_balance = Number(rawBalance);
+    }
 
     const [updatedAcc] = await sql`
       UPDATE bank_accounts
-      SET 
-        name = COALESCE(${finalName}, name),
-        bank_name = COALESCE(${finalBankName}, bank_name),
-        account_number = COALESCE(${finalAccountNumber}, account_number),
-        initial_balance = COALESCE(${finalInitialBalance}, initial_balance),
-        updated_at = NOW()
-      WHERE id = ${id}
+      SET ${sql(updateData)}
+      WHERE id::text = ${String(id)} OR code = ${String(id)}
       RETURNING *;
     `;
 
-    await logAction("UPDATE_BANK_ACCOUNT", { id, name: finalName }, (session?.user as any)?.id);
+    if (!updatedAcc) {
+      return NextResponse.json({ error: "Hesab tapılmadı" }, { status: 404 });
+    }
+
+    await logAction("UPDATE_BANK_ACCOUNT", { id, name: updateData.name || finalName }, (session?.user as any)?.id);
     return NextResponse.json({ success: true, data: updatedAcc });
   } catch (error: any) {
     console.error("Accounts PUT error:", error);
@@ -219,13 +259,13 @@ export async function DELETE(req: Request) {
     if (!id) return NextResponse.json({ error: "ID tələb olunur" }, { status: 400 });
 
     if (target === "TRANSACTION") {
-      await sql`DELETE FROM account_transactions WHERE id = ${id}`;
+      await sql`DELETE FROM account_transactions WHERE id::text = ${String(id)}`;
       await logAction("DELETE_ACCOUNT_TRANSACTION", { id }, (session?.user as any)?.id);
       return NextResponse.json({ success: true, message: "Əməliyyat silindi" });
     }
 
     // Account delete / deactivation
-    await sql`UPDATE bank_accounts SET is_active = false WHERE id = ${id}`;
+    await sql`UPDATE bank_accounts SET is_active = false WHERE id::text = ${String(id)} OR code = ${String(id)}`;
     await logAction("DEACTIVATE_BANK_ACCOUNT", { id }, (session?.user as any)?.id);
 
     return NextResponse.json({ success: true, message: "Hesab deaktiv edildi" });

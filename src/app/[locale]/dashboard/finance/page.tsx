@@ -575,6 +575,8 @@ export default function FinanceDashboardPage() {
           name: editAccount.name,
           bankName: editAccount.bankName,
           bank_name: editAccount.bankName,
+          accountNumber: editAccount.accountNumber,
+          account_number: editAccount.accountNumber,
           initialBalance: editAccount.initialBalance,
           initial_balance: editAccount.initialBalance
         })
@@ -584,7 +586,8 @@ export default function FinanceDashboardPage() {
         setEditAccount(null);
         loadFinanceData(selectedPeriodCode);
       } else {
-        toast.error("Yenilənmə xətası");
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error || "Yenilənmə xətası");
       }
     } catch {
       toast.error("Xəta baş verdi");
@@ -600,7 +603,8 @@ export default function FinanceDashboardPage() {
         if (editAccount?.id === id) setEditAccount(null);
         loadFinanceData(selectedPeriodCode);
       } else {
-        toast.error("Hesabı silmək mümkün olmadı");
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error || "Hesabı silmək mümkün olmadı");
       }
     } catch {
       toast.error("Silinmə xətası");
@@ -615,12 +619,20 @@ export default function FinanceDashboardPage() {
       const res = await fetch("/api/finance/accounts", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target: "TRANSACTION", ...editTx })
+        body: JSON.stringify({ 
+          target: "TRANSACTION", 
+          ...editTx,
+          comment: editTx.description,
+          description: editTx.description
+        })
       });
       if (res.ok) {
         toast.success("Kassa əməliyyatı yeniləndi!");
         setEditTx(null);
         loadFinanceData(selectedPeriodCode);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error || "Yenilənmə xətası");
       }
     } catch {
       toast.error("Xəta baş verdi");
@@ -633,7 +645,11 @@ export default function FinanceDashboardPage() {
       const res = await fetch(`/api/finance/accounts?id=${id}&target=TRANSACTION`, { method: "DELETE" });
       if (res.ok) {
         toast.success("Əməliyyat silindi");
+        if (editTx?.id === id) setEditTx(null);
         loadFinanceData(selectedPeriodCode);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error || "Silinmə xətası");
       }
     } catch {
       toast.error("Silinmə xətası");
@@ -2114,9 +2130,20 @@ export default function FinanceDashboardPage() {
                   <input type="text" value={editTx.description} onChange={(e) => setEditTx({ ...editTx, description: e.target.value })} className={styles.input} required />
                 </div>
 
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.btnSecondary} onClick={() => setEditTx(null)}>{t("modals.cancel")}</button>
-                  <button type="submit" className={styles.btnPrimary}>{t("modals.save")}</button>
+                <div className={styles.modalActions} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <button 
+                    type="button" 
+                    className={styles.btnSecondary} 
+                    style={{ background: "rgba(239, 68, 68, 0.12)", color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)" }}
+                    onClick={() => handleDeleteTx(editTx.id)}
+                  >
+                    <Trash2 size={13} style={{ verticalAlign: "middle", marginRight: "4px" }} />
+                    Əməliyyatı Sil
+                  </button>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button type="button" className={styles.btnSecondary} onClick={() => setEditTx(null)}>{t("modals.cancel")}</button>
+                    <button type="submit" className={styles.btnPrimary}>{t("modals.save")}</button>
+                  </div>
                 </div>
               </form>
             </motion.div>

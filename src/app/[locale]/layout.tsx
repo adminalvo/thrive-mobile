@@ -1,5 +1,4 @@
-import type { Metadata } from "next";
-import { Nunito } from "next/font/google";
+import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -8,9 +7,10 @@ import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const nunito = Nunito({
-  subsets: ["latin", "cyrillic"], // Add cyrillic for Russian support
-  variable: "--font-inter", // Keep variable name same so global.css works without changes
+const inter = Inter({
+  subsets: ["latin", "latin-ext", "cyrillic"], // latin-ext provides native Azerbaijani Ə/ə support
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -46,7 +46,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <div className={nunito.variable} style={{ minHeight: "100vh" }}>
+    <div className={inter.variable} style={{ minHeight: "100vh" }}>
       <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
         <AuthProvider>
           <NextIntlClientProvider messages={messages}>

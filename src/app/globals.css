@@ -33,17 +33,23 @@
 }
 
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
+
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  font-family: 'Roboto', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
 }
 
 body {
   color: var(--text-primary);
   background: var(--deep-navy);
-  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  font-family: 'Roboto', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-image: 
     radial-gradient(circle at 15% 50%, rgba(0, 63, 130, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 85% 30%, rgba(76, 162, 181, 0.1) 0%, transparent 50%);
@@ -55,8 +61,8 @@ a {
   text-decoration: none;
 }
 
-button {
-  font-family: inherit;
+button, input, select, textarea {
+  font-family: 'Roboto', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
 }
 
 /* Fix for select options having white text on white background in dark theme */

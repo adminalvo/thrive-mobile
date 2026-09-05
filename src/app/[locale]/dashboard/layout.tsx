@@ -29,7 +29,6 @@ import NotificationsDropdown from "@/components/NotificationsDropdown";
 import GlobalSearch from "@/components/GlobalSearch";
 import Sidebar from "@/components/Sidebar";
 import SettingsSlideover from "@/components/SettingsSlideover";
-import AiChatbot from "@/components/AiChatbot";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
 export default function DashboardLayout({
@@ -126,7 +125,6 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
-      <AiChatbot />
       
       <SettingsSlideover 
         isOpen={settingsOpen} 

@@ -22,7 +22,10 @@ export default async function middleware(req: NextRequest) {
     }
   }
 
-  const secret = process.env.NEXTAUTH_SECRET || "ThriveCRM_Secret_Key_2026!@#";
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    console.error("CRITICAL CONFIG ERROR: NEXTAUTH_SECRET is not set in environment variables!");
+  }
 
   // API Route Protection
   if (isApiRoute) {

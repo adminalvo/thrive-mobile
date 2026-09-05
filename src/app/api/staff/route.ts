@@ -13,10 +13,12 @@ export async function GET() {
         p.first_name, 
         p.last_name,
         p.phone,
-        r.is_active
+        r.is_active,
+        COALESCE(s.base_amount, 0)::float as base_salary
       FROM auth.users u
       JOIN user_roles r ON u.id = r.user_id
       LEFT JOIN user_profiles p ON u.id = p.user_id
+      LEFT JOIN staff_salaries s ON u.id = s.user_id
       WHERE r.role IN ('super_admin', 'admin', 'staff', 'sales', 'teacher')
         AND r.is_active = true
         AND p.first_name IS NOT NULL
@@ -46,6 +48,7 @@ export async function GET() {
           email: s.email,
           role: s.role,
           phone: s.phone || "",
+          baseSalary: s.base_salary || 0,
           isActive: true
         });
       } else {
@@ -66,7 +69,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { email, password, firstName, lastName, phone, role, permissions } = await req.json();
+    const { email, password, firstName, lastName, phone, role, permissions, baseSalary } = await req.json();
 
     if (!email || !password || !firstName || !role) {
       return NextResponse.json({ error: "Bütün vacib xanaları doldurun" }, { status: 400 });
@@ -99,6 +102,14 @@ export async function POST(req: Request) {
         INSERT INTO user_roles (user_id, role, is_active)
         VALUES (${userId}, ${role}, true)
       `;
+
+      if (baseSalary !== undefined && baseSalary !== null && Number(baseSalary) > 0) {
+        await tx`
+          INSERT INTO staff_salaries (user_id, salary_type, base_amount)
+          VALUES (${userId}, 'MONTHLY_FIXED', ${Number(baseSalary)})
+          ON CONFLICT (user_id) DO NOTHING
+        `;
+      }
 
       if (permissions && typeof permissions === 'object') {
         const modules = Object.keys(permissions);

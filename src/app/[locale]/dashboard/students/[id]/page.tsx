@@ -377,6 +377,7 @@ export default function StudentDetailPage({
   }
 
   const { student, groups, payments, attendance, stats: apiStats, parents } = data as any;
+  const enrollments = (data as any)?.enrollments || [];
 
   const stats = {
     totalPaid: payments.reduce((acc: number, curr: any) => acc + (curr.paidAmount || 0), 0),
@@ -619,6 +620,38 @@ export default function StudentDetailPage({
                 <span className={styles.infoValue}>{student?.joinDate ? new Date(student.joinDate).toLocaleDateString() : "-"}</span>
               </div>
             </div>
+
+            {enrollments.length > 0 && (
+              <div style={{ marginTop: "1.8rem", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "1.2rem" }}>
+                <h4 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#00c4b5", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <BookOpen size={16} /> Maliyyə və Dərs Qeydiyyatları
+                </h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "10px" }}>
+                  {enrollments.map((en: any, idx: number) => (
+                    <div key={idx} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", padding: "12px 14px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <span style={{ fontWeight: 700, fontSize: "0.92rem", color: "#fff" }}>{en.subject}</span>
+                        <span style={{ 
+                          fontSize: "0.75rem", 
+                          fontWeight: 700, 
+                          padding: "2px 8px", 
+                          borderRadius: "4px",
+                          background: en.status === "Paid" ? "rgba(34, 197, 94, 0.15)" : (en.status === "Asked" ? "rgba(245, 158, 11, 0.15)" : "rgba(239, 68, 68, 0.15)"),
+                          color: en.status === "Paid" ? "#22c55e" : (en.status === "Asked" ? "#f59e0b" : "#ef4444")
+                        }}>
+                          {en.status === "Paid" ? "Ödənilib" : (en.status === "Asked" ? "Tələb edildi" : "Gözləyir")}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "0.82rem", color: "#94a3b8", display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <div>👨‍🏫 <strong>Müəllim:</strong> {en.teacher_name || "—"}</div>
+                        <div>📅 <strong>Ödəniş günü:</strong> Hər ayın {en.payment_day}-i</div>
+                        <div>💰 <strong>Məbləğ:</strong> {en.amount} ₼ ({en.lesson_count || 8} dərs)</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 

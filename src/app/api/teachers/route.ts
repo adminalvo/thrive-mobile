@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import bcrypt from "bcrypt";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { checkRoleGuard } from "@/lib/permissions";
+import { logAction } from "@/lib/logger";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    const { authorized, errorResponse } = await checkRoleGuard(["super_admin", "admin", "staff", "teacher"]);
+    if (!authorized) {
+      return errorResponse;
     }
 
     const teachers = await sql`
@@ -50,9 +50,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    const { authorized, errorResponse, session } = await checkRoleGuard(["super_admin", "admin"]);
+    if (!authorized) {
+      return errorResponse;
     }
 
     const data = await req.json();

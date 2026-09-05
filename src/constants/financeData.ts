@@ -85,6 +85,23 @@ export interface CoursePriceStandard {
 // 0. Official Company Financial Periods & Archive Registry
 export const INITIAL_FINANCIAL_PERIODS: FinancialPeriod[] = [
   {
+    id: 'fp-2026-09',
+    code: '2026-09',
+    name: 'Sentyabr 2026',
+    startDate: '2026-09-01',
+    endDate: '2026-09-30',
+    status: 'ACTIVE',
+    openingBalance: 0,
+    totalRevenue: 0,
+    totalExpenses: 0,
+    netProfit: 0,
+    profitMargin: '0.0%',
+    collectionRate: '0.0%',
+    enrolledStudentsCount: 0,
+    notes: 'Yeni aktiv maliyyə dövrü. Əməliyyatlar icra olunduqca canlı hesablanacaq.',
+    officialCertificateNo: 'TRV-FIN-2026-09-ACT'
+  },
+  {
     id: 'fp-2026-08',
     code: '2026-08',
     name: 'Avqust 2026',
@@ -98,7 +115,7 @@ export const INITIAL_FINANCIAL_PERIODS: FinancialPeriod[] = [
     profitMargin: '42.50%',
     collectionRate: '94.2%',
     enrolledStudentsCount: 76,
-    notes: 'Cari aktiv maliyyə dövrü. Tədris qəbulları və SAT imtahan hazırlığı.',
+    notes: 'Avqust ayı intensiv hazırlıq dövrü. Tədris qəbulları və SAT imtahan hazırlığı.',
     officialCertificateNo: 'TRV-FIN-2026-08-ACT'
   },
   {
@@ -287,7 +304,7 @@ export const INITIAL_ACCOUNT_REGISTERS: BankAccountRegister[] = [
   }
 ];
 
-// 2. Branch Financials (Nizami & Nərimanov P&L)
+// 2. Branch Financials
 export const BRANCH_FINANCIALS: BranchFinancials[] = [
   {
     branchId: 'nizami',
@@ -310,23 +327,6 @@ export const BRANCH_FINANCIALS: BranchFinancials[] = [
       { category: 'Rent (İcarə)', amount: 4000, recipient: 'Mülkiyyətçi', note: 'İyul ayı ofis icarəsi', periodCode: '2026-07' },
       { category: 'Müəllim Maaşı', amount: 2600, recipient: 'SAT Heyəti', note: 'İyul ayı dərsləri', periodCode: '2026-07' },
       { category: 'Kommunal & İnternet', amount: 480, recipient: 'Kommunal', note: 'İyul ayı kommunal', periodCode: '2026-07' }
-    ]
-  },
-  {
-    branchId: 'narimanov',
-    branchName: 'Nərimanov Filialı',
-    totalRevenue: 14850,
-    totalExpenses: 9420,
-    netProfit: 5430,
-    profitMargin: '36.56%',
-    expenseBreakdown: [
-      { category: 'Rent (İcarə)', amount: 3200, recipient: 'Mülkiyyətçi', note: 'Nərimanov korpusu', periodCode: '2026-08' },
-      { category: 'Müəllim Maaşı', amount: 3500, recipient: 'Fakültə Müəllimləri', note: 'DİM & SAT hazırlığı', periodCode: '2026-08' },
-      { category: 'Kommunal & Ofis', amount: 420, recipient: 'Kommunal', note: 'Kommunal xidmətlər', periodCode: '2026-08' },
-      { category: 'Marketinq & Promo', amount: 600, recipient: 'SMM Reklam', note: 'Lokal təbliğat', periodCode: '2026-08' },
-      // July 2026
-      { category: 'Rent (İcarə)', amount: 3200, recipient: 'Mülkiyyətçi', note: 'İyul ayı Nərimanov icarəsi', periodCode: '2026-07' },
-      { category: 'Müəllim Maaşı', amount: 2400, recipient: 'Müəllim heyəti', note: 'İyul ayı hazırlığı', periodCode: '2026-07' }
     ]
   }
 ];

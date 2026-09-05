@@ -1,11 +1,16 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import sql from "@/lib/db";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { checkRoleGuard } from "@/lib/permissions";
+import { logAction } from "@/lib/logger";
 
 export async function GET() {
   try {
+    const { authorized, errorResponse } = await checkRoleGuard(["super_admin", "admin", "staff", "teacher"]);
+    if (!authorized) {
+      return errorResponse;
+    }
+
     const leads = await sql`
       SELECT l.*, p.first_name, p.last_name 
       FROM leads l
@@ -30,8 +35,12 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    const userId = session?.user?.id || null;
+    const { authorized, errorResponse, session } = await checkRoleGuard(["super_admin", "admin", "staff"]);
+    if (!authorized) {
+      return errorResponse;
+    }
+
+    const userId = (session?.user as any)?.id || null;
 
     const body = await req.json();
     const { 
@@ -47,38 +56,31 @@ export async function POST(req: Request) {
       notes 
     } = body;
 
-    const validStatus = ["NEW", "CONTACTED", "TRIAL", "REGISTERED", "LOST"].includes(status) ? status : "NEW";
-    const programsJson = Array.isArray(programs) ? JSON.stringify(programs) : '[]';
-
-    const lead = await sql`
+    const result = await sql`
       INSERT INTO leads (
-        name, phone, email, source, status, created_by,
-        parent_name, parent_phone, programs, lesson_type, notes
+        name, phone, email, source, status, 
+        parent_name, parent_phone, programs, 
+        lesson_type, notes, created_by
       )
       VALUES (
         ${name}, 
         ${phone}, 
         ${email || null}, 
-        ${source || 'Instagram'}, 
-        ${validStatus}, 
-        ${userId},
+        ${source || 'other'}, 
+        ${status || 'new'}, 
         ${parent_name || null}, 
         ${parent_phone || null}, 
-        ${programsJson}::jsonb, 
+        ${JSON.stringify(programs || [])}, 
         ${lesson_type || 'group'}, 
-        ${notes || null}
+        ${notes || null}, 
+        ${userId}
       )
       RETURNING *
     `;
 
-    const cleanLead = {
-      ...lead[0],
-      programs: Array.isArray(lead[0].programs) 
-        ? lead[0].programs 
-        : (typeof lead[0].programs === 'string' ? JSON.parse(lead[0].programs || '[]') : [])
-    };
+    await logAction("CREATE_LEAD", { leadId: result[0].id, name, phone }, userId);
 
-    return NextResponse.json(cleanLead);
+    return NextResponse.json(result[0]);
   } catch (error) {
     console.error("Leads POST error:", error);
     return NextResponse.json({ error: "Failed to create lead" }, { status: 500 });

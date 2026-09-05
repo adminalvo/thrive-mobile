@@ -57,32 +57,76 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       console.error("Fetch student parents error:", e);
     }
 
-    // 3. Fetch student invoices/payments
+    // 3. Fetch student payments and course enrollments
     let payments: any[] = [];
+    let enrollments: any[] = [];
     try {
-      const paymentRows = await sql`
-        SELECT 
-          i.id,
-          i.amount,
-          i.status,
-          i.created_at,
-          COALESCE((SELECT SUM(amount) FROM payments p WHERE p.invoice_id = i.id), 0) as paid_amount
-        FROM invoices i
-        WHERE i.student_id = ${id} OR i.student_id = ${s.user_id} OR i.student_id = ${s.profile_id}
-        ORDER BY i.created_at DESC
-      `;
-      payments = paymentRows.map((p: any) => {
-        const amt = Number(p.amount) || 0;
-        const paidAmt = Number(p.paid_amount) || 0;
-        return {
+      const [paymentRows, enrollmentRows] = await Promise.all([
+        sql`
+          SELECT 
+            p.id,
+            p.amount::float as amount,
+            p.paid_amount::float as paid_amount,
+            p.status,
+            p.payment_method,
+            COALESCE(p.payment_date, p.created_at)::text as date,
+            p.created_at::text as "dueDate"
+          FROM payments p
+          WHERE p.student_id = ${id}
+          ORDER BY p.payment_date DESC, p.created_at DESC
+        `,
+        sql`
+          SELECT 
+            id,
+            subject,
+            type,
+            teacher_name,
+            payment_day,
+            amount::float as amount,
+            lesson_count,
+            status,
+            payment_method,
+            period_code
+          FROM student_course_enrollments
+          WHERE student_id = ${id}
+          ORDER BY created_at DESC
+        `
+      ]);
+
+      enrollments = enrollmentRows || [];
+
+      if (paymentRows && paymentRows.length > 0) {
+        payments = paymentRows.map((p: any) => ({
           id: p.id,
-          amount: amt,
-          paidAmount: paidAmt,
-          status: p.status || (paidAmt >= amt && amt > 0 ? "PAID" : "PENDING"),
-          date: p.created_at || new Date().toISOString(),
-          dueDate: p.created_at || new Date().toISOString()
-        };
-      });
+          amount: Number(p.amount) || 0,
+          paidAmount: Number(p.paid_amount || p.amount) || 0,
+          status: p.status || "PAID",
+          paymentMethod: p.payment_method || "Nağd",
+          date: p.date || new Date().toISOString(),
+          dueDate: p.dueDate || new Date().toISOString()
+        }));
+      } else {
+        // Fallback to invoice payments
+        const invoiceRows = await sql`
+          SELECT 
+            i.id,
+            i.amount::float as amount,
+            i.status,
+            i.created_at::text as date,
+            COALESCE((SELECT SUM(amount) FROM payments p WHERE p.invoice_id = i.id), 0)::float as paid_amount
+          FROM invoices i
+          WHERE i.student_id = ${id} OR i.student_id = ${s.user_id} OR i.student_id = ${s.profile_id}
+          ORDER BY i.created_at DESC
+        `;
+        payments = invoiceRows.map((p: any) => ({
+          id: p.id,
+          amount: Number(p.amount) || 0,
+          paidAmount: Number(p.paid_amount) || 0,
+          status: p.status || (Number(p.paid_amount) >= Number(p.amount) ? "PAID" : "PENDING"),
+          date: p.date || new Date().toISOString(),
+          dueDate: p.date || new Date().toISOString()
+        }));
+      }
     } catch (e) {
       console.error("Fetch student payments error:", e);
     }
@@ -195,6 +239,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       parents: parentsList,
       groups,
       payments,
+      enrollments,
       attendance,
       stats: {
         totalPaid,

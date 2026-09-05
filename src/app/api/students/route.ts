@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import bcrypt from "bcrypt";
 import { logAction } from "@/lib/logger";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { checkRoleGuard } from "@/lib/permissions";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    const { authorized, errorResponse } = await checkRoleGuard(["super_admin", "admin", "staff", "teacher"]);
+    if (!authorized) {
+      return errorResponse;
     }
 
     const [students, studentProgramsList, groupStudentsList] = await Promise.all([
@@ -83,9 +82,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 401 });
+    const { authorized, errorResponse, session } = await checkRoleGuard(["super_admin", "admin", "staff"]);
+    if (!authorized) {
+      return errorResponse;
     }
 
     const data = await req.json();
@@ -254,6 +253,32 @@ export async function POST(req: Request) {
           ON CONFLICT (user_id) DO NOTHING
         `;
       }
+
+      // 6. Finance Integration: Auto-enroll student into active Finance period roster
+      const firstProgram = Array.isArray(programs) && programs.length > 0 ? programs[0] : (data.program || "General English");
+      const currentPayDay = new Date().getDate() <= 30 ? new Date().getDate() : 1;
+      const cleanStudentFullName = `${firstName} ${lastName}`.trim();
+
+      await tx`
+        INSERT INTO student_course_enrollments (
+          student_id, student_name, subject, type, teacher_name, payment_day, amount, lesson_count, status, student_phone, parent_name, parent_phone, period_code
+        )
+        VALUES (
+          ${studentId},
+          ${cleanStudentFullName},
+          ${firstProgram},
+          'Group',
+          'Tamerlan',
+          ${currentPayDay},
+          ${parsedPayment || 270},
+          8,
+          'Not asked',
+          ${phone || ''},
+          ${parentName || ''},
+          ${parentPhone || ''},
+          '2026-09'
+        )
+      `;
     });
 
     await logAction("CREATE_STUDENT", { studentId, name: `${firstName} ${lastName}`.trim(), email });

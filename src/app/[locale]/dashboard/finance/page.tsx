@@ -101,7 +101,10 @@ export default function FinanceDashboardPage() {
   // Modals for Operations
   const [showCollectModal, setShowCollectModal] = useState<boolean>(false);
   const [targetEnrollment, setTargetEnrollment] = useState<StudentEnrollment | null>(null);
-  const [collectForm, setCollectForm] = useState({ paymentMethod: 'ABB Card', accountId: '', amount: '' });
+  const [collectForm, setCollectForm] = useState({ paymentMethod: 'Nəğd Kassa (Resepşn)', accountId: '', amount: '', note: '' });
+
+  const [showBatchCollectModal, setShowBatchCollectModal] = useState<boolean>(false);
+  const [batchCollectForm, setBatchCollectForm] = useState({ accountId: '', paymentMethod: 'Nəğd Kassa (Resepşn)', note: '' });
 
   const [showAddStudentModal, setShowAddStudentModal] = useState<boolean>(false);
   const [studentForm, setStudentForm] = useState({
@@ -239,6 +242,36 @@ export default function FinanceDashboardPage() {
 
   const uniqueTeachers = allTeachers;
 
+  // Account Separation Helpers
+  const isPersonalAccount = (acc: { code?: string; name?: string; bankName?: string; bank_name?: string }) => {
+    const code = (acc.code || '').toLowerCase();
+    const name = (acc.name || '').toLowerCase();
+    const bank = (acc.bankName || acc.bank_name || '').toLowerCase();
+    return code === 'tamerlan' || code.includes('tamerlan') || name.includes('tamerlan') || bank.includes('tamerlan');
+  };
+
+  const isTestAccount = (acc: { name?: string; code?: string }) => {
+    const name = (acc.name || '').toLowerCase();
+    const code = (acc.code || '').toLowerCase();
+    return name.includes('test') || code.includes('test');
+  };
+
+  const operatingAccounts = useMemo(() => {
+    return (accounts || []).filter(a => a.is_active !== false && !isPersonalAccount(a));
+  }, [accounts]);
+
+  const personalAccounts = useMemo(() => {
+    return (accounts || []).filter(a => a.is_active !== false && isPersonalAccount(a));
+  }, [accounts]);
+
+  const totalOperatingCash = useMemo(() => {
+    return operatingAccounts.reduce((sum, a) => sum + Number(a.initialBalance || 0), 0);
+  }, [operatingAccounts]);
+
+  const totalPersonalCash = useMemo(() => {
+    return personalAccounts.reduce((sum, a) => sum + Number(a.initialBalance || 0), 0);
+  }, [personalAccounts]);
+
   // KPIs
   const kpis = useMemo(() => {
     const totalTarget = enrollments.reduce((sum, e) => sum + Number(e.amount || 0), 0);
@@ -248,7 +281,6 @@ export default function FinanceDashboardPage() {
     const totalExpensePaid = expenses.reduce((sum, e) => sum + Number(e.paid_amount || e.amount || 0), 0);
     const totalRemainingDebt = expenses.reduce((sum, e) => sum + Number(e.remaining_amount || 0), 0);
     const netProfit = (paidSum || totalTarget) - totalExpensePaid;
-    const totalCash = accounts.reduce((sum, a) => sum + Number(a.initialBalance || 0), 0);
 
     return {
       totalTarget: totalTarget || 20595,
@@ -256,9 +288,10 @@ export default function FinanceDashboardPage() {
       totalExpensePaid: totalExpensePaid || 11295,
       totalRemainingDebt: totalRemainingDebt || 6803,
       netProfit: netProfit || 9300,
-      totalCash: totalCash || 7316
+      totalCash: totalOperatingCash,
+      totalPersonalCash: totalPersonalCash
     };
-  }, [enrollments, expenses, accounts]);
+  }, [enrollments, expenses, totalOperatingCash, totalPersonalCash]);
 
   // Operational vs Payroll expenses
   const { operationalExpenses, payrollExpenses } = useMemo(() => {
@@ -344,9 +377,9 @@ export default function FinanceDashboardPage() {
     return { total: totalExpenses, items: itemsWithPerc };
   }, [expenses, t]);
 
-  // Dynamic Accounts Balance Pie Chart Data Breakdown
+  // Dynamic Accounts Balance Pie Chart Data Breakdown (Excluding personal account)
   const balancePieData = useMemo(() => {
-    const activeAccounts = (accounts || []).filter(a => a.is_active !== false);
+    const activeAccounts = operatingAccounts;
     const total = activeAccounts.reduce((sum, a) => sum + Math.max(0, Number(a.initialBalance) || 0), 0);
     
     if (activeAccounts.length === 0 || total === 0) {
@@ -387,7 +420,7 @@ export default function FinanceDashboardPage() {
     });
 
     return { total, items: itemsWithPerc };
-  }, [accounts]);
+  }, [operatingAccounts]);
 
   // Teacher badge style
   const getTeacherBadgeClass = (teacher: string) => {
@@ -419,10 +452,18 @@ export default function FinanceDashboardPage() {
   // Collect Payment
   const handleOpenCollect = (item: StudentEnrollment) => {
     setTargetEnrollment(item);
+    const opAccs = accounts.filter(a => a.is_active !== false && !isPersonalAccount(a) && !isTestAccount(a));
+    let defaultAcc = opAccs.find(a => 
+      item.payment_method && a.name.toLowerCase().includes(item.payment_method.toLowerCase())
+    );
+    if (!defaultAcc) {
+      defaultAcc = opAccs.find(a => a.name.toLowerCase().includes('nəğd') || a.code === 'nagd') || opAccs[0] || accounts[0];
+    }
     setCollectForm({
-      paymentMethod: item.payment_method || 'ABB Card',
-      accountId: accounts[1]?.id || accounts[0]?.id || '',
-      amount: item.amount.toString()
+      paymentMethod: defaultAcc?.name || item.payment_method || 'Nəğd Kassa (Resepşn)',
+      accountId: defaultAcc?.id || '',
+      amount: item.amount.toString(),
+      note: `${item.student_name} - ${item.subject} təhsil haqqı`
     });
     setShowCollectModal(true);
   };
@@ -431,9 +472,11 @@ export default function FinanceDashboardPage() {
     e.preventDefault();
     if (!targetEnrollment) return;
     const payAmt = Number(collectForm.amount) || targetEnrollment.amount;
+    const chosenAcc = accounts.find(a => a.id === collectForm.accountId);
+    const methodToSave = chosenAcc ? chosenAcc.name : (collectForm.paymentMethod || 'Nəğd Kassa (Resepşn)');
 
     setEnrollments(prev => prev.map(e => e.id === targetEnrollment.id ? { 
-      ...e, status: 'Paid', payment_method: collectForm.paymentMethod 
+      ...e, status: 'Paid', payment_method: methodToSave 
     } : e));
     setShowCollectModal(false);
     toast.success(t("status.paid"));
@@ -446,8 +489,9 @@ export default function FinanceDashboardPage() {
           action: "COLLECT_PAYMENT",
           id: targetEnrollment.id,
           amount: payAmt,
-          paymentMethod: collectForm.paymentMethod,
-          accountId: collectForm.accountId,
+          paymentMethod: methodToSave,
+          accountId: collectForm.accountId || chosenAcc?.id,
+          note: collectForm.note,
           periodCode: selectedPeriodCode
         })
       });
@@ -460,8 +504,23 @@ export default function FinanceDashboardPage() {
   // Batch Status
   const handleBatchMark = async (status: 'Asked' | 'Paid' | 'Not asked') => {
     if (selectedIds.length === 0) return;
+    
+    if (status === 'Paid') {
+      // Prompt user to select target account for batch deposit
+      const opAccs = accounts.filter(a => a.is_active !== false && !isPersonalAccount(a) && !isTestAccount(a));
+      const defAcc = opAccs.find(a => a.name.toLowerCase().includes('nəğd') || a.code === 'nagd') || opAccs[0] || accounts[0];
+      setBatchCollectForm({
+        accountId: defAcc?.id || '',
+        paymentMethod: defAcc?.name || 'Nəğd Kassa (Resepşn)',
+        note: 'Toplu tələbə ödənişi'
+      });
+      setShowBatchCollectModal(true);
+      return;
+    }
+
     setEnrollments(prev => prev.map(e => selectedIds.includes(e.id) ? { ...e, status } : e));
     const count = selectedIds.length;
+    const toProcess = [...selectedIds];
     setSelectedIds([]);
     toast.success(`${count} tələbə yeniləndi`);
 
@@ -469,7 +528,39 @@ export default function FinanceDashboardPage() {
       await fetch("/api/finance/student-payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "BATCH_STATUS", ids: selectedIds, status })
+        body: JSON.stringify({ action: "BATCH_STATUS", ids: toProcess, status, periodCode: selectedPeriodCode })
+      });
+      loadFinanceData(selectedPeriodCode);
+    } catch {
+      toast.error("Xəta baş verdi");
+    }
+  };
+
+  const handleConfirmBatchCollect = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedIds.length === 0) return;
+    const chosenAcc = accounts.find(a => a.id === batchCollectForm.accountId);
+    const methodToSave = chosenAcc ? chosenAcc.name : (batchCollectForm.paymentMethod || 'Nəğd Kassa (Resepşn)');
+
+    setEnrollments(prev => prev.map(e => selectedIds.includes(e.id) ? { ...e, status: 'Paid', payment_method: methodToSave } : e));
+    const count = selectedIds.length;
+    const toProcessIds = [...selectedIds];
+    setSelectedIds([]);
+    setShowBatchCollectModal(false);
+    toast.success(`${count} tələbənin ödənişi qəbul edildi`);
+
+    try {
+      await fetch("/api/finance/student-payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "BATCH_STATUS",
+          ids: toProcessIds,
+          status: "Paid",
+          accountId: batchCollectForm.accountId || chosenAcc?.id,
+          paymentMethod: methodToSave,
+          periodCode: selectedPeriodCode
+        })
       });
       loadFinanceData(selectedPeriodCode);
     } catch {
@@ -832,9 +923,16 @@ export default function FinanceDashboardPage() {
             <div className={styles.kpiValue} style={{ color: "#fbbf24" }}>
               {kpis.totalCash.toLocaleString(undefined, { minimumFractionDigits: 2 })} ₼
             </div>
-            <span className={styles.kpiSub} style={{ color: "#94a3b8" }}>
-              {t("kpis.activeAccounts")}
-            </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", marginTop: "0.25rem" }}>
+              <span className={styles.kpiSub} style={{ color: "#94a3b8" }}>
+                {operatingAccounts.length} aktiv şirkət hesabı
+              </span>
+              {kpis.totalPersonalCash > 0 && (
+                <span style={{ fontSize: "0.75rem", color: "#c084fc", fontWeight: 600 }}>
+                  👤 Şəxsi (Tamerlan): {kpis.totalPersonalCash.toLocaleString(undefined, { minimumFractionDigits: 2 })} ₼ (ayrılıb)
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1113,6 +1211,43 @@ export default function FinanceDashboardPage() {
                   );
                 })}
               </div>
+
+              {personalAccounts.length > 0 && (
+                <div style={{
+                  marginTop: "0.85rem",
+                  padding: "0.75rem 1rem",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(30, 41, 59, 0.7) 100%)",
+                  border: "1px solid rgba(168, 85, 247, 0.28)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: "0.75rem"
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+                    <div style={{ background: "rgba(168, 85, 247, 0.2)", padding: "0.3rem 0.55rem", borderRadius: "6px", color: "#c084fc", fontWeight: 700, fontSize: "0.82rem" }}>
+                      👤 Şəxsi Hesab
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#f8fafc" }}>
+                        {personalAccounts.map(a => a.name).join(', ')}
+                      </div>
+                      <div style={{ fontSize: "0.72rem", color: "#c084fc" }}>
+                        Şirkətin operativ kassa balansına qatılmır (Ayrılmış şəxsi vəsait)
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#c084fc" }}>
+                      {totalPersonalCash.toLocaleString(undefined, { minimumFractionDigits: 2 })} AZN
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>
+                      {personalAccounts[0]?.bankName || "Paşa Bank"}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1608,42 +1743,111 @@ export default function FinanceDashboardPage() {
             </button>
           </div>
 
-          <div className={styles.kpiGrid}>
-            {accounts.map((acc) => (
-              <div key={acc.id} className={styles.kpiCard} style={{ position: "relative" }}>
-                <div className={styles.kpiIconWrapper} style={{ background: "rgba(56, 189, 248, 0.12)", color: "#38bdf8" }}>
-                  <Building2 size={22} />
-                </div>
-                <div className={styles.kpiDetails} style={{ flex: 1, paddingRight: "3.5rem" }}>
-                  <span className={styles.kpiLabel}>{acc.name}</span>
-                  <div className={styles.kpiValue} style={{ color: "#38bdf8", fontSize: "1.45rem" }}>
-                    {acc.initialBalance.toFixed(2)} {acc.currency}
+          {/* 1. Şirkət Əməliyyat Hesabları və Kassalar */}
+          <div style={{ marginBottom: "1.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ fontSize: "1rem" }}>🏢</span>
+                <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "#ffffff" }}>
+                  Şirkət Əməliyyat Hesabları və Kassalar
+                </h4>
+              </div>
+              <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#38bdf8", background: "rgba(56, 189, 248, 0.1)", padding: "0.25rem 0.6rem", borderRadius: "6px", border: "1px solid rgba(56, 189, 248, 0.2)" }}>
+                Cəmi Şirkət Qalığı: {totalOperatingCash.toLocaleString(undefined, { minimumFractionDigits: 2 })} ₼
+              </span>
+            </div>
+
+            <div className={styles.kpiGrid}>
+              {operatingAccounts.map((acc) => (
+                <div key={acc.id} className={styles.kpiCard} style={{ position: "relative" }}>
+                  <div className={styles.kpiIconWrapper} style={{ background: "rgba(56, 189, 248, 0.12)", color: "#38bdf8" }}>
+                    <Building2 size={22} />
                   </div>
-                  <span className={styles.kpiSub}>
-                    {acc.bankName} • {acc.code}
+                  <div className={styles.kpiDetails} style={{ flex: 1, paddingRight: "3.5rem" }}>
+                    <span className={styles.kpiLabel}>{acc.name}</span>
+                    <div className={styles.kpiValue} style={{ color: "#38bdf8", fontSize: "1.45rem" }}>
+                      {acc.initialBalance.toFixed(2)} {acc.currency}
+                    </div>
+                    <span className={styles.kpiSub}>
+                      {acc.bankName} • {acc.code}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.3rem", position: "absolute", top: "12px", right: "12px" }}>
+                    <button 
+                      className={styles.btnSecondary} 
+                      style={{ padding: "0.25rem 0.45rem" }}
+                      onClick={() => setEditAccount(acc)}
+                      title="Redaktə et"
+                    >
+                      <Edit size={13} />
+                    </button>
+                    <button 
+                      className={styles.btnSecondary} 
+                      style={{ padding: "0.25rem 0.45rem", color: "#ef4444", background: "rgba(239, 68, 68, 0.08)", borderColor: "rgba(239, 68, 68, 0.25)" }}
+                      onClick={() => handleDeleteAccount(acc.id, acc.name)}
+                      title="Sil"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. Rəhbərlik Şəxsi Hesabı (Ayrılmış Balans) */}
+          {personalAccounts.length > 0 && (
+            <div style={{ marginBottom: "1.75rem" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span style={{ fontSize: "1rem" }}>👤</span>
+                  <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, color: "#e2e8f0" }}>
+                    Rəhbərlik Şəxsi Hesabı (Ayrılmış Balans)
+                  </h4>
+                  <span style={{ fontSize: "0.72rem", background: "rgba(168, 85, 247, 0.15)", color: "#c084fc", padding: "0.15rem 0.5rem", borderRadius: "4px", border: "1px solid rgba(168, 85, 247, 0.3)", fontWeight: 600 }}>
+                    Şirkət balansına qatılmır
                   </span>
                 </div>
-                <div style={{ display: "flex", gap: "0.3rem", position: "absolute", top: "12px", right: "12px" }}>
-                  <button 
-                    className={styles.btnSecondary} 
-                    style={{ padding: "0.25rem 0.45rem" }}
-                    onClick={() => setEditAccount(acc)}
-                    title="Redaktə et"
-                  >
-                    <Edit size={13} />
-                  </button>
-                  <button 
-                    className={styles.btnSecondary} 
-                    style={{ padding: "0.25rem 0.45rem", color: "#ef4444", background: "rgba(239, 68, 68, 0.08)", borderColor: "rgba(239, 68, 68, 0.25)" }}
-                    onClick={() => handleDeleteAccount(acc.id, acc.name)}
-                    title="Sil"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
+                <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#c084fc", background: "rgba(168, 85, 247, 0.1)", padding: "0.25rem 0.6rem", borderRadius: "6px", border: "1px solid rgba(168, 85, 247, 0.2)" }}>
+                  Şəxsi Vəsait: {totalPersonalCash.toLocaleString(undefined, { minimumFractionDigits: 2 })} ₼
+                </span>
               </div>
-            ))}
-          </div>
+
+              <div className={styles.kpiGrid}>
+                {personalAccounts.map((acc) => (
+                  <div key={acc.id} className={styles.kpiCard} style={{ position: "relative", borderColor: "rgba(168, 85, 247, 0.35)", background: "linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(30, 41, 59, 0.7) 100%)" }}>
+                    <div className={styles.kpiIconWrapper} style={{ background: "rgba(168, 85, 247, 0.18)", color: "#c084fc" }}>
+                      <Wallet size={22} />
+                    </div>
+                    <div className={styles.kpiDetails} style={{ flex: 1, paddingRight: "3.5rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                        <span className={styles.kpiLabel}>{acc.name}</span>
+                        <span style={{ fontSize: "0.68rem", color: "#c084fc", background: "rgba(168, 85, 247, 0.2)", padding: "0.1rem 0.4rem", borderRadius: "4px" }}>
+                          Şəxsi
+                        </span>
+                      </div>
+                      <div className={styles.kpiValue} style={{ color: "#c084fc", fontSize: "1.45rem" }}>
+                        {acc.initialBalance.toFixed(2)} {acc.currency}
+                      </div>
+                      <span className={styles.kpiSub} style={{ color: "#94a3b8" }}>
+                        {acc.bankName} • {acc.code} (Ayrılmış Şəxsi Balans)
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: "0.3rem", position: "absolute", top: "12px", right: "12px" }}>
+                      <button 
+                        className={styles.btnSecondary} 
+                        style={{ padding: "0.25rem 0.45rem" }}
+                        onClick={() => setEditAccount(acc)}
+                        title="Redaktə et"
+                      >
+                        <Edit size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className={styles.filterCard} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
@@ -1678,7 +1882,16 @@ export default function FinanceDashboardPage() {
                   {dailyTxs.map((tx) => (
                     <tr key={tx.id}>
                       <td style={{ color: "#94a3b8", fontSize: "0.82rem" }}>{tx.date}</td>
-                      <td style={{ fontWeight: 600, color: "#ffffff" }}>{tx.accountName || 'Nəğd Kassa'}</td>
+                      <td style={{ fontWeight: 600, color: "#ffffff" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                          <span>{tx.accountName || 'Nəğd Kassa'}</span>
+                          {tx.accountName && isPersonalAccount({ name: tx.accountName }) && (
+                            <span style={{ fontSize: "0.68rem", padding: "0.1rem 0.4rem", borderRadius: "4px", background: "rgba(168, 85, 247, 0.2)", color: "#c084fc", fontWeight: 700 }}>
+                              Şəxsi
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td>
                         {tx.type === 'INCOME' ? (
                           <span style={{ color: "#10b981", fontWeight: 600 }}>{t("status.income")}</span>
@@ -2358,18 +2571,110 @@ export default function FinanceDashboardPage() {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.label}>{t("modals.paymentMethod")}</label>
-                  <select value={collectForm.paymentMethod} onChange={(e) => setCollectForm({ ...collectForm, paymentMethod: e.target.value })} className={styles.input}>
-                    <option value="ABB Card">ABB Card</option>
-                    <option value="UBank">UBank</option>
-                    <option value="Nəğd Kassa">Nəğd Kassa</option>
-                    <option value="Şirkət Hesabı">Şirkət Hesabı</option>
+                  <label className={styles.label}>Mədaxil Hesabı (Kassa / Bank Hesabı)</label>
+                  <select 
+                    value={collectForm.accountId} 
+                    onChange={(e) => {
+                      const selId = e.target.value;
+                      const selAcc = accounts.find(a => a.id === selId);
+                      setCollectForm({ 
+                        ...collectForm, 
+                        accountId: selId, 
+                        paymentMethod: selAcc ? selAcc.name : '' 
+                      });
+                    }} 
+                    className={styles.input}
+                    required
+                  >
+                    <optgroup label="🏢 Şirkət Əməliyyat Kassaları & Hesabları">
+                      {operatingAccounts.map(a => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.initialBalance.toFixed(2)} {a.currency}) — {a.bankName}
+                        </option>
+                      ))}
+                    </optgroup>
+                    {personalAccounts.length > 0 && (
+                      <optgroup label="👤 Şəxsi Hesablar (Xüsusi)">
+                        {personalAccounts.map(a => (
+                          <option key={a.id} value={a.id}>
+                            {a.name} ({a.initialBalance.toFixed(2)} {a.currency}) [Şəxsi Hesab]
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Qeyd / Təsvir</label>
+                  <input 
+                    type="text" 
+                    value={collectForm.note || ''} 
+                    onChange={(e) => setCollectForm({ ...collectForm, note: e.target.value })} 
+                    className={styles.input} 
+                    placeholder="Təhsil haqqı qeydi..." 
+                  />
                 </div>
 
                 <div className={styles.modalActions}>
                   <button type="button" className={styles.btnSecondary} onClick={() => setShowCollectModal(false)}>{t("modals.cancel")}</button>
                   <button type="submit" className={styles.btnPrimary}>{t("modals.btnConfirmCollect")}</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Toplu Ödəniş Qəbul Modalı */}
+      <AnimatePresence>
+        {showBatchCollectModal && selectedIds.length > 0 && (
+          <div className={styles.modalOverlay} onClick={() => setShowBatchCollectModal(false)}>
+            <motion.div className={styles.modalContent} onClick={e => e.stopPropagation()} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}>
+              <h3 className={styles.modalTitle}>Toplu Tələbə Ödənişini Qəbul Et</h3>
+              <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: "-0.5rem", marginBottom: "1.2rem" }}>
+                Seçilmiş <strong style={{ color: "#38bdf8" }}>{selectedIds.length} tələbə</strong> üçün ödəniş statusu təsdiqlənir və hesaba yazılır.
+              </p>
+
+              <form onSubmit={handleConfirmBatchCollect}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Mədaxil Ediləcək Kassa / Hesab</label>
+                  <select 
+                    value={batchCollectForm.accountId} 
+                    onChange={(e) => {
+                      const selId = e.target.value;
+                      const selAcc = accounts.find(a => a.id === selId);
+                      setBatchCollectForm({ 
+                        ...batchCollectForm, 
+                        accountId: selId, 
+                        paymentMethod: selAcc ? selAcc.name : '' 
+                      });
+                    }} 
+                    className={styles.input}
+                    required
+                  >
+                    <optgroup label="🏢 Şirkət Əməliyyat Kassaları & Hesabları">
+                      {operatingAccounts.map(a => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.initialBalance.toFixed(2)} {a.currency}) — {a.bankName}
+                        </option>
+                      ))}
+                    </optgroup>
+                    {personalAccounts.length > 0 && (
+                      <optgroup label="👤 Şəxsi Hesablar (Xüsusi)">
+                        {personalAccounts.map(a => (
+                          <option key={a.id} value={a.id}>
+                            {a.name} ({a.initialBalance.toFixed(2)} {a.currency}) [Şəxsi Hesab]
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                </div>
+
+                <div className={styles.modalActions}>
+                  <button type="button" className={styles.btnSecondary} onClick={() => setShowBatchCollectModal(false)}>{t("modals.cancel")}</button>
+                  <button type="submit" className={styles.btnPrimary}>Toplu Ödənişi Təsdiqlə</button>
                 </div>
               </form>
             </motion.div>

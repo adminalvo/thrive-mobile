@@ -100,11 +100,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Kod, ad, başlanğıc və bitmə tarixləri tələb olunur" }, { status: 400 });
     }
 
-    // Compute opening balance from current active bank accounts
+    // Compute opening balance from current active operating bank accounts (excluding personal account Tamerlan)
     const accBalances = await sql`
       SELECT COALESCE(SUM(initial_balance), 0)::float as total
       FROM bank_accounts
       WHERE is_active = true
+        AND LOWER(name) NOT LIKE '%tamerlan%'
+        AND LOWER(code) NOT LIKE '%tamerlan%'
     `;
     const computedOpeningBalance = accBalances[0]?.total || 0;
 

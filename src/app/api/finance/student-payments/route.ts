@@ -70,59 +70,112 @@ export async function POST(req: Request) {
       const { id, paymentMethod, accountId, amount, note, periodCode = "2026-09" } = body;
       const numAmount = Number(amount);
 
+      // 1. Resolve exact target account
+      let targetAccount: any = null;
+      if (accountId) {
+        const accs = await sql`
+          SELECT id, name, code, bank_name 
+          FROM bank_accounts 
+          WHERE id::text = ${String(accountId)} OR code = ${String(accountId)}
+        `;
+        targetAccount = accs[0];
+      }
+
+      if (!targetAccount && paymentMethod) {
+        const methodLower = String(paymentMethod).trim().toLowerCase();
+        const allAccs = await sql`
+          SELECT id, name, code, bank_name 
+          FROM bank_accounts 
+          WHERE is_active = true 
+          ORDER BY created_at ASC
+        `;
+        // Exact match first
+        targetAccount = allAccs.find((a: any) => 
+          a.name.trim().toLowerCase() === methodLower || 
+          a.code.trim().toLowerCase() === methodLower
+        );
+        // Keyword match
+        if (!targetAccount) {
+          if (methodLower.includes('abb') || methodLower.includes('kart') || methodLower.includes('card')) {
+            targetAccount = allAccs.find((a: any) => 
+              a.name.toLowerCase().includes('abb') || (a.bank_name && a.bank_name.toLowerCase().includes('abb'))
+            );
+          } else if (methodLower.includes('ubank') || methodLower.includes('unibank')) {
+            targetAccount = allAccs.find((a: any) => 
+              a.name.toLowerCase().includes('ubank') || a.code.toLowerCase().includes('ubank')
+            );
+          } else if (methodLower.includes('leo')) {
+            targetAccount = allAccs.find((a: any) => 
+              a.name.toLowerCase().includes('leo') || a.code.toLowerCase().includes('leobank')
+            );
+          } else if (methodLower.includes('tamerlan')) {
+            targetAccount = allAccs.find((a: any) => 
+              a.name.toLowerCase().includes('tamerlan') || a.code.toLowerCase().includes('tamerlan')
+            );
+          } else if (methodLower.includes('pos')) {
+            targetAccount = allAccs.find((a: any) => 
+              a.name.toLowerCase().includes('pos')
+            );
+          } else if (methodLower.includes('nəğd') || methodLower.includes('nagd') || methodLower.includes('cash') || methodLower.includes('resep')) {
+            targetAccount = allAccs.find((a: any) => 
+              a.name.toLowerCase().includes('nəğd') || a.code.toLowerCase().includes('nagd')
+            );
+          }
+        }
+      }
+
+      // Safe non-test operating fallback
+      if (!targetAccount) {
+        const fallbackAccs = await sql`
+          SELECT id, name, code, bank_name 
+          FROM bank_accounts 
+          WHERE is_active = true 
+            AND LOWER(name) NOT LIKE '%test%' 
+            AND LOWER(name) LIKE '%nəğd%'
+          LIMIT 1
+        `;
+        targetAccount = fallbackAccs[0] || (await sql`
+          SELECT id, name, code, bank_name 
+          FROM bank_accounts 
+          WHERE is_active = true AND LOWER(name) NOT LIKE '%test%' 
+          ORDER BY created_at ASC 
+          LIMIT 1
+        `)[0];
+      }
+
+      const finalMethodName = targetAccount ? targetAccount.name : (paymentMethod || 'Nəğd Kassa (Resepşn)');
+
       const [updatedEnrollment] = await sql`
         UPDATE student_course_enrollments
         SET 
           status = 'Paid',
-          payment_method = ${paymentMethod || 'Nəğd Kassa'}
+          payment_method = ${finalMethodName}
         WHERE id = ${id}
         RETURNING *;
       `;
 
-      if (updatedEnrollment) {
-        let targetAccount = null;
-        if (accountId) {
-          const accs = await sql`SELECT id, name FROM bank_accounts WHERE id::text = ${accountId} OR code = ${accountId}`;
-          targetAccount = accs[0];
-        } else {
-          const methodLower = (paymentMethod || '').toLowerCase();
-          const accs = await sql`
-            SELECT id, name FROM bank_accounts 
-            WHERE is_active = true 
-              AND (
-                (LOWER(name) LIKE '%kassa%' AND ${methodLower.includes('cash') || methodLower.includes('nəğd')})
-                OR (LOWER(name) LIKE '%abb%' AND ${methodLower.includes('abb')})
-                OR (LOWER(name) LIKE '%şirkət%' AND ${methodLower.includes('şirkət') || methodLower.includes('bank')})
-              )
-            LIMIT 1
-          `;
-          targetAccount = accs[0];
-        }
-
-        if (targetAccount) {
-          const payAmt = numAmount || Number(updatedEnrollment.amount) || 0;
-          await sql`
-            INSERT INTO account_transactions (account_id, period_code, date, type, amount, comment, category)
-            VALUES (
-              ${targetAccount.id}, 
-              ${periodCode}, 
-              CURRENT_DATE, 
-              'INCOME', 
-              ${payAmt}, 
-              ${note || `${updatedEnrollment.student_name} - ${updatedEnrollment.subject} təhsil haqqı`}, 
-              'Tələbə Ödənişi'
-            );
-          `;
-          await sql`
-            UPDATE bank_accounts 
-            SET initial_balance = initial_balance + ${payAmt}, updated_at = NOW()
-            WHERE id = ${targetAccount.id}
-          `;
-        }
+      if (updatedEnrollment && targetAccount) {
+        const payAmt = numAmount || Number(updatedEnrollment.amount) || 0;
+        await sql`
+          INSERT INTO account_transactions (account_id, period_code, date, type, amount, comment, category)
+          VALUES (
+            ${targetAccount.id}, 
+            ${periodCode}, 
+            CURRENT_DATE, 
+            'INCOME', 
+            ${payAmt}, 
+            ${note || `${updatedEnrollment.student_name} - ${updatedEnrollment.subject} təhsil haqqı`}, 
+            'Tələbə Ödənişi'
+          );
+        `;
+        await sql`
+          UPDATE bank_accounts 
+          SET initial_balance = initial_balance + ${payAmt}, updated_at = NOW()
+          WHERE id = ${targetAccount.id}
+        `;
 
         // CRM Integration: Sync payment to CRM payments table
         if (updatedEnrollment.student_id) {
-          const payAmt = numAmount || Number(updatedEnrollment.amount) || 0;
           await sql`
             INSERT INTO payments (
               id, student_id, amount, paid_amount, status, payment_method, payment_date, created_at, enrollment_id
@@ -133,7 +186,7 @@ export async function POST(req: Request) {
               ${payAmt},
               ${payAmt},
               'PAID',
-              ${paymentMethod || 'Nağd Kassa'},
+              ${targetAccount.name},
               NOW(),
               NOW(),
               ${updatedEnrollment.id}
@@ -142,52 +195,125 @@ export async function POST(req: Request) {
         }
       }
 
-      await logAction("COLLECT_STUDENT_PAYMENT", { id, amount: numAmount, paymentMethod }, (session?.user as any)?.id);
+      await logAction("COLLECT_STUDENT_PAYMENT", { id, amount: numAmount, paymentMethod: finalMethodName, account: targetAccount?.name }, (session?.user as any)?.id);
       return NextResponse.json({ success: true, data: updatedEnrollment });
     }
 
     // 3. BATCH STATUS (Paid, Asked, Not asked)
     if (action === "BATCH_STATUS") {
-      const { ids, status, paymentMethod } = body;
+      const { ids, status, paymentMethod, accountId, periodCode = "2026-09" } = body;
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
         return NextResponse.json({ error: "Heç bir tələbə seçilməyib" }, { status: 400 });
       }
+
+      let targetAccount: any = null;
+      if (status === 'Paid') {
+        if (accountId) {
+          const accs = await sql`
+            SELECT id, name, code, bank_name 
+            FROM bank_accounts 
+            WHERE id::text = ${String(accountId)} OR code = ${String(accountId)}
+          `;
+          targetAccount = accs[0];
+        }
+        if (!targetAccount && paymentMethod) {
+          const methodLower = String(paymentMethod).trim().toLowerCase();
+          const allAccs = await sql`
+            SELECT id, name, code, bank_name 
+            FROM bank_accounts 
+            WHERE is_active = true 
+            ORDER BY created_at ASC
+          `;
+          targetAccount = allAccs.find((a: any) => 
+            a.name.trim().toLowerCase() === methodLower || 
+            a.code.trim().toLowerCase() === methodLower ||
+            (methodLower.includes('abb') && (a.name.toLowerCase().includes('abb') || a.bank_name?.toLowerCase().includes('abb'))) ||
+            (methodLower.includes('ubank') && (a.name.toLowerCase().includes('ubank') || a.code.toLowerCase().includes('ubank'))) ||
+            (methodLower.includes('leo') && (a.name.toLowerCase().includes('leo') || a.code.toLowerCase().includes('leobank'))) ||
+            (methodLower.includes('tamerlan') && (a.name.toLowerCase().includes('tamerlan') || a.code.toLowerCase().includes('tamerlan'))) ||
+            (methodLower.includes('pos') && a.name.toLowerCase().includes('pos')) ||
+            ((methodLower.includes('nəğd') || methodLower.includes('cash')) && a.name.toLowerCase().includes('nəğd'))
+          );
+        }
+        if (!targetAccount) {
+          const fallbackAccs = await sql`
+            SELECT id, name, code, bank_name 
+            FROM bank_accounts 
+            WHERE is_active = true AND LOWER(name) NOT LIKE '%test%' AND LOWER(name) LIKE '%nəğd%'
+            LIMIT 1
+          `;
+          targetAccount = fallbackAccs[0] || (await sql`
+            SELECT id, name, code, bank_name 
+            FROM bank_accounts 
+            WHERE is_active = true AND LOWER(name) NOT LIKE '%test%' 
+            ORDER BY created_at ASC 
+            LIMIT 1
+          `)[0];
+        }
+      }
+
+      const finalMethodName = targetAccount ? targetAccount.name : (paymentMethod || 'Nəğd Kassa (Resepşn)');
 
       await sql`
         UPDATE student_course_enrollments
         SET 
           status = ${status},
-          payment_method = COALESCE(${paymentMethod}, payment_method)
+          payment_method = CASE WHEN ${status} = 'Paid' THEN ${finalMethodName} ELSE payment_method END
         WHERE id = ANY(${ids})
       `;
 
-      // CRM Integration: Sync batch payments into CRM payments table
-      if (status === 'Paid') {
+      // CRM & Ledger Integration: Sync batch payments into account_transactions & CRM payments
+      if (status === 'Paid' && targetAccount) {
         const paidRows = await sql`
-          SELECT id, student_id, amount, payment_method FROM student_course_enrollments 
-          WHERE id = ANY(${ids}) AND student_id IS NOT NULL
+          SELECT id, student_id, student_name, subject, amount 
+          FROM student_course_enrollments 
+          WHERE id = ANY(${ids})
         `;
+        let totalBatchAmt = 0;
         for (const pr of paidRows) {
+          const payAmt = Number(pr.amount) || 0;
+          totalBatchAmt += payAmt;
           await sql`
-            INSERT INTO payments (
-              id, student_id, amount, paid_amount, status, payment_method, payment_date, created_at, enrollment_id
-            )
+            INSERT INTO account_transactions (account_id, period_code, date, type, amount, comment, category)
             VALUES (
-              gen_random_uuid(),
-              ${pr.student_id},
-              ${pr.amount},
-              ${pr.amount},
-              'PAID',
-              ${paymentMethod || pr.payment_method || 'Nağd Kassa'},
-              NOW(),
-              NOW(),
-              ${pr.id}
-            )
+              ${targetAccount.id},
+              ${periodCode},
+              CURRENT_DATE,
+              'INCOME',
+              ${payAmt},
+              ${pr.student_name ? `${pr.student_name} - ${pr.subject} təhsil haqqı (Toplu)` : 'Tələbə Ödənişi'},
+              'Tələbə Ödənişi'
+            );
+          `;
+          if (pr.student_id) {
+            await sql`
+              INSERT INTO payments (
+                id, student_id, amount, paid_amount, status, payment_method, payment_date, created_at, enrollment_id
+              )
+              VALUES (
+                gen_random_uuid(),
+                ${pr.student_id},
+                ${payAmt},
+                ${payAmt},
+                'PAID',
+                ${targetAccount.name},
+                NOW(),
+                NOW(),
+                ${pr.id}
+              )
+            `;
+          }
+        }
+        if (totalBatchAmt > 0) {
+          await sql`
+            UPDATE bank_accounts 
+            SET initial_balance = initial_balance + ${totalBatchAmt}, updated_at = NOW()
+            WHERE id = ${targetAccount.id}
           `;
         }
       }
 
-      await logAction("BATCH_STUDENT_STATUS", { count: ids.length, status }, (session?.user as any)?.id);
+      await logAction("BATCH_STUDENT_STATUS", { count: ids.length, status, account: targetAccount?.name }, (session?.user as any)?.id);
       return NextResponse.json({ success: true, message: `${ids.length} tələbənin statusu '${status}' edildi` });
     }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
+import { Calendar, Clock, MapPin, User } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -17,16 +18,6 @@ import { LessonCard } from '../../components/common/LessonCard';
 import { EmptyState } from '../../components/common/EmptyState';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 import { ClassDetailModal } from '../../components/modals/ClassDetailModal';
-
-const DAYS = [
-  { num: 1, label: 'B.e' },
-  { num: 2, label: 'Ç.a' },
-  { num: 3, label: 'Çər' },
-  { num: 4, label: 'C.a' },
-  { num: 5, label: 'Cüm' },
-  { num: 6, label: 'Şən' },
-  { num: 7, label: 'Baz' },
-];
 
 export const StudentScheduleScreen: React.FC = () => {
   const { session } = useAuth();
@@ -42,16 +33,20 @@ export const StudentScheduleScreen: React.FC = () => {
 
   const studentId = session?.studentId;
 
-  useEffect(() => {
-    if (studentId) {
-      loadSchedule();
-    }
-  }, [studentId]);
+  const DAYS = [
+    { num: 1, label: t('days.mon') },
+    { num: 2, label: t('days.tue') },
+    { num: 3, label: t('days.wed') },
+    { num: 4, label: t('days.thu') },
+    { num: 5, label: t('days.fri') },
+    { num: 6, label: t('days.sat') },
+    { num: 7, label: t('days.sun') },
+  ];
 
-  const loadSchedule = async () => {
+  const loadSchedule = useCallback(async (isRefresh = false) => {
     if (!studentId) return;
     try {
-      const data = await studentService.getStudentSchedule(studentId);
+      const data = await studentService.getStudentSchedule(studentId, isRefresh);
       setSchedules(data);
     } catch (e) {
       console.error('Error loading student schedule:', e);
@@ -59,24 +54,34 @@ export const StudentScheduleScreen: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [studentId]);
+
+  useEffect(() => {
+    if (studentId) {
+      loadSchedule();
+    }
+  }, [studentId, loadSchedule]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadSchedule();
+    loadSchedule(true);
   };
 
-  const filteredLessons = schedules.filter((s) => s.dayOfWeek === selectedDay);
+  const filteredLessons = schedules.filter((s) => Number(s.dayOfWeek) === selectedDay);
+
+  // Identify which days have active classes to show dots on the day buttons
+  const daysWithClasses = new Set(schedules.map((s) => Number(s.dayOfWeek)));
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Dərs Cədvəli" subtitle="Həftəlik Tədris Qrafiki" />
+      <HeaderBar title={t('student.scheduleTitle')} subtitle={t('student.scheduleSubtitle')} />
 
       {/* Weekday selector */}
       <View style={styles.daysBar}>
         {DAYS.map((d) => {
           const isSelected = selectedDay === d.num;
           const isToday = (new Date().getDay() === 0 ? 7 : new Date().getDay()) === d.num;
+          const hasClass = daysWithClasses.has(d.num);
 
           return (
             <TouchableOpacity
@@ -91,7 +96,11 @@ export const StudentScheduleScreen: React.FC = () => {
               <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
                 {d.label}
               </Text>
-              {isToday && <View style={styles.todayDot} />}
+              
+              <View style={styles.indicatorRow}>
+                {isToday && <View style={styles.todayDot} />}
+                {hasClass && !isToday && <View style={styles.classDot} />}
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -107,8 +116,8 @@ export const StudentScheduleScreen: React.FC = () => {
           <SkeletonCardList count={3} />
         ) : filteredLessons.length === 0 ? (
           <EmptyState
-            title="Bu gün üçün dərs yoxdur"
-            description="Seçilmiş gün üçün planlaşdırılmış dərs qeydi tapılmadı."
+            title={t('common.empty')}
+            description={t('student.noClassesToday')}
           />
         ) : (
           filteredLessons.map((item) => (
@@ -147,7 +156,7 @@ const styles = StyleSheet.create({
   },
   dayButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: Radius.md,
@@ -157,19 +166,32 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   dayText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: Colors.textSecondary,
   },
   dayTextSelected: {
     color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  indicatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    height: 4,
   },
   todayDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
     backgroundColor: Colors.warning,
-    marginTop: 3,
+  },
+  classDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(76, 162, 181, 0.6)',
   },
   scrollContent: {
     padding: Spacing.md,

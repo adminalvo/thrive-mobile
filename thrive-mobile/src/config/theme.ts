@@ -5,16 +5,17 @@ export const Colors = {
   primaryLight: '#E6FFFA',  // Soft Cyan Tint
   secondary: '#3B82F6',     // Electric Blue
   
-  // Backgrounds
+  // Backgrounds & Surfaces
   background: '#0A192F',    // Deep Navy
+  surfaceSubtle: '#0E213D', // Polished sub-surface
   cardBackground: '#112240',// Slightly lighter navy for cards
   cardElevated: '#1E293B',  // Slate elevated card
   modalBackground: '#0F172A',
   
   // Text
   textPrimary: '#FFFFFF',
-  textSecondary: '#94A3B8', // Slate 400
-  textMuted: '#64748B',     // Slate 500
+  textSecondary: '#A0AEC0', // Elevated Slate for crisp contrast
+  textMuted: '#718096',     // Accessible subtle text
   
   // Accents & Statuses
   success: '#10B981',       // Emerald
@@ -26,10 +27,12 @@ export const Colors = {
   info: '#06B6D4',          // Cyan
   infoLight: 'rgba(6, 182, 212, 0.15)',
   
-  // UI Borders & Dividers
+  // UI Borders & Highlights
   border: 'rgba(255, 255, 255, 0.08)',
+  borderLight: 'rgba(255, 255, 255, 0.14)',
   borderActive: '#4CA2B5',
   glass: 'rgba(255, 255, 255, 0.04)',
+  glow: 'rgba(76, 162, 181, 0.25)',
 };
 
 export const Spacing = {
@@ -48,6 +51,30 @@ export const Radius = {
   lg: 16,
   xl: 24,
   full: 9999,
+};
+
+export const Shadows = {
+  sm: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  md: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  glow: {
+    shadowColor: '#4CA2B5',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 5,
+  },
 };
 
 export const Typography = {

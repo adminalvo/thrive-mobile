@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { Colors, Spacing, Radius } from '../../config/theme';
+import { Colors, Spacing, Radius, Shadows } from '../../config/theme';
 import { ThriveCard } from './ThriveCard';
+import { CircularProgress } from './CircularProgress';
 
 interface StatCardProps {
   title: string;
@@ -9,6 +10,7 @@ interface StatCardProps {
   subtitle?: string;
   icon?: React.ReactNode;
   accentColor?: string;
+  circularProgress?: number;
   style?: ViewStyle;
 }
 
@@ -18,16 +20,35 @@ export const StatCard: React.FC<StatCardProps> = ({
   subtitle,
   icon,
   accentColor = Colors.primary,
+  circularProgress,
   style,
 }) => {
   return (
     <ThriveCard style={[styles.card, style]}>
       <View style={styles.topRow}>
         <Text style={styles.title}>{title}</Text>
-        {icon && <View style={[styles.iconWrapper, { backgroundColor: `${accentColor}20` }]}>{icon}</View>}
+        {icon && !circularProgress && (
+          <View style={[styles.iconWrapper, { backgroundColor: `${accentColor}20` }]}>
+            {icon}
+          </View>
+        )}
       </View>
-      <Text style={[styles.value, { color: accentColor }]}>{value}</Text>
-      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+      
+      <View style={styles.contentRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.value, { color: accentColor }]}>{value}</Text>
+          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        </View>
+
+        {typeof circularProgress === 'number' && (
+          <CircularProgress
+            percentage={circularProgress}
+            size={48}
+            strokeWidth={5}
+            color={accentColor}
+          />
+        )}
+      </View>
     </ThriveCard>
   );
 };
@@ -37,6 +58,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 140,
     marginBottom: 0,
+    backgroundColor: Colors.cardBackground,
+    borderColor: Colors.border,
+    ...Shadows.sm,
   },
   topRow: {
     flexDirection: 'row',
@@ -44,12 +68,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: Spacing.xs,
   },
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
   title: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: Colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   iconWrapper: {
     width: 32,
@@ -61,10 +91,12 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 22,
     fontWeight: '800',
-    marginVertical: Spacing.xs,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 11,
-    color: Colors.textMuted,
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+    fontWeight: '500',
   },
 });

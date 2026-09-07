@@ -1,0 +1,15 @@
+(()=>{var e={};e.id=7708,e.ids=[7708],e.modules={10846:e=>{"use strict";e.exports=require("next/dist/compiled/next-server/app-page.runtime.prod.js")},44870:e=>{"use strict";e.exports=require("next/dist/compiled/next-server/app-route.runtime.prod.js")},3295:e=>{"use strict";e.exports=require("next/dist/server/app-render/after-task-async-storage.external.js")},29294:e=>{"use strict";e.exports=require("next/dist/server/app-render/work-async-storage.external.js")},63033:e=>{"use strict";e.exports=require("next/dist/server/app-render/work-unit-async-storage.external.js")},55511:e=>{"use strict";e.exports=require("crypto")},29021:e=>{"use strict";e.exports=require("fs")},91645:e=>{"use strict";e.exports=require("net")},21820:e=>{"use strict";e.exports=require("os")},74998:e=>{"use strict";e.exports=require("perf_hooks")},27910:e=>{"use strict";e.exports=require("stream")},34631:e=>{"use strict";e.exports=require("tls")},38109:(e,r,t)=>{"use strict";t.r(r),t.d(r,{patchFetch:()=>v,routeModule:()=>d,serverHooks:()=>m,workAsyncStorage:()=>l,workUnitAsyncStorage:()=>R});var s={};t.r(s),t.d(s,{GET:()=>c,POST:()=>x,dynamic:()=>u});var n=t(42706),o=t(28203),a=t(45994),i=t(39187),p=t(27914);let u="force-dynamic";async function c(){try{let e=await (0,p.A)`
+      SELECT 
+        id, 
+        category, 
+        amount, 
+        expense_date AS date, 
+        description, 
+        created_at 
+      FROM expenses
+      ORDER BY expense_date DESC
+    `;return i.NextResponse.json(e)}catch(e){return console.error("Expenses GET error:",e),i.NextResponse.json({error:"Failed to fetch expenses"},{status:500})}}async function x(e){try{let{category:r,amount:t,date:s,description:n}=await e.json();if(!r||!t||!s)return i.NextResponse.json({error:"Eksik məlumatlar"},{status:400});let o=await (0,p.A)`
+      INSERT INTO expenses (category, amount, expense_date, description)
+      VALUES (${r}, ${t}, ${s}, ${n||""})
+      RETURNING *
+    `;return i.NextResponse.json({success:!0,data:o[0]},{status:201})}catch(e){return console.error("Expenses POST error:",e),i.NextResponse.json({error:"Failed to create expense"},{status:500})}}let d=new n.AppRouteRouteModule({definition:{kind:o.RouteKind.APP_ROUTE,page:"/api/finance/expenses/route",pathname:"/api/finance/expenses",filename:"route",bundlePath:"app/api/finance/expenses/route"},resolvedPagePath:"C:\\Users\\mexty\\OneDrive\\Desktop\\thrive-crm\\src\\app\\api\\finance\\expenses\\route.ts",nextConfigOutput:"standalone",userland:s}),{workAsyncStorage:l,workUnitAsyncStorage:R,serverHooks:m}=d;function v(){return(0,a.patchFetch)({workAsyncStorage:l,workUnitAsyncStorage:R})}},96487:()=>{},78335:()=>{},27914:(e,r,t)=>{"use strict";t.d(r,{A:()=>o});var s=t(73186);let n=process.env.DATABASE_URL||process.env.POSTGRES_URL||process.env.DIRECT_URL,o=n?(0,s.A)(n,{ssl:"require",prepare:!1}):new Proxy(()=>{},{apply:()=>{throw Error("DATABASE_URL is not set in Vercel Environment Variables")}})}};var r=require("../../../../webpack-runtime.js");r.C(e);var t=e=>r(r.s=e),s=r.X(0,[638,5452,3186],()=>t(38109));module.exports=s})();

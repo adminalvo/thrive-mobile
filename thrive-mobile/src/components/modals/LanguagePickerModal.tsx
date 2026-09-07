@@ -27,7 +27,7 @@ export const LanguagePickerModal: React.FC<LanguagePickerModalProps> = ({
   visible,
   onClose,
 }) => {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   const handleSelect = (code: SupportedLanguage) => {
     setLanguage(code);
@@ -41,7 +41,7 @@ export const LanguagePickerModal: React.FC<LanguagePickerModalProps> = ({
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
               <View style={styles.header}>
-                <Text style={styles.title}>Dil seçimi / Language</Text>
+                <Text style={styles.title}>{t('common.selectLanguageModal')}</Text>
                 <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
                   <X size={20} color={Colors.textSecondary} />
                 </TouchableOpacity>

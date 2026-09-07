@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Colors, Radius, Spacing } from '../../config/theme';
+import { useLanguage } from '../../context/LanguageContext';
 import { ThriveAvatar } from './ThriveAvatar';
 import { ThriveBadge } from './ThriveBadge';
 import { ChildOverview } from '../../types/parent.types';
@@ -22,6 +23,8 @@ export const ChildSelectorCarousel: React.FC<ChildSelectorCarouselProps> = ({
   selectedChildId,
   onSelectChild,
 }) => {
+  const { t } = useLanguage();
+
   if (childrenList.length === 0) return null;
 
   return (
@@ -33,6 +36,12 @@ export const ChildSelectorCarousel: React.FC<ChildSelectorCarouselProps> = ({
       >
         {childrenList.map((child) => {
           const isSelected = child.studentId === selectedChildId;
+
+          // Format dynamic payment status
+          const isPaid = (child.paymentSummary?.remainingDebt || 0) <= 0;
+          const statusText = isPaid
+            ? t('payments.paidStatus')
+            : t('payments.debtStatus', { amount: String(child.paymentSummary?.remainingDebt || 0) });
 
           return (
             <TouchableOpacity
@@ -46,7 +55,7 @@ export const ChildSelectorCarousel: React.FC<ChildSelectorCarouselProps> = ({
             >
               <View style={styles.cardHeader}>
                 <ThriveAvatar name={child.fullName} size={36} />
-                {isSelected && <ThriveBadge label="Aktiv" variant="primary" />}
+                {isSelected && <ThriveBadge label={t('common.active')} variant="primary" />}
               </View>
 
               <Text style={[styles.childName, isSelected && styles.childNameSelected]} numberOfLines={1}>
@@ -54,19 +63,19 @@ export const ChildSelectorCarousel: React.FC<ChildSelectorCarouselProps> = ({
               </Text>
 
               <Text style={styles.programText} numberOfLines={1}>
-                {child.programs.join(', ') || 'Proqram'}
+                {child.programs.join(', ') || t('common.generalProgram')}
               </Text>
 
               <View style={styles.statsRow}>
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>Davamiyyət</Text>
+                  <Text style={styles.statLabel}>{t('common.attendance')}</Text>
                   <Text style={styles.statVal}>{child.attendanceRate}%</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>Status</Text>
+                  <Text style={styles.statLabel}>{t('common.status')}</Text>
                   <Text style={styles.statVal} numberOfLines={1}>
-                    {child.paymentStatus}
+                    {statusText}
                   </Text>
                 </View>
               </View>

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Bell, Globe, ChevronLeft } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { ThriveAvatar } from './ThriveAvatar';
+import { ThriveRoleBadge } from './ThriveRoleBadge';
 
 interface HeaderBarProps {
   title?: string;
@@ -47,12 +48,13 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           {subtitle ? (
             <Text style={styles.subtitleText}>{subtitle}</Text>
           ) : userRole ? (
-            <Text style={styles.roleText}>{userRole.toUpperCase()}</Text>
+            <ThriveRoleBadge role={userRole} variant="compact" style={{ marginTop: 2 }} />
           ) : null}
         </View>
       </View>
 
       <View style={styles.rightSection}>
+
         {onLanguagePress && (
           <TouchableOpacity activeOpacity={0.7} onPress={onLanguagePress} style={styles.iconBtn}>
             <Globe size={20} color={Colors.textSecondary} />

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ViewStyle,
   TextInputProps,
+  Platform,
 } from 'react-native';
 import { Colors, Radius, Spacing } from '../../config/theme';
 
@@ -32,7 +33,11 @@ export const ThriveInput: React.FC<ThriveInputProps> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && (
+        <Text style={[styles.label, isFocused && styles.labelFocused]}>
+          {label}
+        </Text>
+      )}
       <View
         style={[
           styles.inputWrapper,
@@ -40,9 +45,13 @@ export const ThriveInput: React.FC<ThriveInputProps> = ({
           !!error && styles.inputWrapperError,
         ]}
       >
-        {leftIcon && <View style={styles.leftIconContainer}>{leftIcon}</View>}
+        {leftIcon && (
+          <View style={[styles.leftIconContainer, isFocused && styles.iconActive]}>
+            {leftIcon}
+          </View>
+        )}
         <TextInput
-          placeholderTextColor={Colors.textMuted}
+          placeholderTextColor="rgba(148, 163, 184, 0.6)"
           style={[styles.input, style]}
           onFocus={(e: any) => {
             setIsFocused(true);
@@ -66,36 +75,69 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     color: Colors.textSecondary,
-    marginBottom: Spacing.xs,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  labelFocused: {
+    color: Colors.primary,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
+    backgroundColor: '#0A1E38',
+    borderWidth: 1.5,
+    borderColor: '#1E3A5F',
+    borderRadius: Radius.lg,
     paddingHorizontal: Spacing.md,
-    minHeight: 48,
+    minHeight: 52,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   inputWrapperFocused: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.cardElevated,
+    backgroundColor: '#0F2C4C',
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.35,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
   inputWrapperError: {
     borderColor: Colors.danger,
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
   },
   input: {
     flex: 1,
-    color: Colors.textPrimary,
+    color: '#FFFFFF',
     fontSize: 15,
-    paddingVertical: Spacing.sm,
+    fontWeight: '500',
+    paddingVertical: Platform.OS === 'ios' ? Spacing.sm + 4 : Spacing.sm,
   },
   leftIconContainer: {
-    marginRight: Spacing.sm,
+    marginRight: Spacing.sm + 2,
+    opacity: 0.8,
+  },
+  iconActive: {
+    opacity: 1,
   },
   rightIconContainer: {
     marginLeft: Spacing.sm,
@@ -103,6 +145,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12,
     color: Colors.danger,
-    marginTop: Spacing.xs,
+    marginTop: 4,
+    fontWeight: '500',
   },
 });

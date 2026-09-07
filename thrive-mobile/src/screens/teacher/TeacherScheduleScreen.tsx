@@ -10,6 +10,7 @@ import {
 import { Clock, MapPin, Users, UserCheck } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { teacherService } from '../../services/teacherService';
 import { TeacherGroupItem } from '../../types/teacher.types';
 import { HeaderBar } from '../../components/common/HeaderBar';
@@ -20,18 +21,9 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 import { AttendanceModal } from '../../components/modals/AttendanceModal';
 
-const DAYS = [
-  { num: 1, label: 'B.e' },
-  { num: 2, label: 'Ç.a' },
-  { num: 3, label: 'Çər' },
-  { num: 4, label: 'C.a' },
-  { num: 5, label: 'Cüm' },
-  { num: 6, label: 'Şən' },
-  { num: 7, label: 'Baz' },
-];
-
 export const TeacherScheduleScreen: React.FC = () => {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [groups, setGroups] = useState<TeacherGroupItem[]>([]);
@@ -44,6 +36,16 @@ export const TeacherScheduleScreen: React.FC = () => {
   const [attendanceGroupName, setAttendanceGroupName] = useState('');
 
   const teacherId = session?.teacherId;
+
+  const DAYS = [
+    { num: 1, label: t('days.mon') },
+    { num: 2, label: t('days.tue') },
+    { num: 3, label: t('days.wed') },
+    { num: 4, label: t('days.thu') },
+    { num: 5, label: t('days.fri') },
+    { num: 6, label: t('days.sat') },
+    { num: 7, label: t('days.sun') },
+  ];
 
   useEffect(() => {
     if (teacherId) {
@@ -106,7 +108,7 @@ export const TeacherScheduleScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Tədris Cədvəlim" subtitle="Müəllimin Dərs Qrafiki" />
+      <HeaderBar title={t('teacher.scheduleTitle')} subtitle={t('teacher.scheduleSubtitle')} />
 
       {/* Weekday selector */}
       <View style={styles.daysBar}>
@@ -143,8 +145,8 @@ export const TeacherScheduleScreen: React.FC = () => {
           <SkeletonCardList count={3} />
         ) : lessonsForDay.length === 0 ? (
           <EmptyState
-            title="Dərs yoxdur"
-            description="Bu gün üçün planlaşdırılmış tədris saatınız yoxdur."
+            title={t('common.empty')}
+            description={t('teacher.noScheduleForDay')}
           />
         ) : (
           lessonsForDay.map((item, idx) => (
@@ -159,16 +161,16 @@ export const TeacherScheduleScreen: React.FC = () => {
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
                   <MapPin size={13} color={Colors.textMuted} />
-                  <Text style={styles.metaText}>Otaq: {item.room}</Text>
+                  <Text style={styles.metaText}>{t('teacher.roomLabel', { room: item.room })}</Text>
                 </View>
                 <View style={styles.metaItem}>
                   <Users size={13} color={Colors.textMuted} />
-                  <Text style={styles.metaText}>{item.studentCount} Tələbə</Text>
+                  <Text style={styles.metaText}>{t('teacher.studentsCount', { count: item.studentCount })}</Text>
                 </View>
               </View>
 
               <ThriveButton
-                title="Davamiyyət yaz"
+                title={t('teacher.takeAttendanceBtn')}
                 size="sm"
                 variant="outline"
                 onPress={() => openAttendance(item.groupId, item.groupName)}

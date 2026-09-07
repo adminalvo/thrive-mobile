@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { studentService } from '../../services/studentService';
 import { parentService } from '../../services/parentService';
 import { LessonScheduleItem } from '../../types/student.types';
@@ -18,19 +19,11 @@ import { LessonCard } from '../../components/common/LessonCard';
 import { EmptyState } from '../../components/common/EmptyState';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 import { ClassDetailModal } from '../../components/modals/ClassDetailModal';
-
-const DAYS = [
-  { num: 1, label: 'B.e' },
-  { num: 2, label: 'Ç.a' },
-  { num: 3, label: 'Çər' },
-  { num: 4, label: 'C.a' },
-  { num: 5, label: 'Cüm' },
-  { num: 6, label: 'Şən' },
-  { num: 7, label: 'Baz' },
-];
+import { ChildSelectorCarousel } from '../../components/common/ChildSelectorCarousel';
 
 export const ParentScheduleScreen: React.FC = () => {
-  const { session, activeChildId } = useAuth();
+  const { session, activeChildId, setActiveChildId } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [schedules, setSchedules] = useState<LessonScheduleItem[]>([]);
@@ -42,21 +35,25 @@ export const ParentScheduleScreen: React.FC = () => {
 
   const parentId = session?.parentId;
 
-  useEffect(() => {
-    if (parentId) {
-      loadData();
-    }
-  }, [parentId, activeChildId]);
+  const DAYS = [
+    { num: 1, label: t('days.mon') },
+    { num: 2, label: t('days.tue') },
+    { num: 3, label: t('days.wed') },
+    { num: 4, label: t('days.thu') },
+    { num: 5, label: t('days.fri') },
+    { num: 6, label: t('days.sat') },
+    { num: 7, label: t('days.sun') },
+  ];
 
-  const loadData = async () => {
+  const loadData = useCallback(async (isRefresh = false) => {
     if (!parentId) return;
     try {
-      const kids = await parentService.getChildren(parentId);
+      const kids = await parentService.getChildren(parentId, isRefresh);
       setChildren(kids);
 
       const targetChildId = activeChildId || kids[0]?.studentId;
       if (targetChildId) {
-        const data = await studentService.getStudentSchedule(targetChildId);
+        const data = await studentService.getStudentSchedule(targetChildId, isRefresh);
         setSchedules(data);
       }
     } catch (e) {
@@ -65,28 +62,47 @@ export const ParentScheduleScreen: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [parentId, activeChildId]);
+
+  useEffect(() => {
+    if (parentId) {
+      loadData();
+    }
+  }, [parentId, activeChildId, loadData]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadData();
+    loadData(true);
   };
 
   const activeChild = children.find((c) => c.studentId === activeChildId) || children[0];
-  const filteredLessons = schedules.filter((s) => s.dayOfWeek === selectedDay);
+  const filteredLessons = schedules.filter((s) => Number(s.dayOfWeek) === selectedDay);
+  const daysWithClasses = new Set(schedules.map((s) => Number(s.dayOfWeek)));
 
   return (
     <View style={styles.container}>
       <HeaderBar
-        title="Dərs Cədvəli"
-        subtitle={activeChild ? `${activeChild.fullName} üçün cədvəl` : 'Övlad cədvəli'}
+        title={t('parent.scheduleTitle')}
+        subtitle={activeChild ? `${activeChild.fullName} • ${t('parent.scheduleSubtitle')}` : t('parent.scheduleSubtitle')}
       />
+
+      {/* Child Selector if multiple children */}
+      {children.length > 1 && (
+        <View style={styles.childBar}>
+          <ChildSelectorCarousel
+            childrenList={children}
+            selectedChildId={activeChild?.studentId || null}
+            onSelectChild={(id) => setActiveChildId(id)}
+          />
+        </View>
+      )}
 
       {/* Weekday selector */}
       <View style={styles.daysBar}>
         {DAYS.map((d) => {
           const isSelected = selectedDay === d.num;
           const isToday = (new Date().getDay() === 0 ? 7 : new Date().getDay()) === d.num;
+          const hasClass = daysWithClasses.has(d.num);
 
           return (
             <TouchableOpacity
@@ -101,7 +117,11 @@ export const ParentScheduleScreen: React.FC = () => {
               <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
                 {d.label}
               </Text>
-              {isToday && <View style={styles.todayDot} />}
+              
+              <View style={styles.indicatorRow}>
+                {isToday && <View style={styles.todayDot} />}
+                {hasClass && !isToday && <View style={styles.classDot} />}
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -117,8 +137,8 @@ export const ParentScheduleScreen: React.FC = () => {
           <SkeletonCardList count={3} />
         ) : filteredLessons.length === 0 ? (
           <EmptyState
-            title="Dərs yoxdur"
-            description="Bu gün üçün planlaşdırılmış dərs qeydiyyatı tapılmadı."
+            title={t('common.empty')}
+            description={t('student.noClassesToday')}
           />
         ) : (
           filteredLessons.map((item) => (
@@ -145,41 +165,56 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  childBar: {
+    marginBottom: Spacing.xs,
+  },
   daysBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
+    paddingVertical: Spacing.sm,
     backgroundColor: Colors.cardBackground,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   dayButton: {
-    flex: 1,
-    paddingVertical: 10,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderRadius: Radius.md,
-    marginHorizontal: 2,
+    minWidth: 42,
   },
   dayButtonSelected: {
     backgroundColor: Colors.primary,
   },
   dayText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
   dayTextSelected: {
     color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  indicatorRow: {
+    flexDirection: 'row',
+    gap: 3,
+    marginTop: 4,
+    height: 6,
+    alignItems: 'center',
   },
   todayDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Colors.warning,
+  },
+  classDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.warning,
-    marginTop: 3,
+    backgroundColor: Colors.primary,
   },
   scrollContent: {
     padding: Spacing.md,

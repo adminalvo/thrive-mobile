@@ -21,7 +21,17 @@ export interface TeacherStudentRosterItem {
   email: string | null;
   phone: string | null;
   attendanceStatus?: AttendanceStatus;
+  dailyScore?: number | null;
   notes?: string;
+  privateNotes?: string;
+}
+
+export interface TeacherLessonLog {
+  id?: string;
+  groupId: string;
+  date: string;
+  lessonTopic?: string;
+  classworkSummary?: string;
 }
 
 export interface TeacherSubmissionToGrade {

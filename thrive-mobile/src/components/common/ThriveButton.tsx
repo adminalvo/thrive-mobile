@@ -7,7 +7,8 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { Colors, Radius, Spacing } from '../../config/theme';
+import { Colors, Radius, Spacing, Shadows } from '../../config/theme';
+import { hapticService } from '../../utils/hapticService';
 
 interface ThriveButtonProps {
   title: string;
@@ -32,6 +33,12 @@ export const ThriveButton: React.FC<ThriveButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const handlePress = () => {
+    if (disabled || loading) return;
+    hapticService.light();
+    onPress();
+  };
+
   const getContainerStyle = (): ViewStyle => {
     let bg: string = Colors.primary;
     let border: string = 'transparent';
@@ -47,21 +54,30 @@ export const ThriveButton: React.FC<ThriveButtonProps> = ({
     let paddingHorizontal = Spacing.lg;
 
     if (size === 'sm') {
-      paddingVertical = Spacing.xs + 2;
+      paddingVertical = Spacing.xs + 3;
       paddingHorizontal = Spacing.md;
     } else if (size === 'lg') {
-      paddingVertical = Spacing.md + 2;
+      paddingVertical = Spacing.md + 4;
       paddingHorizontal = Spacing.xl;
     }
 
-    return {
+    const baseStyle: ViewStyle = {
       backgroundColor: bg,
       borderColor: border,
-      borderWidth: variant === 'outline' ? 1 : 0,
+      borderWidth: variant === 'outline' ? 1.5 : 0,
       paddingVertical,
       paddingHorizontal,
       opacity: disabled ? 0.6 : 1,
     };
+
+    if (variant === 'primary' && !disabled) {
+      return {
+        ...baseStyle,
+        ...Shadows.sm,
+      };
+    }
+
+    return baseStyle;
   };
 
   const getTextStyle = (): TextStyle => {
@@ -75,13 +91,14 @@ export const ThriveButton: React.FC<ThriveButtonProps> = ({
     return {
       color,
       fontSize,
+      fontWeight: '700',
     };
   };
 
   return (
     <TouchableOpacity
-      activeOpacity={0.75}
-      onPress={onPress}
+      activeOpacity={0.72}
+      onPress={handlePress}
       disabled={disabled || loading}
       style={[styles.baseButton, getContainerStyle(), style]}
     >
@@ -106,7 +123,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   baseText: {
-    fontWeight: '600',
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
 });

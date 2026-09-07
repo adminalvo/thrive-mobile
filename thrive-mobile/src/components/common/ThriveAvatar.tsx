@@ -1,26 +1,22 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { Colors, Radius } from '../../config/theme';
+import { View, StyleSheet, ViewStyle } from 'react-native';
+import { User } from 'lucide-react-native';
+import { Colors } from '../../config/theme';
 
 interface ThriveAvatarProps {
-  name: string;
+  name?: string;
   size?: number;
+  iconColor?: string;
   style?: ViewStyle;
 }
 
 export const ThriveAvatar: React.FC<ThriveAvatarProps> = ({
   name,
   size = 40,
+  iconColor = Colors.primary,
   style,
 }) => {
-  const getInitials = (text: string) => {
-    if (!text) return 'T';
-    const parts = text.trim().split(' ').filter(Boolean);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return text.substring(0, 2).toUpperCase();
-  };
+  const iconSize = Math.round(size * 0.55);
 
   return (
     <View
@@ -34,21 +30,17 @@ export const ThriveAvatar: React.FC<ThriveAvatarProps> = ({
         style,
       ]}
     >
-      <Text style={[styles.initials, { fontSize: size * 0.4 }]}>{getInitials(name)}</Text>
+      <User size={iconSize} color={iconColor} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   avatar: {
-    backgroundColor: Colors.cardElevated,
+    backgroundColor: 'rgba(76, 162, 181, 0.15)',
     borderWidth: 1.5,
     borderColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  initials: {
-    color: Colors.primary,
-    fontWeight: '700',
   },
 });

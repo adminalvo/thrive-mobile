@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
-import { Colors, Radius, Spacing } from '../../config/theme';
+import { Colors, Radius, Spacing, Shadows } from '../../config/theme';
+import { hapticService } from '../../utils/hapticService';
 
 interface ThriveCardProps {
   children: React.ReactNode;
   style?: ViewStyle;
   onPress?: () => void;
-  variant?: 'default' | 'elevated' | 'glass';
+  variant?: 'default' | 'elevated' | 'glass' | 'glow';
 }
 
 export const ThriveCard: React.FC<ThriveCardProps> = ({
@@ -19,7 +20,15 @@ export const ThriveCard: React.FC<ThriveCardProps> = ({
     if (variant === 'elevated') {
       return {
         backgroundColor: Colors.cardElevated,
-        borderColor: Colors.border,
+        borderColor: Colors.borderLight,
+        ...Shadows.md,
+      };
+    }
+    if (variant === 'glow') {
+      return {
+        backgroundColor: Colors.cardBackground,
+        borderColor: Colors.borderActive,
+        ...Shadows.glow,
       };
     }
     if (variant === 'glass') {
@@ -31,14 +40,18 @@ export const ThriveCard: React.FC<ThriveCardProps> = ({
     return {
       backgroundColor: Colors.cardBackground,
       borderColor: Colors.border,
+      ...Shadows.sm,
     };
   };
 
   if (onPress) {
     return (
       <TouchableOpacity
-        activeOpacity={0.75}
-        onPress={onPress}
+        activeOpacity={0.78}
+        onPress={() => {
+          hapticService.light();
+          onPress();
+        }}
         style={[styles.card, getCardStyle(), style]}
       >
         {children}
@@ -53,7 +66,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: Radius.lg,
     padding: Spacing.md,
-    borderWidth: 1,
     marginBottom: Spacing.md,
+    borderWidth: 1,
   },
 });

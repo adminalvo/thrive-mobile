@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { AlertCircle } from 'lucide-react-native';
 import { Colors, Spacing } from '../../config/theme';
+import { useLanguage } from '../../context/LanguageContext';
 import { ThriveButton } from './ThriveButton';
 
 interface ErrorStateProps {
@@ -11,19 +12,22 @@ interface ErrorStateProps {
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
-  message = 'Xəta baş verdi',
+  message,
   onRetry,
   style,
 }) => {
+  const { t } = useLanguage();
+  const displayMessage = message || t('common.error');
+
   return (
     <View style={[styles.container, style]}>
       <View style={styles.iconCircle}>
         <AlertCircle size={32} color={Colors.danger} />
       </View>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.message}>{displayMessage}</Text>
       {onRetry && (
         <ThriveButton
-          title="Yenidən cəhd et"
+          title={t('common.retry')}
           size="sm"
           variant="outline"
           onPress={onRetry}

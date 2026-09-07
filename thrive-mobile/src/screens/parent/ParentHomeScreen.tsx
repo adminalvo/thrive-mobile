@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  Animated,
   RefreshControl,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { Users, Calendar, TrendingUp, CreditCard, Clock, CheckCircle } from 'lucide-react-native';
-import { Colors, Spacing, Radius } from '../../config/theme';
+import { Calendar, Clock, Bell } from 'lucide-react-native';
+import { Colors, Spacing, Radius, Shadows } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { parentService } from '../../services/parentService';
@@ -18,10 +18,12 @@ import { HeaderBar } from '../../components/common/HeaderBar';
 import { ChildSelectorCarousel } from '../../components/common/ChildSelectorCarousel';
 import { ThriveCard } from '../../components/common/ThriveCard';
 import { ThriveBadge } from '../../components/common/ThriveBadge';
+import { ThriveRoleBadge } from '../../components/common/ThriveRoleBadge';
 import { StatCard } from '../../components/common/StatCard';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 import { EmptyState } from '../../components/common/EmptyState';
 import { LanguagePickerModal } from '../../components/modals/LanguagePickerModal';
+import { AnnouncementsModal } from '../../components/modals/AnnouncementsModal';
 
 interface ParentHomeScreenProps {
   onNavigateTab: (tab: string) => void;
@@ -32,30 +34,30 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
   onNavigateTab,
   onOpenNotifications,
 }) => {
-  const { session, activeChildId, setActiveChildId } = useAuth();
-  const { t } = useLanguage();
+  const { session } = useAuth();
+  const { t, language } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [childrenList, setChildrenList] = useState<ChildOverview[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const [childrenList, setChildrenList] = useState<ChildOverview[]>([]);
+  const [activeChildId, setActiveChildId] = useState<string | null>(null);
+
+  const [announcementsModalVisible, setAnnouncementsModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
 
-  const parentId = session?.parentId;
-  const parentName = session?.profile.first_name || 'Valideyn';
+  const scrollY = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    if (parentId) {
-      loadData();
-    }
-  }, [parentId]);
+  const parentId = session?.parentId || session?.userId || '';
+  const parentName = session?.profile?.first_name || 'Parent';
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!parentId) return;
     try {
       const [kids, unread] = await Promise.all([
         parentService.getChildren(parentId),
-        session?.userId ? notificationService.getUnreadCount(session.userId) : Promise.resolve(0),
+        notificationService.getUnreadCount(parentId),
       ]);
 
       setChildrenList(kids);
@@ -64,13 +66,17 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
       if (kids.length > 0 && !activeChildId) {
         setActiveChildId(kids[0].studentId);
       }
-    } catch (e) {
-      console.error('Error loading parent data:', e);
+    } catch (error) {
+      console.error('Error loading parent home data:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [parentId, activeChildId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -81,170 +87,240 @@ export const ParentHomeScreen: React.FC<ParentHomeScreenProps> = ({
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return t('common.goodMorning');
-    if (hour < 18) return t('common.goodAfternoon');
-    return t('common.goodEvening');
+    if (hour < 12) {
+      const g = t('greeting.morning');
+      return g && g !== 'greeting.morning' ? g : (t('common.goodMorning') || 'Sabahınız xeyir');
+    }
+    if (hour < 18) {
+      const g = t('greeting.afternoon');
+      return g && g !== 'greeting.afternoon' ? g : (t('common.goodAfternoon') || 'Hər vaxtınız xeyir');
+    }
+    const g = t('greeting.evening');
+    return g && g !== 'greeting.evening' ? g : (t('common.goodEvening') || 'Axşamınız xeyir');
   };
+
+  const todayFormatted = new Date().toLocaleDateString(
+    language === 'az' ? 'az-AZ' : language === 'ru' ? 'ru-RU' : 'en-US',
+    {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+    }
+  );
+
+  // Parallax animations for Aliday Coffeeshop style hero
+  const heroTranslateY = scrollY.interpolate({
+    inputRange: [0, 220],
+    outputRange: [0, -60],
+    extrapolate: 'clamp',
+  });
+
+  const heroOpacity = scrollY.interpolate({
+    inputRange: [0, 160],
+    outputRange: [1, 0.25],
+    extrapolate: 'clamp',
+  });
 
   return (
     <View style={styles.container}>
       <HeaderBar
         userName={`${getGreeting()}, ${parentName} 👋`}
-        subtitle="Valideyn İcmalı"
+        subtitle={todayFormatted}
         unreadCount={unreadCount}
         onNotificationsPress={onOpenNotifications}
         onLanguagePress={() => setLangModalVisible(true)}
       />
 
-      <ScrollView
+      <Animated.ScrollView
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
       >
-        {loading ? (
-          <SkeletonCardList count={3} />
+        {loading && childrenList.length === 0 ? (
+          <View style={styles.skeletonWrapper}>
+            <SkeletonCardList count={3} />
+          </View>
         ) : childrenList.length === 0 ? (
           <EmptyState
-            title="Övlad tapılmadı"
-            description="Hesabınıza bağlı heç bir tələbə qeydiyyatı tapılmadı. Zəhmət olmasa tədris mərkəzinin administratoru ilə əlaqə saxlayın."
+            title={t('common.empty')}
+            description={t('parent.noChildrenLinked')}
           />
         ) : (
           <>
-            {/* Child Selector Carousel */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('parent.myChildren')}</Text>
-              <Text style={styles.childCountText}>{childrenList.length} Övlad</Text>
-            </View>
+            {/* 1. TOP HERO SECTION */}
+            <Animated.View
+              style={[
+                styles.topHeroSection,
+                {
+                  transform: [{ translateY: heroTranslateY }],
+                  opacity: heroOpacity,
+                },
+              ]}
+            >
+              <ThriveRoleBadge role="parent" variant="hero" />
 
-            <ChildSelectorCarousel
-              childrenList={childrenList}
-              selectedChildId={activeChild?.studentId || null}
-              onSelectChild={(childId) => setActiveChildId(childId)}
-            />
-
-            {/* Selected Child Hero Card */}
-            {activeChild && (
-              <ThriveCard style={styles.activeChildCard}>
-                <View style={styles.childHeaderRow}>
-                  <View>
-                    <Text style={styles.activeChildName}>{activeChild.fullName}</Text>
-                    <Text style={styles.activeChildProgram}>
-                      {activeChild.programs.join(', ')}
+              {/* Center Announcements */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setAnnouncementsModalVisible(true)}
+                style={styles.announcementBanner}
+              >
+                <View style={styles.announcementLeft}>
+                  <View style={styles.announcementIconBox}>
+                    <Bell size={16} color={Colors.warning} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.announcementBadgeRow}>
+                      <ThriveBadge label={t('announcements.badge')} variant="warning" />
+                      <Text style={styles.announcementHeader}>{t('announcements.centerNews')}</Text>
+                    </View>
+                    <Text style={styles.announcementTitle} numberOfLines={1}>
+                      🚀 Thrive Mobile v1.0.0 — Rəsmi Buraxılış
                     </Text>
                   </View>
-                  <ThriveBadge label="Aktiv Tələbə" variant="primary" />
                 </View>
+              </TouchableOpacity>
 
-                {/* Quick Child Metrics */}
-                <View style={styles.metricsGrid}>
-                  <TouchableOpacity
-                    style={styles.metricItem}
-                    onPress={() => onNavigateTab('progress')}
-                  >
-                    <Text style={styles.metricLabel}>Davamiyyət</Text>
-                    <Text style={[styles.metricVal, { color: Colors.success }]}>
-                      {activeChild.attendanceRate}%
-                    </Text>
-                  </TouchableOpacity>
+              {/* Child Selector Carousel */}
+              <View style={styles.carouselSectionHeader}>
+                <Text style={styles.sectionTitle}>{t('parent.childrenTitle')}</Text>
+                <Text style={styles.childCountText}>
+                  {childrenList.length} {t('common.student')}
+                </Text>
+              </View>
 
-                  <View style={styles.metricDivider} />
-
-                  <TouchableOpacity
-                    style={styles.metricItem}
-                    onPress={() => onNavigateTab('schedule')}
-                  >
-                    <Text style={styles.metricLabel}>Növbəti Dərs</Text>
-                    <Text style={styles.metricVal} numberOfLines={1}>
-                      {activeChild.nextClassTime || 'Planlaşdırılmayıb'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Quick Action Navigation Buttons */}
-                <View style={styles.actionsRow}>
-                  <TouchableOpacity
-                    style={styles.actionTabBtn}
-                    onPress={() => onNavigateTab('schedule')}
-                  >
-                    <Calendar size={18} color={Colors.primary} />
-                    <Text style={styles.actionTabText}>Cədvəl</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.actionTabBtn}
-                    onPress={() => onNavigateTab('progress')}
-                  >
-                    <TrendingUp size={18} color={Colors.primary} />
-                    <Text style={styles.actionTabText}>Tərəqqi</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.actionTabBtn}
-                    onPress={() => onNavigateTab('payments')}
-                  >
-                    <CreditCard size={18} color={Colors.primary} />
-                    <Text style={styles.actionTabText}>Ödəniş</Text>
-                  </TouchableOpacity>
-                </View>
-              </ThriveCard>
-            )}
-
-            {/* Academic Status Overview */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Akademik Vəziyyət</Text>
-            </View>
-
-            <View style={styles.statsRow}>
-              <StatCard
-                title="Davamiyyət Faizi"
-                value={`${activeChild?.attendanceRate || 100}%`}
-                subtitle="Dərslərdə iştirak"
-                accentColor={Colors.success}
-                icon={<CheckCircle size={18} color={Colors.success} />}
+              <ChildSelectorCarousel
+                childrenList={childrenList}
+                selectedChildId={activeChild?.studentId || null}
+                onSelectChild={(childId) => setActiveChildId(childId)}
               />
-              <StatCard
-                title="Gözləyən Tapşırıq"
-                value={activeChild?.pendingAssignmentsCount || 0}
-                subtitle="Yoxlanış gözləyir"
-                accentColor={Colors.warning}
-                icon={<Clock size={18} color={Colors.warning} />}
-              />
-            </View>
 
-            {/* Tuition Status */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Təhsil Haqqı Məlumatı</Text>
-            </View>
+              {/* Selected Child Hero Card */}
+              {activeChild && (
+                <ThriveCard style={styles.activeChildCard}>
+                  <View style={styles.childHeaderRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.activeChildName}>{activeChild.fullName}</Text>
+                      <Text style={styles.activeChildProgram}>
+                        {activeChild.programs.join(', ') || t('common.generalProgram')}
+                      </Text>
+                    </View>
+                    <ThriveBadge label={t('parent.activeBadge')} variant="primary" />
+                  </View>
 
-            <ThriveCard style={styles.tuitionCard}>
-              <View style={styles.tuitionRow}>
-                <View>
-                  <Text style={styles.tuitionLabel}>Ödəniş Vəziyyəti</Text>
-                  <Text style={styles.tuitionValue}>{activeChild?.paymentStatus}</Text>
-                  {activeChild?.paymentSummary?.nextDueDate && (
-                    <Text style={styles.tuitionDate}>
-                      Son tarix: {activeChild.paymentSummary.nextDueDate}
-                    </Text>
-                  )}
+                  {/* Quick Child Metrics */}
+                  <View style={styles.metricsGrid}>
+                    <TouchableOpacity
+                      style={styles.metricItem}
+                      onPress={() => onNavigateTab('progress')}
+                    >
+                      <Text style={styles.metricLabel}>{t('common.attendance')}</Text>
+                      <Text style={[styles.metricVal, { color: Colors.success }]}>
+                        {activeChild.attendanceRate}%
+                      </Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.metricDivider} />
+
+                    <TouchableOpacity
+                      style={styles.metricItem}
+                      onPress={() => onNavigateTab('schedule')}
+                    >
+                      <Text style={styles.metricLabel}>{t('student.nextClass')}</Text>
+                      <Text style={styles.metricVal} numberOfLines={1}>
+                        {activeChild.nextClassTime || t('common.notAssigned')}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.metricDivider} />
+
+                    <TouchableOpacity
+                      style={styles.metricItem}
+                      onPress={() => onNavigateTab('progress')}
+                    >
+                      <Text style={styles.metricLabel}>{t('student.pendingAssignments')}</Text>
+                      <Text style={[styles.metricVal, { color: Colors.warning }]}>
+                        {activeChild.pendingAssignmentsCount || 0}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </ThriveCard>
+              )}
+            </Animated.View>
+
+            {/* 2. ALIDAY COFFEESHOP STYLE ELEVATED CURVED OVERLAY SHEET */}
+            <View style={styles.contentSheet}>
+              {/* Sheet Grab Handle */}
+              <View style={styles.sheetHandleBar} />
+
+              {/* Performance Stats */}
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionHeaderLeft}>
+                  <View style={styles.sectionDot} />
+                  <Text style={styles.sectionTitle}>{t('parent.progressTitle')}</Text>
                 </View>
-                <ThriveBadge
-                  label={
-                    activeChild?.paymentSummary && activeChild.paymentSummary.remainingDebt <= 0
-                      ? 'Ödənilib'
-                      : 'Gözlənilir'
-                  }
-                  variant={
-                    activeChild?.paymentSummary && activeChild.paymentSummary.remainingDebt <= 0
-                      ? 'success'
-                      : 'warning'
-                  }
+                <Text style={styles.viewAllText} onPress={() => onNavigateTab('progress')}>
+                  {t('common.view')}
+                </Text>
+              </View>
+
+              <View style={styles.statsGrid}>
+                <StatCard
+                  title={t('student.attendanceRate')}
+                  value={`${activeChild?.attendanceRate || 100}%`}
+                  subtitle={`${activeChild?.stats?.presentCount || 0} ${t('teacher.present')}`}
+                  circularProgress={activeChild?.attendanceRate || 100}
+                  accentColor={Colors.success}
+                />
+                <StatCard
+                  title={t('student.pendingAssignments')}
+                  value={activeChild?.pendingAssignmentsCount || 0}
+                  icon={<Clock size={20} color={Colors.warning} />}
+                  accentColor={Colors.warning}
                 />
               </View>
-            </ThriveCard>
+
+              {/* Weekly Lesson Preview */}
+              <View style={[styles.sectionHeader, { marginTop: Spacing.lg }]}>
+                <View style={styles.sectionHeaderLeft}>
+                  <View style={[styles.sectionDot, { backgroundColor: Colors.warning }]} />
+                  <Text style={styles.sectionTitle}>{t('student.scheduleTitle')}</Text>
+                </View>
+                <Text style={styles.viewAllText} onPress={() => onNavigateTab('schedule')}>
+                  {t('common.view')}
+                </Text>
+              </View>
+
+              <ThriveCard style={styles.schedulePreviewCard} onPress={() => onNavigateTab('schedule')}>
+                <View style={styles.scheduleRow}>
+                  <View style={styles.scheduleIconCircle}>
+                    <Calendar size={22} color={Colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.scheduleTitle}>{t('parent.childWeeklySchedule')}</Text>
+                    <Text style={styles.scheduleSubtitle}>
+                      {t('parent.viewScheduleCardSub')}
+                    </Text>
+                  </View>
+                </View>
+              </ThriveCard>
+            </View>
           </>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
+
+      {/* Modals */}
+      <AnnouncementsModal
+        visible={announcementsModalVisible}
+        onClose={() => setAnnouncementsModalVisible(false)}
+      />
 
       <LanguagePickerModal
         visible={langModalVisible}
@@ -260,38 +336,75 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.xxl,
+    paddingBottom: Spacing.xxl + 20,
   },
-  sectionHeader: {
+  skeletonWrapper: {
+    padding: Spacing.md,
+  },
+  topHeroSection: {
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.sm,
+  },
+  announcementBanner: {
+    backgroundColor: '#0F2A4A',
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    ...Shadows.sm,
+  },
+  announcementLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  announcementIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  announcementBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  announcementHeader: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.warning,
+    textTransform: 'uppercase',
+  },
+  announcementTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  carouselSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.xs + 2,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.textSecondary,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  childCountText: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: '600',
+    marginBottom: Spacing.xs,
+    marginTop: Spacing.xs,
   },
   activeChildCard: {
     backgroundColor: '#0F2744',
-    borderColor: 'rgba(76, 162, 181, 0.4)',
+    borderColor: 'rgba(76, 162, 181, 0.45)',
+    borderWidth: 1.5,
+    borderRadius: Radius.lg,
     padding: Spacing.md,
-    marginTop: Spacing.sm,
+    marginBottom: Spacing.xs,
+    ...Shadows.glow,
   },
   childHeaderRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: Spacing.md,
   },
   activeChildName: {
@@ -300,86 +413,127 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   activeChildProgram: {
-    fontSize: 13,
-    color: Colors.textSecondary,
+    fontSize: 12,
+    color: Colors.primary,
     marginTop: 2,
   },
   metricsGrid: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
+    justifyContent: 'space-between',
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
   metricItem: {
     flex: 1,
+    alignItems: 'center',
   },
   metricDivider: {
     width: 1,
-    height: 30,
-    backgroundColor: Colors.border,
-    marginHorizontal: Spacing.sm,
+    height: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   metricLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.textMuted,
     textTransform: 'uppercase',
   },
   metricVal: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     color: Colors.textPrimary,
     marginTop: 2,
   },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
+  // Aliday Coffeeshop Style Elevated Curved Sheet
+  contentSheet: {
+    backgroundColor: '#0D1E36',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderTopWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xl + 20,
+    marginTop: Spacing.sm,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+    minHeight: 480,
   },
-  actionTabBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    backgroundColor: Colors.cardBackground,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
+  sheetHandleBar: {
+    width: 44,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    alignSelf: 'center',
+    marginBottom: Spacing.md,
   },
-  actionTabText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  tuitionCard: {
-    padding: Spacing.md,
-  },
-  tuitionRow: {
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
   },
-  tuitionLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: '600',
+  sectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  tuitionValue: {
-    fontSize: 20,
+  sectionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
+  },
+  sectionTitle: {
+    fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
-    marginTop: 2,
+    letterSpacing: 0.2,
   },
-  tuitionDate: {
-    fontSize: 11,
+  childCountText: {
+    fontSize: 12,
     color: Colors.textMuted,
-    marginTop: 2,
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  schedulePreviewCard: {
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  scheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  scheduleIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(76, 162, 181, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scheduleTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  scheduleSubtitle: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    lineHeight: 16,
   },
 });

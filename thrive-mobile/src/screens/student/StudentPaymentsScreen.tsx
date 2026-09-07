@@ -6,7 +6,7 @@ import {
   RefreshControl,
   StyleSheet,
 } from 'react-native';
-import { CreditCard, Calendar, CheckCircle2, Clock } from 'lucide-react-native';
+import { Calendar, CreditCard, Shield } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -15,7 +15,9 @@ import { StudentPaymentSummary } from '../../types/student.types';
 import { HeaderBar } from '../../components/common/HeaderBar';
 import { ThriveCard } from '../../components/common/ThriveCard';
 import { ThriveBadge } from '../../components/common/ThriveBadge';
+import { ThriveButton } from '../../components/common/ThriveButton';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
+import { OnlinePaymentModal } from '../../components/modals/OnlinePaymentModal';
 
 export const StudentPaymentsScreen: React.FC = () => {
   const { session } = useAuth();
@@ -24,8 +26,10 @@ export const StudentPaymentsScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [summary, setSummary] = useState<StudentPaymentSummary | null>(null);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
 
   const studentId = session?.studentId;
+  const studentName = session?.profile.first_name || t('common.student');
 
   useEffect(() => {
     if (studentId) {
@@ -51,9 +55,11 @@ export const StudentPaymentsScreen: React.FC = () => {
     loadPayments();
   };
 
+  const remainingDebt = summary?.remainingDebt || 0;
+
   return (
     <View style={styles.container}>
-      <HeaderBar title="Maliyyə və Ödənişlər" subtitle="Təhsil Haqqı və Tarixçə" />
+      <HeaderBar title={t('student.paymentsTitle')} subtitle={t('student.paymentsSubtitle')} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -67,31 +73,40 @@ export const StudentPaymentsScreen: React.FC = () => {
           <>
             {/* Balance Hero Card */}
             <ThriveCard style={styles.heroCard}>
-              <Text style={styles.heroLabel}>Cari Qalıq Borc</Text>
-              <Text style={styles.heroAmount}>
-                {summary ? `${summary.remainingDebt} ₼` : '0.00 ₼'}
-              </Text>
+              <Text style={styles.heroLabel}>{t('student.remainingDebt')}</Text>
+              <Text style={styles.heroAmount}>{remainingDebt} ₼</Text>
 
               <View style={styles.heroBadgeRow}>
                 <ThriveBadge
-                  label={summary && summary.remainingDebt <= 0 ? 'Tam Ödənilib' : 'Ödəniş Gözlənilir'}
-                  variant={summary && summary.remainingDebt <= 0 ? 'success' : 'warning'}
+                  label={remainingDebt <= 0 ? t('payments.paidStatus') : t('common.pending')}
+                  variant={remainingDebt <= 0 ? 'success' : 'warning'}
                 />
               </View>
 
               <View style={styles.statsGrid}>
                 <View style={styles.statBox}>
-                  <Text style={styles.statLabel}>Ümumi Məbləğ</Text>
+                  <Text style={styles.statLabel}>{t('student.totalDue')}</Text>
                   <Text style={styles.statVal}>{summary?.totalDue || 0} ₼</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statBox}>
-                  <Text style={styles.statLabel}>Ödənilən</Text>
+                  <Text style={styles.statLabel}>{t('student.paidAmount')}</Text>
                   <Text style={[styles.statVal, { color: Colors.success }]}>
                     {summary?.paidAmount || 0} ₼
                   </Text>
                 </View>
               </View>
+
+              {remainingDebt > 0 && (
+                <ThriveButton
+                  title={t('common.payOnline')}
+                  onPress={() => setPaymentModalVisible(true)}
+                  variant="primary"
+                  size="md"
+                  icon={<CreditCard size={18} color="#FFFFFF" />}
+                  style={{ width: '100%', marginTop: Spacing.md }}
+                />
+              )}
             </ThriveCard>
 
             {/* Next Due Date */}
@@ -102,23 +117,38 @@ export const StudentPaymentsScreen: React.FC = () => {
                     <Calendar size={20} color={Colors.warning} />
                   </View>
                   <View>
-                    <Text style={styles.dueLabel}>Növbəti Ödəniş Tarixi</Text>
+                    <Text style={styles.dueLabel}>{t('student.nextDueDate')}</Text>
                     <Text style={styles.dueValue}>{summary.nextDueDate}</Text>
                   </View>
                 </View>
               </ThriveCard>
             )}
 
-            <Text style={styles.sectionTitle}>Məlumat və Qaydalar</Text>
+            <Text style={styles.sectionTitle}>{t('student.paymentsSubtitle')}</Text>
             <ThriveCard style={styles.infoCard}>
-              <Text style={styles.infoTitle}>Ödənişlərin icrası haqqında</Text>
-              <Text style={styles.infoDesc}>
-                Ödənişlərinizi mərkəzimizin inzibati ofisində nağd və ya terminal vasitəsilə həyata keçirə bilərsiniz. Ödəniş qəbzini təqdim etdikdən sonra status dərhal tətbiqdə yenilənir.
-              </Text>
+              <View style={styles.securityRow}>
+                <Shield size={20} color={Colors.success} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoTitle}>{t('payments.secureOnlinePayment')}</Text>
+                  <Text style={styles.infoDesc}>
+                    {t('parent.officialReportDesc')}
+                  </Text>
+                </View>
+              </View>
             </ThriveCard>
           </>
         )}
       </ScrollView>
+
+      <OnlinePaymentModal
+        visible={paymentModalVisible}
+        amount={remainingDebt}
+        studentName={studentName}
+        onClose={() => setPaymentModalVisible(false)}
+        onPaymentSuccess={() => {
+          loadPayments();
+        }}
+      />
     </View>
   );
 };
@@ -141,17 +171,18 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     fontSize: 12,
-    fontWeight: '600',
     color: Colors.textSecondary,
     textTransform: 'uppercase',
+    fontWeight: '600',
   },
   heroAmount: {
     fontSize: 34,
     fontWeight: '900',
-    color: '#FFFFFF',
-    marginVertical: Spacing.xs,
+    color: Colors.primary,
+    marginTop: 4,
   },
   heroBadgeRow: {
+    marginTop: Spacing.xs,
     marginBottom: Spacing.md,
   },
   statsGrid: {
@@ -168,7 +199,7 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 30,
-    backgroundColor: Colors.border,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   statLabel: {
     fontSize: 11,
@@ -177,12 +208,13 @@ const styles = StyleSheet.create({
   },
   statVal: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.textPrimary,
     marginTop: 2,
   },
   dueDateCard: {
-    padding: Spacing.md,
+    backgroundColor: '#0F2A4A',
+    borderColor: 'rgba(245, 158, 11, 0.3)',
     marginBottom: Spacing.md,
   },
   dueDateRow: {
@@ -193,8 +225,8 @@ const styles = StyleSheet.create({
   dateIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.warningLight,
+    borderRadius: Radius.md,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -215,11 +247,15 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs + 2,
   },
   infoCard: {
     padding: Spacing.md,
+  },
+  securityRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
   },
   infoTitle: {
     fontSize: 14,
@@ -228,8 +264,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   infoDesc: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: 16,
   },
 });

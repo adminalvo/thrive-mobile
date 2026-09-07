@@ -3,10 +3,24 @@ import { UserSession } from '../types/auth.types';
 import { UserRole, UserProfileRow } from '../types/database.types';
 
 export const authService = {
-  async signIn(email: string, pass: string): Promise<{ success: boolean; session?: UserSession; error?: string }> {
+  async signIn(input: string, pass: string): Promise<{ success: boolean; session?: UserSession; error?: string }> {
     try {
+      const trimmed = input.trim();
+      let emailToAuth = trimmed;
+
+      // If user input is not an email (e.g. phone number like 0557596383 or +994509803400), resolve email via RPC
+      if (!trimmed.includes('@')) {
+        const { data: resolvedEmail } = await supabase.rpc('get_email_by_phone', {
+          p_phone: trimmed,
+        });
+
+        if (resolvedEmail && typeof resolvedEmail === 'string') {
+          emailToAuth = resolvedEmail;
+        }
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: emailToAuth,
         password: pass,
       });
 
@@ -14,7 +28,7 @@ export const authService = {
         return { success: false, error: error?.message || 'Invalid login credentials' };
       }
 
-      const userSession = await this.resolveUserSession(data.user.id, data.user.email || email);
+      const userSession = await this.resolveUserSession(data.user.id, data.user.email || emailToAuth);
       if (!userSession) {
         await supabase.auth.signOut();
         return { success: false, error: 'User profile or role not found in system.' };
@@ -29,6 +43,20 @@ export const authService = {
       return { success: true, session: userSession };
     } catch (e: any) {
       return { success: false, error: e.message || 'An unexpected error occurred during sign in.' };
+    }
+  },
+
+  async changePassword(newPassword: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to update password' };
     }
   },
 
@@ -56,7 +84,7 @@ export const authService = {
   async resolveUserSession(userId: string, email: string): Promise<UserSession | null> {
     try {
       // 1. Fetch user role from user_roles
-      const { data: roleData, error: roleError } = await supabase
+      const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
@@ -66,7 +94,7 @@ export const authService = {
       let role: UserRole = (roleData?.role as UserRole) || 'student';
 
       // 2. Fetch user profile from user_profiles
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
@@ -131,3 +159,5 @@ export const authService = {
     }
   },
 };
+
+

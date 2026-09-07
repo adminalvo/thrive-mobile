@@ -6,9 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-  TextInput,
 } from 'react-native';
-import { CheckCircle, Clock, FileText, Award, Calendar, Send } from 'lucide-react-native';
+import { CheckCircle, Clock, FileText, Award, Calendar, TrendingUp, Check, BookOpen } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -26,6 +25,11 @@ import { ThriveButton } from '../../components/common/ThriveButton';
 import { ThriveProgressBar } from '../../components/common/ThriveProgressBar';
 import { EmptyState } from '../../components/common/EmptyState';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
+import { SubmitHomeworkModal } from '../../components/modals/SubmitHomeworkModal';
+import { ExamAnalyticsModal } from '../../components/modals/ExamAnalyticsModal';
+import { AttachmentFile } from '../../types/attachment.types';
+import { filePickerService } from '../../utils/filePickerService';
+import { AttachmentList } from '../../components/common/AttachmentList';
 
 type LearningTab = 'assignments' | 'exams' | 'attendance';
 
@@ -43,12 +47,12 @@ export const StudentLearningScreen: React.FC = () => {
   const [attendance, setAttendance] = useState<AttendanceRow[]>([]);
   const [progress, setProgress] = useState<StudentProgressStats | null>(null);
 
-  // Submitting modal state
-  const [submittingAssignmentId, setSubmittingAssignmentId] = useState<string | null>(null);
-  const [submissionText, setSubmissionText] = useState('');
-  const [savingSubmission, setSavingSubmission] = useState(false);
+  // Modals state
+  const [activeSubmitAssignment, setActiveSubmitAssignment] = useState<StudentAssignmentItem | null>(null);
+  const [analyticsModalVisible, setAnalyticsModalVisible] = useState(false);
 
   const studentId = session?.studentId;
+  const studentName = session?.profile.first_name || t('common.student');
 
   useEffect(() => {
     if (studentId) {
@@ -56,14 +60,14 @@ export const StudentLearningScreen: React.FC = () => {
     }
   }, [studentId]);
 
-  const loadData = async () => {
+  const loadData = async (forceRefresh = false) => {
     if (!studentId) return;
     try {
       const [ass, ex, att, prog] = await Promise.all([
-        studentService.getStudentAssignments(studentId),
-        studentService.getStudentExams(studentId),
-        studentService.getStudentAttendanceHistory(studentId),
-        studentService.getStudentProgress(studentId),
+        studentService.getStudentAssignments(studentId, forceRefresh),
+        studentService.getStudentExams(studentId, forceRefresh),
+        studentService.getStudentAttendanceHistory(studentId, forceRefresh),
+        studentService.getStudentProgress(studentId, forceRefresh),
       ]);
       setAssignments(ass);
       setExams(ex);
@@ -79,18 +83,34 @@ export const StudentLearningScreen: React.FC = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadData();
+    loadData(true);
   };
 
-  const handleSubmitAssignment = async (assignmentId: string) => {
-    if (!studentId || !submissionText.trim()) return;
-    setSavingSubmission(true);
-    const res = await studentService.submitAssignment(assignmentId, studentId, submissionText.trim());
-    setSavingSubmission(false);
+  const handleCompleteSubmission = async (
+    assignmentId: string,
+    text: string,
+    attachments: AttachmentFile[]
+  ) => {
+    if (!studentId) return;
+    const packedPayload = filePickerService.packAttachments(text.trim(), attachments);
+
+    // Optimistic status update
+    setAssignments((prev) =>
+      prev.map((a) =>
+        a.id === assignmentId
+          ? {
+              ...a,
+              status: 'submitted',
+              submissionText: packedPayload,
+              submittedAt: new Date().toISOString(),
+            }
+          : a
+      )
+    );
+
+    const res = await studentService.submitAssignment(assignmentId, studentId, packedPayload);
     if (res.success) {
-      setSubmittingAssignmentId(null);
-      setSubmissionText('');
-      loadData();
+      loadData(true);
     }
   };
 
@@ -101,7 +121,7 @@ export const StudentLearningScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Tədris Mərkəzi" subtitle="Tapşırıqlar, İmtahanlar və Davamiyyət" />
+      <HeaderBar title={t('student.learningTitle')} subtitle={t('student.learningSubtitle')} />
 
       {/* Main Tabs */}
       <View style={styles.segmentedControl}>
@@ -110,7 +130,7 @@ export const StudentLearningScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'assignments' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'assignments' && styles.segmentTextActive]}>
-            Tapşırıqlar
+            {t('nav.assignments')}
           </Text>
         </TouchableOpacity>
 
@@ -119,7 +139,7 @@ export const StudentLearningScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'exams' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'exams' && styles.segmentTextActive]}>
-            İmtahanlar
+            {t('student.tabExams')}
           </Text>
         </TouchableOpacity>
 
@@ -128,7 +148,7 @@ export const StudentLearningScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'attendance' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'attendance' && styles.segmentTextActive]}>
-            Davamiyyət
+            {t('student.tabAttendance')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -164,12 +184,12 @@ export const StudentLearningScreen: React.FC = () => {
                         ]}
                       >
                         {filterKey === 'all'
-                          ? 'Hamısı'
+                          ? t('common.all')
                           : filterKey === 'pending'
-                          ? 'Gözləyir'
+                          ? t('common.pending')
                           : filterKey === 'submitted'
-                          ? 'Təhvil verildi'
-                          : 'Qiymətləndirildi'}
+                          ? t('common.submitted')
+                          : t('common.graded')}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -177,27 +197,30 @@ export const StudentLearningScreen: React.FC = () => {
 
                 {filteredAssignments.length === 0 ? (
                   <EmptyState
-                    title="Tapşırıq tapılmadı"
-                    description="Bu kateqoriya üzrə hazırda aktiv ev tapşırığı yoxdur."
+                    title={t('common.empty')}
+                    description={t('student.noAssignments')}
                   />
                 ) : (
                   filteredAssignments.map((item) => {
-                    const isSubmitting = submittingAssignmentId === item.id;
+                    // Unpack teacher materials from description
+                    const { cleanText: descText, attachments: teacherMaterials } =
+                      filePickerService.unpackAttachments(item.description || '');
+
+                    // Unpack student submission
+                    const { cleanText: studentAnswer, attachments: studentFiles } =
+                      filePickerService.unpackAttachments(item.submissionText || '');
 
                     return (
                       <ThriveCard key={item.id} style={styles.card}>
                         <View style={styles.cardHeader}>
-                          <ThriveBadge
-                            label={item.programName}
-                            variant="primary"
-                          />
+                          <ThriveBadge label={item.programName} variant="primary" />
                           <ThriveBadge
                             label={
                               item.status === 'graded'
-                                ? `Bal: ${item.score}/${item.maxScore}`
+                                ? item.score !== undefined ? `${item.score}/${item.maxScore} ${t('common.score')}` : t('common.graded')
                                 : item.status === 'submitted'
-                                ? 'Təhvil verildi'
-                                : 'Gözləyir'
+                                ? t('common.submitted')
+                                : t('common.pending')
                             }
                             variant={
                               item.status === 'graded'
@@ -210,71 +233,64 @@ export const StudentLearningScreen: React.FC = () => {
                         </View>
 
                         <Text style={styles.itemTitle}>{item.title}</Text>
-                        {item.description ? (
-                          <Text style={styles.itemDesc}>{item.description}</Text>
-                        ) : null}
+                        <Text style={styles.groupSubText}>{item.groupName}</Text>
+
+                        {!!descText && <Text style={styles.itemDesc}>{descText}</Text>}
+
+                        {/* Teacher's attached materials (PDF/Documents) */}
+                        {teacherMaterials.length > 0 && (
+                          <View style={styles.materialsBox}>
+                            <AttachmentList
+                              attachments={teacherMaterials}
+                              readOnly
+                              title={t('attachments.studyMaterialsLabel')}
+                            />
+                          </View>
+                        )}
 
                         {item.dueDate ? (
                           <View style={styles.metaItem}>
                             <Clock size={13} color={Colors.textMuted} />
-                            <Text style={styles.metaText}>Son tarix: {item.dueDate}</Text>
+                            <Text style={styles.metaText}>{t('teacher.dueDateFormatted', { date: item.dueDate })}</Text>
                           </View>
                         ) : null}
 
+                        {/* Submitted Details */}
+                        {(item.status === 'submitted' || item.status === 'graded') && (
+                          <View style={styles.submittedBox}>
+                            <View style={styles.submittedHeader}>
+                              <Check size={14} color={Colors.success} />
+                              <Text style={styles.submittedTitle}>{t('student.yourSubmittedAnswer')}</Text>
+                            </View>
+                            {!!studentAnswer && <Text style={styles.submittedText}>{studentAnswer}</Text>}
+                            {studentFiles.length > 0 && (
+                              <AttachmentList
+                                attachments={studentFiles}
+                                readOnly
+                                title={t('attachments.attachedSolutionsLabel')}
+                              />
+                            )}
+                          </View>
+                        )}
+
+                        {/* Feedback */}
                         {item.feedback ? (
                           <View style={styles.feedbackBox}>
-                            <Text style={styles.feedbackLabel}>Müəllim rəyi:</Text>
+                            <Text style={styles.feedbackLabel}>{t('common.feedback')}:</Text>
                             <Text style={styles.feedbackText}>{item.feedback}</Text>
                           </View>
                         ) : null}
 
-                        {/* Submission trigger */}
+                        {/* Submission Trigger Button */}
                         {item.status === 'pending' && (
-                          <>
-                            {isSubmitting ? (
-                              <View style={styles.submitArea}>
-                                <TextInput
-                                  placeholder="Cavabınızı və ya qeydlərinizi yazın..."
-                                  placeholderTextColor={Colors.textMuted}
-                                  multiline
-                                  numberOfLines={3}
-                                  style={styles.textArea}
-                                  value={submissionText}
-                                  onChangeText={setSubmissionText}
-                                />
-                                <View style={styles.submitBtnRow}>
-                                  <ThriveButton
-                                    title="Ləğv et"
-                                    size="sm"
-                                    variant="secondary"
-                                    onPress={() => {
-                                      setSubmittingAssignmentId(null);
-                                      setSubmissionText('');
-                                    }}
-                                  />
-                                  <ThriveButton
-                                    title="Göndər"
-                                    size="sm"
-                                    variant="primary"
-                                    loading={savingSubmission}
-                                    onPress={() => handleSubmitAssignment(item.id)}
-                                    icon={<Send size={14} color="#FFFFFF" />}
-                                  />
-                                </View>
-                              </View>
-                            ) : (
-                              <ThriveButton
-                                title="Tapşırığı təhvil ver"
-                                size="sm"
-                                variant="outline"
-                                onPress={() => {
-                                  setSubmittingAssignmentId(item.id);
-                                  setSubmissionText(item.submissionText || '');
-                                }}
-                                style={{ marginTop: Spacing.sm }}
-                              />
-                            )}
-                          </>
+                          <ThriveButton
+                            title={t('student.submitSolutionAction')}
+                            size="sm"
+                            variant="primary"
+                            onPress={() => setActiveSubmitAssignment(item)}
+                            icon={<FileText size={14} color="#FFFFFF" />}
+                            style={{ marginTop: Spacing.md }}
+                          />
                         )}
                       </ThriveCard>
                     );
@@ -286,10 +302,28 @@ export const StudentLearningScreen: React.FC = () => {
             {/* 2. EXAMS TAB */}
             {activeTab === 'exams' && (
               <View>
+                {/* Visual Analytics Trigger Banner */}
+                {exams.length > 0 && (
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setAnalyticsModalVisible(true)}
+                    style={styles.analyticsBanner}
+                  >
+                    <View style={styles.analyticsBannerLeft}>
+                      <TrendingUp size={20} color={Colors.primary} />
+                      <View>
+                        <Text style={styles.analyticsBannerTitle}>{t('analytics.modalTitle')}</Text>
+                        <Text style={styles.analyticsBannerDesc}>{t('analytics.scoreTrend')}</Text>
+                      </View>
+                    </View>
+                    <ThriveBadge label={t('common.view')} variant="primary" />
+                  </TouchableOpacity>
+                )}
+
                 {exams.length === 0 ? (
                   <EmptyState
-                    title="İmtahan tapılmadı"
-                    description="Hazırda qeydə alınmış imtahan və ya sınaq nəticəsi yoxdur."
+                    title={t('common.empty')}
+                    description={t('student.noExams')}
                   />
                 ) : (
                   exams.map((ex) => (
@@ -298,11 +332,11 @@ export const StudentLearningScreen: React.FC = () => {
                         <ThriveBadge label={ex.programName} variant="primary" />
                         {ex.score !== undefined && ex.score !== null ? (
                           <ThriveBadge
-                            label={`Nəticə: ${ex.score} / ${ex.maxScore}`}
+                            label={`${ex.score} / ${ex.maxScore} ${t('common.score')}`}
                             variant="success"
                           />
                         ) : (
-                          <ThriveBadge label="Gözlənilir" variant="warning" />
+                          <ThriveBadge label={t('common.pending')} variant="warning" />
                         )}
                       </View>
 
@@ -312,13 +346,13 @@ export const StudentLearningScreen: React.FC = () => {
                       {ex.examDate ? (
                         <View style={styles.metaItem}>
                           <Calendar size={13} color={Colors.textMuted} />
-                          <Text style={styles.metaText}>İmtahan tarixi: {ex.examDate}</Text>
+                          <Text style={styles.metaText}>{ex.examDate}</Text>
                         </View>
                       ) : null}
 
                       {ex.feedback ? (
                         <View style={styles.feedbackBox}>
-                          <Text style={styles.feedbackLabel}>Müəllim rəyi:</Text>
+                          <Text style={styles.feedbackLabel}>{t('common.feedback')}:</Text>
                           <Text style={styles.feedbackText}>{ex.feedback}</Text>
                         </View>
                       ) : null}
@@ -333,7 +367,7 @@ export const StudentLearningScreen: React.FC = () => {
               <View>
                 {/* Attendance rate hero */}
                 <ThriveCard style={styles.attendanceHeroCard}>
-                  <Text style={styles.attRateLabel}>Ümumi Davamiyyət Göstəricisi</Text>
+                  <Text style={styles.attRateLabel}>{t('student.attendanceRate')}</Text>
                   <Text style={styles.attRateVal}>{progress?.attendanceRate || 100}%</Text>
                   <ThriveProgressBar
                     progress={progress?.attendanceRate || 100}
@@ -347,72 +381,116 @@ export const StudentLearningScreen: React.FC = () => {
                       <Text style={[styles.attStatNumber, { color: Colors.success }]}>
                         {progress?.presentCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>İştirak</Text>
+                      <Text style={styles.attStatText}>{t('teacher.presentShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.warning }]}>
                         {progress?.lateCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Gecikmə</Text>
+                      <Text style={styles.attStatText}>{t('teacher.lateShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.danger }]}>
                         {progress?.absentCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Qayıb</Text>
+                      <Text style={styles.attStatText}>{t('teacher.absentShort')}</Text>
                     </View>
                     <View style={styles.attStatBox}>
                       <Text style={[styles.attStatNumber, { color: Colors.primary }]}>
                         {progress?.excusedCount || 0}
                       </Text>
-                      <Text style={styles.attStatText}>Üzrlü</Text>
+                      <Text style={styles.attStatText}>{t('teacher.excusedShort')}</Text>
                     </View>
                   </View>
                 </ThriveCard>
 
-                <Text style={styles.historyTitle}>Davamiyyət Tarixçəsi</Text>
+                <Text style={styles.historyTitle}>{t('student.tabAttendance')}</Text>
 
                 {attendance.length === 0 ? (
                   <EmptyState
-                    title="Davamiyyət qeydi yoxdur"
-                    description="Sistemdə hələlik davamiyyət məlumatı qeydə alınmayıb."
+                    title={t('common.empty')}
+                    description={t('student.noAttendance')}
                   />
                 ) : (
-                  attendance.map((att) => (
-                    <ThriveCard key={att.id} style={styles.attendanceRow}>
-                      <View style={styles.attDateColumn}>
-                        <Text style={styles.attDateText}>{att.date}</Text>
-                        {att.notes ? <Text style={styles.attNotes}>{att.notes}</Text> : null}
-                      </View>
+                  attendance.map((att) => {
+                    let noteText = att.notes || '';
+                    let lessonTopic = '';
+                    let dailyScore: number | null = null;
 
-                      <ThriveBadge
-                        label={
-                          att.status === 'PRESENT'
-                            ? 'İştirak'
-                            : att.status === 'LATE'
-                            ? 'Gecikdi'
-                            : att.status === 'ABSENT'
-                            ? 'Qayıb'
-                            : 'Üzrlü'
-                        }
-                        variant={
-                          att.status === 'PRESENT'
-                            ? 'success'
-                            : att.status === 'LATE'
-                            ? 'warning'
-                            : att.status === 'ABSENT'
-                            ? 'danger'
-                            : 'info'
-                        }
-                      />
-                    </ThriveCard>
-                  ))
+                    if (att.notes && att.notes.trim().startsWith('{') && att.notes.trim().endsWith('}')) {
+                      try {
+                        const parsed = JSON.parse(att.notes);
+                        noteText = parsed.notes || '';
+                        lessonTopic = parsed.lessonTopic || '';
+                        dailyScore = typeof parsed.dailyScore === 'number' ? parsed.dailyScore : null;
+                      } catch {}
+                    }
+
+                    return (
+                      <ThriveCard key={att.id} style={styles.attendanceRow}>
+                        <View style={styles.attDateColumn}>
+                          <Text style={styles.attDateText}>{att.date}</Text>
+                          {!!lessonTopic && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                              <BookOpen size={12} color={Colors.primary} />
+                              <Text style={{ fontSize: 12, color: Colors.primary, fontWeight: '600' }}>
+                                {lessonTopic}
+                              </Text>
+                            </View>
+                          )}
+                          {dailyScore !== null && (
+                            <Text style={{ fontSize: 12, color: Colors.warning, fontWeight: '700', marginTop: 2 }}>
+                              ⭐ {t('teacher.dailyGrade')}: {dailyScore}/10
+                            </Text>
+                          )}
+                          {!!noteText && <Text style={styles.attNotes}>{noteText}</Text>}
+                        </View>
+
+                        <ThriveBadge
+                          label={
+                            att.status === 'PRESENT'
+                              ? t('teacher.presentShort')
+                              : att.status === 'LATE'
+                              ? t('teacher.lateShort')
+                              : att.status === 'ABSENT'
+                              ? t('teacher.absentShort')
+                              : t('teacher.excusedShort')
+                          }
+                          variant={
+                            att.status === 'PRESENT'
+                              ? 'success'
+                              : att.status === 'LATE'
+                              ? 'warning'
+                              : att.status === 'ABSENT'
+                              ? 'danger'
+                              : 'info'
+                          }
+                        />
+                      </ThriveCard>
+                    );
+                  })
                 )}
               </View>
             )}
           </>
         )}
       </ScrollView>
+
+      {/* SUBMISSION MODAL */}
+      <SubmitHomeworkModal
+        visible={!!activeSubmitAssignment}
+        assignment={activeSubmitAssignment}
+        onClose={() => setActiveSubmitAssignment(null)}
+        onSubmit={handleCompleteSubmission}
+      />
+
+      {/* EXAM ANALYTICS MODAL */}
+      <ExamAnalyticsModal
+        visible={analyticsModalVisible}
+        exams={exams}
+        studentName={studentName}
+        onClose={() => setAnalyticsModalVisible(false)}
+      />
     </View>
   );
 };
@@ -457,11 +535,11 @@ const styles = StyleSheet.create({
   },
   chipsRow: {
     flexDirection: 'row',
-    gap: Spacing.xs,
+    gap: Spacing.xs + 2,
     marginBottom: Spacing.md,
   },
   chip: {
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.sm + 4,
     paddingVertical: 6,
     borderRadius: Radius.full,
     backgroundColor: Colors.cardBackground,
@@ -469,38 +547,77 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   chipSelected: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#0F2744',
     borderColor: Colors.primary,
   },
   chipText: {
     fontSize: 12,
-    fontWeight: '600',
     color: Colors.textSecondary,
+    fontWeight: '500',
   },
   chipTextSelected: {
-    color: '#FFFFFF',
+    color: Colors.primary,
+    fontWeight: '700',
   },
   card: {
-    padding: Spacing.md,
-    marginBottom: Spacing.sm + 4,
+    marginBottom: Spacing.md,
   },
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: Spacing.xs,
   },
   itemTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
-    marginVertical: 4,
+    marginBottom: 2,
+  },
+  groupSubText: {
+    fontSize: 12,
+    color: Colors.primary,
+    marginBottom: Spacing.xs,
   },
   itemDesc: {
     fontSize: 13,
     color: Colors.textSecondary,
-    lineHeight: 18,
     marginBottom: Spacing.sm,
+    lineHeight: 18,
+  },
+  materialsBox: {
+    backgroundColor: '#0F2744',
+    borderRadius: Radius.md,
+    padding: Spacing.sm,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 162, 181, 0.25)',
+  },
+  submittedBox: {
+    backgroundColor: '#0A1E38',
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginVertical: Spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  submittedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  submittedTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.success,
+    textTransform: 'uppercase',
+  },
+  submittedText: {
+    fontSize: 13,
+    color: Colors.textPrimary,
+    lineHeight: 18,
+    marginBottom: 4,
   },
   metaItem: {
     flexDirection: 'row',
@@ -513,12 +630,12 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   feedbackBox: {
-    backgroundColor: Colors.cardElevated,
-    padding: Spacing.sm,
+    backgroundColor: '#0A1E38',
     borderRadius: Radius.md,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.primary,
+    padding: Spacing.sm + 2,
     marginTop: Spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 162, 181, 0.2)',
   },
   feedbackLabel: {
     fontSize: 11,
@@ -528,63 +645,64 @@ const styles = StyleSheet.create({
   },
   feedbackText: {
     fontSize: 12,
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
   },
-  submitArea: {
-    marginTop: Spacing.md,
-    backgroundColor: Colors.cardElevated,
-    padding: Spacing.sm,
-    borderRadius: Radius.md,
-  },
-  textArea: {
-    backgroundColor: Colors.cardBackground,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    padding: Spacing.sm,
-    color: Colors.textPrimary,
-    fontSize: 14,
-    height: 70,
-    textAlignVertical: 'top',
-  },
-  submitBtnRow: {
+  analyticsBanner: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#0F2744',
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
+    borderColor: 'rgba(76, 162, 181, 0.35)',
+    marginBottom: Spacing.md,
+  },
+  analyticsBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  analyticsBannerTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  analyticsBannerDesc: {
+    fontSize: 11,
+    color: Colors.primary,
+    marginTop: 2,
   },
   attendanceHeroCard: {
     padding: Spacing.lg,
-    alignItems: 'center',
     backgroundColor: '#0F2744',
     borderColor: 'rgba(76, 162, 181, 0.3)',
+    marginBottom: Spacing.lg,
   },
   attRateLabel: {
     fontSize: 12,
-    fontWeight: '600',
     color: Colors.textSecondary,
     textTransform: 'uppercase',
+    fontWeight: '600',
   },
   attRateVal: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '900',
     color: Colors.success,
-    marginVertical: Spacing.xs,
+    marginTop: 2,
   },
   attStatsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    justifyContent: 'space-around',
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
   attStatBox: {
     alignItems: 'center',
-    flex: 1,
   },
   attStatNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
   },
   attStatText: {
@@ -595,11 +713,10 @@ const styles = StyleSheet.create({
   historyTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.textPrimary,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.sm,
+    color: Colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginBottom: Spacing.sm,
   },
   attendanceRow: {
     flexDirection: 'row',

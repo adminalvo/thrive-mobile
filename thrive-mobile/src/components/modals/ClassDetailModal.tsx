@@ -8,8 +8,9 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
 } from 'react-native';
-import { Clock, MapPin, User, X, BookOpen, CheckCircle } from 'lucide-react-native';
+import { Clock, MapPin, User, X, CheckCircle } from 'lucide-react-native';
 import { Colors, Radius, Spacing } from '../../config/theme';
+import { useLanguage } from '../../context/LanguageContext';
 import { LessonScheduleItem } from '../../types/student.types';
 import { ThriveButton } from '../common/ThriveButton';
 import { ThriveBadge } from '../common/ThriveBadge';
@@ -27,6 +28,8 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
   onClose,
   onTakeAttendance,
 }) => {
+  const { t } = useLanguage();
+
   if (!lesson) return null;
 
   return (
@@ -53,7 +56,7 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
                     <Clock size={18} color={Colors.primary} />
                   </View>
                   <View>
-                    <Text style={styles.infoLabel}>Dərs saatı</Text>
+                    <Text style={styles.infoLabel}>{t('schedule.classTime')}</Text>
                     <Text style={styles.infoVal}>{lesson.startTime} – {lesson.endTime}</Text>
                   </View>
                 </View>
@@ -63,7 +66,7 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
                     <MapPin size={18} color={Colors.primary} />
                   </View>
                   <View>
-                    <Text style={styles.infoLabel}>Otaq / Məkan</Text>
+                    <Text style={styles.infoLabel}>{t('schedule.roomLocation')}</Text>
                     <Text style={styles.infoVal}>{lesson.room}</Text>
                   </View>
                 </View>
@@ -73,28 +76,28 @@ export const ClassDetailModal: React.FC<ClassDetailModalProps> = ({
                     <User size={18} color={Colors.primary} />
                   </View>
                   <View>
-                    <Text style={styles.infoLabel}>Müəllim</Text>
+                    <Text style={styles.infoLabel}>{t('common.teacher')}</Text>
                     <Text style={styles.infoVal}>{lesson.teacherName}</Text>
                   </View>
                 </View>
 
                 <View style={styles.statusBox}>
                   <CheckCircle size={18} color={Colors.success} />
-                  <Text style={styles.statusBoxText}>Dərs planı aktivdir və cədvələ uyğun keçirilir.</Text>
+                  <Text style={styles.statusBoxText}>{t('schedule.activeStatusDesc')}</Text>
                 </View>
               </ScrollView>
 
               <View style={styles.footer}>
                 {onTakeAttendance ? (
                   <ThriveButton
-                    title="Davamiyyət yaz"
+                    title={t('teacher.takeAttendanceBtn')}
                     onPress={onTakeAttendance}
                     variant="primary"
                     style={{ flex: 1 }}
                   />
                 ) : (
                   <ThriveButton
-                    title="Bağla"
+                    title={t('common.close')}
                     onPress={onClose}
                     variant="secondary"
                     style={{ flex: 1 }}

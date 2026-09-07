@@ -2,12 +2,13 @@
   "expo": {
     "name": "Thrive Mobile",
     "slug": "thrive-mobile",
+    "owner": "thrivemobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A192F"
     },
@@ -16,21 +17,50 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "az.thrive.mobile"
+      "bundleIdentifier": "az.thrive.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Thrive uses the camera to scan student QR codes, take profile photos, and capture homework documents.",
+        "NSPhotoLibraryUsageDescription": "Thrive uses the photo library to upload homework solutions and profile photos.",
+        "NSFaceIDUsageDescription": "Thrive uses Face ID for fast and secure account authentication."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#0A192F"
       },
-      "package": "az.thrive.mobile"
+      "package": "az.thrive.app",
+      "versionCode": 11,
+      "permissions": [
+        "CAMERA",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-camera",
+      "expo-notifications",
+      "expo-local-authentication",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          }
+        }
+      ]
     ],
     "extra": {
       "supabaseUrl": "https://bhiqieseyeamiqfgjssh.supabase.co",
-      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoaXFpZXNleWVhbWlxZmdqc3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3NzAwNDgsImV4cCI6MjEwMjM0NjA0OH0._C57EWi20k9OPitcYJSYJOvhQrWwdeuSwMzQINDX-kk"
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoaXFpZXNleWVhbWlxZmdqc3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3NzAwNDgsImV4cCI6MjEwMjM0NjA0OH0._C57EWi20k9OPitcYJSYJOvhQrWwdeuSwMzQINDX-kk",
+      "eas": {
+        "projectId": "1becbce6-661b-447e-bf98-dc82ae5596cd"
+      }
     }
   }
 }

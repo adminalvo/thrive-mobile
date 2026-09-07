@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import az from '../../locales/az.json';
 import en from '../../locales/en.json';
 import ru from '../../locales/ru.json';
@@ -25,8 +26,28 @@ const LanguageContext = createContext<LanguageContextType>({
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<SupportedLanguage>('az');
 
-  const setLanguage = (lang: SupportedLanguage) => {
+  useEffect(() => {
+    // Load saved language preference
+    const loadSavedLang = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('@thrive_app_language');
+        if (saved && (saved === 'az' || saved === 'en' || saved === 'ru')) {
+          setLanguageState(saved as SupportedLanguage);
+        }
+      } catch (e) {
+        console.warn('Failed to load saved language:', e);
+      }
+    };
+    loadSavedLang();
+  }, []);
+
+  const setLanguage = async (lang: SupportedLanguage) => {
     setLanguageState(lang);
+    try {
+      await AsyncStorage.setItem('@thrive_app_language', lang);
+    } catch (e) {
+      console.warn('Failed to save language:', e);
+    }
   };
 
   const t = (path: string, replacements?: Record<string, string | number>): string => {

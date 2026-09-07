@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from './config/theme';
@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Screens
 import { SplashScreen } from './screens/auth/SplashScreen';
+import { WelcomeScreen } from './screens/auth/WelcomeScreen';
 import { LoginScreen } from './screens/auth/LoginScreen';
 import { NotificationsScreen } from './screens/global/NotificationsScreen';
 
@@ -36,17 +37,37 @@ import { TeacherProfileScreen } from './screens/teacher/TeacherProfileScreen';
 // Navigation Components
 import { BottomTabBar } from './components/navigation/BottomTabBar';
 
+const { Dimensions } = require('react-native');
+
 const MainNavigator: React.FC = () => {
   const { session, loading } = useAuth();
+  const [windowWidth, setWindowWidth] = useState(
+    Dimensions?.get ? Dimensions.get('window').width : 375
+  );
   const [currentTab, setCurrentTab] = useState<string>('home');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+
+  useEffect(() => {
+    if (Dimensions?.addEventListener) {
+      const sub = Dimensions.addEventListener('change', (event: any) => {
+        if (event?.window?.width) {
+          setWindowWidth(event.window.width);
+        }
+      });
+      return () => sub?.remove?.();
+    }
+  }, []);
 
   if (loading) {
     return <SplashScreen />;
   }
 
   if (!session) {
-    return <LoginScreen />;
+    if (!showLogin) {
+      return <WelcomeScreen onGetStarted={() => setShowLogin(true)} />;
+    }
+    return <LoginScreen onBackToWelcome={() => setShowLogin(false)} />;
   }
 
   if (showNotifications) {
@@ -84,7 +105,7 @@ const MainNavigator: React.FC = () => {
         case 'children':
           return (
             <ParentChildrenScreen
-              onSelectChildAndNavigate={() => setCurrentTab('home')}
+              onSelectChildAndNavigate={(_childId, tab) => setCurrentTab(tab || 'home')}
             />
           );
         case 'schedule':
@@ -136,15 +157,19 @@ const MainNavigator: React.FC = () => {
     );
   };
 
+  const isTablet = windowWidth > 768;
+
   return (
     <SafeAreaView style={styles.appContainer} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      <View style={styles.screenContainer}>{renderScreen()}</View>
-      <BottomTabBar
-        role={role}
-        currentTab={currentTab}
-        onTabPress={(tabKey) => setCurrentTab(tabKey)}
-      />
+      <View style={[styles.mainLayoutWrapper, isTablet && styles.tabletLayoutWrapper]}>
+        <View style={styles.screenContainer}>{renderScreen()}</View>
+        <BottomTabBar
+          role={role}
+          currentTab={currentTab}
+          onTabPress={(tabKey) => setCurrentTab(tabKey)}
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -167,6 +192,17 @@ const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  mainLayoutWrapper: {
+    flex: 1,
+    width: '100%',
+  },
+  tabletLayoutWrapper: {
+    maxWidth: 720,
+    alignSelf: 'center',
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: 'rgba(76, 162, 181, 0.2)',
   },
   screenContainer: {
     flex: 1,

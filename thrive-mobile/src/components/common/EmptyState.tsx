@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { Inbox } from 'lucide-react-native';
 import { Colors, Spacing } from '../../config/theme';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface EmptyStateProps {
   title?: string;
@@ -11,17 +12,20 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  title = 'Məlumat tapılmadı',
+  title,
   description,
   icon,
   style,
 }) => {
+  const { t } = useLanguage();
+  const displayTitle = title || t('common.empty');
+
   return (
     <View style={[styles.container, style]}>
       <View style={styles.iconCircle}>
         {icon || <Inbox size={32} color={Colors.textMuted} />}
       </View>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title}>{displayTitle}</Text>
       {description && <Text style={styles.description}>{description}</Text>}
     </View>
   );

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
+import { secureStorage } from '../utils/securityService';
 
 const extra = Constants.expoConfig?.extra || {};
 
@@ -8,6 +9,7 @@ const supabaseAnonKey = extra.supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6Ik
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
+    storage: secureStorage,
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,

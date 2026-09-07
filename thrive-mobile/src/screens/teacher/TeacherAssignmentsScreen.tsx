@@ -7,9 +7,10 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { Plus, Clock, FileCheck, CheckCircle2, Award } from 'lucide-react-native';
+import { Plus, Clock, FileCheck, CheckCircle2, Award, FileText } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { teacherService } from '../../services/teacherService';
 import {
   TeacherGroupItem,
@@ -23,11 +24,14 @@ import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 import { EmptyState } from '../../components/common/EmptyState';
 import { CreateAssignmentModal } from '../../components/modals/CreateAssignmentModal';
 import { GradeSubmissionModal } from '../../components/modals/GradeSubmissionModal';
+import { filePickerService } from '../../utils/filePickerService';
+import { AttachmentList } from '../../components/common/AttachmentList';
 
 type AssignmentTab = 'active' | 'submissions';
 
 export const TeacherAssignmentsScreen: React.FC = () => {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<AssignmentTab>('active');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -38,6 +42,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
 
   // Modals
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [selectedAssignmentToEdit, setSelectedAssignmentToEdit] = useState<any | null>(null);
   const [selectedSubmission, setSelectedSubmission] = useState<TeacherSubmissionToGrade | null>(null);
 
   const teacherId = session?.teacherId;
@@ -75,7 +80,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="Tapşırıq İdarəsi" subtitle="Ev Tapşırıqları və Qiymətləndirmə" />
+      <HeaderBar title={t('teacher.assignmentsTitle')} subtitle={t('teacher.assignmentsSubtitle')} />
 
       {/* Main Tabs */}
       <View style={styles.segmentedControl}>
@@ -84,7 +89,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'active' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'active' && styles.segmentTextActive]}>
-            Aktiv Tapşırıqlar ({assignments.length})
+            {t('teacher.activeAssignments')} ({assignments.length})
           </Text>
         </TouchableOpacity>
 
@@ -93,7 +98,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
           style={[styles.segmentBtn, activeTab === 'submissions' && styles.segmentBtnActive]}
         >
           <Text style={[styles.segmentText, activeTab === 'submissions' && styles.segmentTextActive]}>
-            Təhvil Verilənlər ({submissions.length})
+            {t('teacher.submissions')} ({submissions.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -102,7 +107,7 @@ export const TeacherAssignmentsScreen: React.FC = () => {
       {activeTab === 'active' && (
         <View style={styles.toolbar}>
           <ThriveButton
-            title="Yeni Tapşırıq Yarat"
+            title={t('teacher.newAssignmentBtn')}
             size="sm"
             variant="primary"
             onPress={() => setCreateModalVisible(true)}
@@ -122,82 +127,147 @@ export const TeacherAssignmentsScreen: React.FC = () => {
         ) : activeTab === 'active' ? (
           assignments.length === 0 ? (
             <EmptyState
-              title="Tapşırıq yoxdur"
-              description="Hələlik heç bir tapşırıq yaradılmayıb. 'Yeni Tapşırıq Yarat' düyməsinə klikləyərək əlavə edin."
+              title={t('common.empty')}
+              description={t('teacher.noActiveAssignments')}
             />
           ) : (
-            assignments.map((item) => (
-              <ThriveCard key={item.id} style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <ThriveBadge label={item.groupName} variant="primary" />
-                  <Text style={styles.maxScoreText}>Maks. Bal: {item.maxScore}</Text>
-                </View>
+            assignments.map((item) => {
+              const { cleanText: descText, attachments: materials } =
+                filePickerService.unpackAttachments(item.description || '');
 
-                <Text style={styles.itemTitle}>{item.title}</Text>
-                {item.description ? (
-                  <Text style={styles.itemDesc}>{item.description}</Text>
-                ) : null}
-
-                {item.dueDate ? (
-                  <View style={styles.metaRow}>
-                    <Clock size={13} color={Colors.textMuted} />
-                    <Text style={styles.metaText}>Son təhvil tarixi: {item.dueDate}</Text>
+              return (
+                <ThriveCard key={item.id} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <ThriveBadge label={item.groupName} variant="primary" />
+                    <Text style={styles.maxScoreText}>{t('teacher.maxScoreFormatted', { max: item.maxScore })}</Text>
                   </View>
-                ) : null}
-              </ThriveCard>
-            ))
+
+                  <Text style={styles.itemTitle}>{item.title}</Text>
+                  {!!descText && <Text style={styles.itemDesc}>{descText}</Text>}
+
+                  {/* Attached PDF Materials */}
+                  {materials.length > 0 && (
+                    <View style={styles.materialsBox}>
+                      <AttachmentList
+                        attachments={materials}
+                        readOnly
+                        title={t('attachments.studyMaterialsLabel')}
+                      />
+                    </View>
+                  )}
+
+                  <View style={styles.cardFooter}>
+                    {item.dueDate ? (
+                      <View style={styles.metaRow}>
+                        <Clock size={13} color={Colors.textMuted} />
+                        <Text style={styles.metaText}>{t('teacher.dueDateFormatted', { date: item.dueDate })}</Text>
+                      </View>
+                    ) : <View />}
+
+                    <ThriveButton
+                      title={t('common.edit')}
+                      size="sm"
+                      variant="outline"
+                      onPress={() => setSelectedAssignmentToEdit(item)}
+                    />
+                  </View>
+                </ThriveCard>
+              );
+            })
           )
         ) : (
           submissions.length === 0 ? (
             <EmptyState
-              title="Təhvil verilmiş iş yoxdur"
-              description="Tələbələr tərəfindən hələlik yoxlanış üçün cavab göndərilməyib."
+              title={t('common.empty')}
+              description={t('teacher.noSubmissions')}
             />
           ) : (
-            submissions.map((sub) => (
-              <ThriveCard key={sub.submissionId} style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <ThriveBadge label={sub.groupName} variant="primary" />
-                  <ThriveBadge
-                    label={sub.status === 'graded' ? `Bal: ${sub.score}/${sub.maxScore}` : 'Gözləyir'}
-                    variant={sub.status === 'graded' ? 'success' : 'warning'}
-                  />
-                </View>
+            submissions.map((sub) => {
+              const { cleanText, attachments } = filePickerService.unpackAttachments(
+                sub.submissionText || ''
+              );
 
-                <Text style={styles.studentName}>{sub.studentName}</Text>
-                <Text style={styles.assignmentTitle}>{sub.assignmentTitle}</Text>
+              return (
+                <ThriveCard key={sub.submissionId} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <View>
+                      <ThriveBadge label={sub.groupName} variant="primary" />
+                      <Text style={styles.studentName}>{sub.studentName}</Text>
+                    </View>
 
-                {sub.submissionText ? (
-                  <View style={styles.answerBox}>
-                    <Text style={styles.answerLabel}>Cavab:</Text>
-                    <Text style={styles.answerText} numberOfLines={2}>
-                      {sub.submissionText}
-                    </Text>
+                    <ThriveBadge
+                      label={
+                        sub.status === 'graded'
+                          ? sub.score !== null ? `${sub.score}/${sub.maxScore}` : t('teacher.gradedBadge')
+                          : t('teacher.pendingBadge')
+                      }
+                      variant={sub.status === 'graded' ? 'success' : 'warning'}
+                    />
                   </View>
-                ) : null}
 
-                <ThriveButton
-                  title={sub.status === 'graded' ? "Qiyməti Dəyiş" : "Yoxla və Qiymətləndir"}
-                  size="sm"
-                  variant={sub.status === 'graded' ? "outline" : "primary"}
-                  onPress={() => setSelectedSubmission(sub)}
-                  style={{ marginTop: Spacing.sm }}
-                />
-              </ThriveCard>
-            ))
+                  <Text style={styles.subAssTitle}>{sub.assignmentTitle}</Text>
+
+                  {/* Student Answer preview */}
+                  {!!cleanText && (
+                    <View style={styles.answerBox}>
+                      <Text style={styles.answerLabel}>{t('teacher.studentAnswerLabel')}</Text>
+                      <Text style={styles.answerText} numberOfLines={2}>
+                        {cleanText}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Student Attachments preview */}
+                  {attachments.length > 0 && (
+                    <View style={{ marginVertical: Spacing.xs }}>
+                      <AttachmentList
+                        attachments={attachments}
+                        readOnly
+                        title={t('teacher.studentSubmittedFiles')}
+                      />
+                    </View>
+                  )}
+
+                  {/* Teacher Feedback if already graded */}
+                  {sub.feedback ? (
+                    <View style={styles.feedbackBox}>
+                      <Text style={styles.feedbackLabel}>{t('common.feedback')}:</Text>
+                      <Text style={styles.feedbackText}>{sub.feedback}</Text>
+                    </View>
+                  ) : null}
+
+                  <View style={styles.cardFooter}>
+                    <Text style={styles.metaText}>{sub.submittedAt ? sub.submittedAt.split('T')[0] : ''}</Text>
+                    <ThriveButton
+                      title={sub.status === 'graded' ? t('teacher.changeGradeBtn') : t('teacher.gradeNowBtn')}
+                      size="sm"
+                      variant={sub.status === 'graded' ? 'secondary' : 'primary'}
+                      onPress={() => setSelectedSubmission(sub)}
+                    />
+                  </View>
+                </ThriveCard>
+              );
+            })
           )
         )}
       </ScrollView>
 
-      {/* Create Assignment Modal */}
+      {/* CREATE / EDIT ASSIGNMENT MODAL */}
       <CreateAssignmentModal
-        visible={createModalVisible}
+        visible={createModalVisible || !!selectedAssignmentToEdit}
         groups={groups}
-        onClose={() => setCreateModalVisible(false)}
-        onSuccess={() => loadData()}
+        assignmentToEdit={selectedAssignmentToEdit}
+        onClose={() => {
+          setCreateModalVisible(false);
+          setSelectedAssignmentToEdit(null);
+        }}
+        onSuccess={() => {
+          setSelectedAssignmentToEdit(null);
+          loadData();
+        }}
       />
 
-      {/* Grade Submission Modal */}
+      {/* GRADE SUBMISSION MODAL */}
       <GradeSubmissionModal
         visible={!!selectedSubmission}
         submission={selectedSubmission}
@@ -243,21 +313,30 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   toolbar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.sm,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xs,
   },
   scrollContent: {
     padding: Spacing.md,
     paddingBottom: Spacing.xxl,
   },
   card: {
-    padding: Spacing.md,
     marginBottom: Spacing.md,
   },
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
+  },
+  studentName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    marginTop: 4,
   },
   maxScoreText: {
     fontSize: 12,
@@ -265,53 +344,85 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   itemTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.textPrimary,
-    marginTop: Spacing.xs,
+    marginBottom: 4,
+  },
+  subAssTitle: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
   },
   itemDesc: {
     fontSize: 13,
     color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
     lineHeight: 18,
-    marginTop: 4,
+  },
+  materialsBox: {
+    backgroundColor: '#0F2744',
+    borderRadius: Radius.md,
+    padding: Spacing.sm,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 162, 181, 0.25)',
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.xs,
   },
   metaText: {
     fontSize: 12,
     color: Colors.textMuted,
   },
-  studentName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginTop: Spacing.xs,
-  },
-  assignmentTitle: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginTop: 2,
-    marginBottom: Spacing.xs,
-  },
   answerBox: {
-    backgroundColor: Colors.cardElevated,
-    padding: Spacing.sm,
+    backgroundColor: '#0F2744',
     borderRadius: Radius.md,
+    padding: Spacing.md,
     marginVertical: Spacing.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 162, 181, 0.25)',
   },
   answerLabel: {
-    fontSize: 10,
+    fontSize: 11,
+    fontWeight: '700',
     color: Colors.textMuted,
     textTransform: 'uppercase',
+    marginBottom: 2,
   },
   answerText: {
     fontSize: 13,
     color: Colors.textPrimary,
-    marginTop: 2,
+    lineHeight: 18,
+  },
+  feedbackBox: {
+    backgroundColor: '#0A1E38',
+    borderRadius: Radius.md,
+    padding: Spacing.sm + 2,
+    marginVertical: Spacing.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 162, 181, 0.2)',
+  },
+  feedbackLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primary,
+    marginBottom: 2,
+  },
+  feedbackText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
   },
 });

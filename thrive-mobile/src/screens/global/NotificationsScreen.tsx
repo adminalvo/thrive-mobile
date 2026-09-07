@@ -7,7 +7,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
-import { Bell, CheckCheck, Info, AlertTriangle, Calendar, CreditCard } from 'lucide-react-native';
+import { Bell, CheckCheck } from 'lucide-react-native';
 import { Colors, Spacing, Radius } from '../../config/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -15,7 +15,6 @@ import { notificationService } from '../../services/notificationService';
 import { NotificationRow } from '../../types/database.types';
 import { HeaderBar } from '../../components/common/HeaderBar';
 import { ThriveCard } from '../../components/common/ThriveCard';
-import { ThriveButton } from '../../components/common/ThriveButton';
 import { EmptyState } from '../../components/common/EmptyState';
 import { SkeletonCardList } from '../../components/common/ThriveSkeleton';
 
@@ -25,7 +24,7 @@ interface NotificationsScreenProps {
 
 export const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack }) => {
   const { session } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -88,11 +87,17 @@ export const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
+  const getLocaleTag = () => {
+    if (language === 'en') return 'en-US';
+    if (language === 'ru') return 'ru-RU';
+    return 'az-AZ';
+  };
+
   return (
     <View style={styles.container}>
       <HeaderBar
         title={t('common.notifications')}
-        subtitle={unreadCount > 0 ? `${unreadCount} oxunmamış bildiriş` : 'Bildirişlər'}
+        subtitle={unreadCount > 0 ? `${unreadCount} ${t('common.pending').toLowerCase()}` : t('common.notifications')}
         showBack
         onBackPress={onBack}
       />
@@ -114,7 +119,7 @@ export const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack
             style={[styles.filterChip, filter === 'unread' && styles.filterChipActive]}
           >
             <Text style={[styles.filterText, filter === 'unread' && styles.filterTextActive]}>
-              Oxunmamış ({unreadCount})
+              {t('common.pending')} ({unreadCount})
             </Text>
           </TouchableOpacity>
         </View>
@@ -138,7 +143,7 @@ export const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack
         ) : filtered.length === 0 ? (
           <EmptyState
             title={t('common.noNotifications')}
-            description="Hazırda heç bir yeni bildirişiniz yoxdur."
+            description={t('common.noNotifications')}
           />
         ) : (
           filtered.map((item) => (
@@ -159,11 +164,11 @@ export const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.title, !item.is_read && styles.unreadTitle]}>
-                      {item.title || 'Bildiriş'}
+                      {item.title || t('common.notifications')}
                     </Text>
                     <Text style={styles.timeText}>
                       {item.created_at
-                        ? new Date(item.created_at).toLocaleDateString('az-AZ', {
+                        ? new Date(item.created_at).toLocaleDateString(getLocaleTag(), {
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',

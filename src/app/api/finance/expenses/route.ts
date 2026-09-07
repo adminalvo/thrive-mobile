@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     // 1. PAY ON EXISTING EXPENSE
     if (action === "PAY_ON_DEBT") {
-      const { id, payAmount, accountId, note } = body;
+      const { id, payAmount, accountId, note, periodCode = "2026-09" } = body;
       const payment = Number(payAmount);
       if (!id || !payment || payment <= 0) {
         return NextResponse.json({ error: "Düzgün ödəniş məbləği daxil edin" }, { status: 400 });
@@ -63,16 +63,23 @@ export async function POST(req: Request) {
           WHERE id = ${id}
         `;
 
-        if (accountId) {
-          await sql`
-            UPDATE bank_accounts
-            SET initial_balance = initial_balance - ${payment}, updated_at = NOW()
-            WHERE id::text = ${accountId} OR code = ${accountId}
+        if (accountId && payment > 0) {
+          const [targetAcc] = await sql`
+            SELECT id, name FROM bank_accounts
+            WHERE id::text = ${String(accountId)} OR code = ${String(accountId)}
           `;
-          await sql`
-            INSERT INTO account_transactions (account_id, period_code, date, type, amount, comment, category)
-            VALUES (${accountId}, '2026-09', CURRENT_DATE, 'EXPENSE', ${payment}, ${note || `${exp.category} üzrə borc ödənişi`}, ${exp.category})
-          `;
+
+          if (targetAcc) {
+            await sql`
+              UPDATE bank_accounts
+              SET initial_balance = initial_balance - ${payment}, updated_at = NOW()
+              WHERE id = ${targetAcc.id}
+            `;
+            await sql`
+              INSERT INTO account_transactions (account_id, period_code, date, type, amount, comment, category)
+              VALUES (${targetAcc.id}, ${periodCode}, CURRENT_DATE, 'EXPENSE', ${payment}, ${note || `${exp.category} üzrə borc ödənişi`}, ${exp.category})
+            `;
+          }
         }
       });
 
@@ -81,27 +88,35 @@ export async function POST(req: Request) {
     }
 
     // 2. CREATE NEW EXPENSE
-    const { category, amount, contractAmount, remainingAmount, date, description, branchName, accountId } = body;
+    const { category, amount, contractAmount, remainingAmount, date, description, branchName, accountId, periodCode = "2026-09" } = body;
 
-    if (!category || !amount || Number(amount) <= 0) {
-      return NextResponse.json({ error: "Kateqoriya və düzgün məbləğ tələb olunur" }, { status: 400 });
+    const numAmount = (amount !== undefined && amount !== null && amount !== "") ? Number(amount) : 0;
+    const numContract = (contractAmount !== undefined && contractAmount !== null && contractAmount !== "") ? Number(contractAmount) : numAmount;
+
+    if (!category || !category.trim()) {
+      return NextResponse.json({ error: "Xərc kateqoriyası və ya təyinatı tələb olunur" }, { status: 400 });
+    }
+    if (numContract <= 0 && numAmount <= 0) {
+      return NextResponse.json({ error: "Müqavilə və ya ödənilən məbləğ daxil edilməlidir" }, { status: 400 });
     }
 
     const expDate = date || new Date().toISOString().split("T")[0];
     const finalDesc = branchName 
       ? `[${branchName}] ${description || 'Filial xərci'}` 
-      : (description || "Mərkəz əməliyyat xərci");
+      : (description || (category.includes('Maaş') ? 'Əməkhaqqı / Maaş ödənişi' : 'Mərkəz əməliyyat xərci'));
 
-    const cAmount = contractAmount ? Number(contractAmount) : Number(amount);
-    const pAmount = Number(amount);
-    const rAmount = remainingAmount !== undefined ? Number(remainingAmount) : Math.max(0, cAmount - pAmount);
+    const cAmount = numContract > 0 ? numContract : numAmount;
+    const pAmount = numAmount;
+    const rAmount = remainingAmount !== undefined && remainingAmount !== null && remainingAmount !== "" 
+      ? Number(remainingAmount) 
+      : Math.max(0, cAmount - pAmount);
 
     let expense: any = null;
     await sql.begin(async sql => {
       const [inserted] = await sql`
         INSERT INTO expenses (category, amount, contract_amount, paid_amount, remaining_amount, expense_date, description)
         VALUES (
-          ${category}, 
+          ${category.trim()}, 
           ${pAmount}, 
           ${cAmount},
           ${pAmount},
@@ -113,20 +128,27 @@ export async function POST(req: Request) {
       `;
       expense = inserted;
 
-      if (accountId) {
-        await sql`
-          UPDATE bank_accounts
-          SET initial_balance = initial_balance - ${pAmount}, updated_at = NOW()
-          WHERE id::text = ${accountId} OR code = ${accountId}
+      if (accountId && pAmount > 0) {
+        const [targetAcc] = await sql`
+          SELECT id, name FROM bank_accounts
+          WHERE id::text = ${String(accountId)} OR code = ${String(accountId)}
         `;
-        await sql`
-          INSERT INTO account_transactions (account_id, period_code, date, type, amount, comment, category)
-          VALUES (${accountId}, '2026-09', ${expDate}, 'EXPENSE', ${pAmount}, ${finalDesc}, ${category})
-        `;
+
+        if (targetAcc) {
+          await sql`
+            UPDATE bank_accounts
+            SET initial_balance = initial_balance - ${pAmount}, updated_at = NOW()
+            WHERE id = ${targetAcc.id}
+          `;
+          await sql`
+            INSERT INTO account_transactions (account_id, period_code, date, type, amount, comment, category)
+            VALUES (${targetAcc.id}, ${periodCode}, ${expDate}, 'EXPENSE', ${pAmount}, ${finalDesc}, ${category.trim()})
+          `;
+        }
       }
     });
 
-    await logAction("CREATE_EXPENSE", { category, amount: pAmount, remaining: rAmount }, (session?.user as any)?.id);
+    await logAction("CREATE_EXPENSE", { category: category.trim(), amount: pAmount, remaining: rAmount }, (session?.user as any)?.id);
     return NextResponse.json({ success: true, data: expense }, { status: 201 });
   } catch (error: any) {
     console.error("Expenses POST error:", error);

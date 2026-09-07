@@ -484,7 +484,12 @@
       "utilities": "Kommunal & İnternet",
       "taxes": "Vergilər & Rəsmi",
       "other": "Digər Əməliyyat",
-      "empty": "Bu dövr üzrə xərc qeydi yoxdur."
+      "empty": "Bu dövr üzrə xərc qeydi yoxdur.",
+      "balanceTitle": "Kassa və Hesablar Balansı (Pie Chart)",
+      "balanceSubtitle": "Mövcud vəsaitlərin bank və nəğd kassalar üzrə faiz payı",
+      "totalBalance": "Cəmi Balans",
+      "activeAccountsCount": "hesab",
+      "emptyBalance": "Aktiv kassa və ya bank hesabı yoxdur."
     },
     "expenses": {
       "btnAddExpense": "+ Yeni Xərc / Maaş Əlavə Et",

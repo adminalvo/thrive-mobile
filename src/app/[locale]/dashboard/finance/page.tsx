@@ -146,6 +146,10 @@ export default function FinanceDashboardPage() {
   const [editAccount, setEditAccount] = useState<BankAccount | null>(null);
   const [editTx, setEditTx] = useState<DailyTransaction | null>(null);
   const [hoveredPieIndex, setHoveredPieIndex] = useState<number | null>(null);
+  const [hoveredBalancePieIndex, setHoveredBalancePieIndex] = useState<number | null>(null);
+  const [expenseModalType, setExpenseModalType] = useState<'EXPENSE' | 'SALARY'>('EXPENSE');
+  const [customExpenseCategory, setCustomExpenseCategory] = useState<string>('');
+  const [customStaffName, setCustomStaffName] = useState<string>('');
 
   // Dynamic Teachers & Subjects
   const [liveTeachers, setLiveTeachers] = useState<any[]>([]);
@@ -339,6 +343,51 @@ export default function FinanceDashboardPage() {
 
     return { total: totalExpenses, items: itemsWithPerc };
   }, [expenses, t]);
+
+  // Dynamic Accounts Balance Pie Chart Data Breakdown
+  const balancePieData = useMemo(() => {
+    const activeAccounts = (accounts || []).filter(a => a.is_active !== false);
+    const total = activeAccounts.reduce((sum, a) => sum + Math.max(0, Number(a.initialBalance) || 0), 0);
+    
+    if (activeAccounts.length === 0 || total === 0) {
+      return { total: 0, items: [] };
+    }
+
+    const palette = [
+      "#10b981", // Emerald
+      "#38bdf8", // Sky Blue
+      "#a855f7", // Purple
+      "#f59e0b", // Amber
+      "#ec4899", // Pink
+      "#06b6d4", // Cyan
+      "#8b5cf6", // Violet
+      "#f97316", // Orange
+      "#14b8a6", // Teal
+      "#6366f1", // Indigo
+    ];
+
+    let currentPerc = 0;
+    const itemsWithPerc = activeAccounts.map((acc, idx) => {
+      const balance = Math.max(0, Number(acc.initialBalance) || 0);
+      const percentage = total > 0 ? (balance / total) * 100 : 0;
+      const startPerc = currentPerc;
+      currentPerc += percentage;
+
+      return {
+        id: acc.id,
+        code: acc.code,
+        label: acc.name,
+        bankName: acc.bankName || "Standart Bank",
+        currency: acc.currency || "AZN",
+        value: balance,
+        percentage,
+        startPerc,
+        color: palette[idx % palette.length]
+      };
+    });
+
+    return { total, items: itemsWithPerc };
+  }, [accounts]);
 
   // Teacher badge style
   const getTeacherBadgeClass = (teacher: string) => {
@@ -790,142 +839,283 @@ export default function FinanceDashboardPage() {
         </div>
       </div>
 
-      {/* --- XƏRCLƏRİN PARÇALARA BÖLGÜSÜ (PIE CHART) --- */}
-      <div className={styles.pieSection}>
-        <div className={styles.pieHeader}>
-          <div className={styles.pieTitleGroup}>
-            <h3 className={styles.pieTitle}>
-              <PieChart size={20} style={{ color: "#38bdf8" }} />
-              <span>{t("pie.title")}</span>
-            </h3>
-            <p className={styles.pieSubtitle}>{t("pie.subtitle")}</p>
+      {/* --- DİAQRAMLAR BÖLMƏSİ (EXPENSE & BALANCE BREAKDOWN) --- */}
+      <div className={styles.pieDualContainer}>
+        {/* 1. XƏRCLƏRİN PARÇALARA BÖLGÜSÜ (PIE CHART) */}
+        <div className={styles.pieSection}>
+          <div className={styles.pieHeader}>
+            <div className={styles.pieTitleGroup}>
+              <h3 className={styles.pieTitle}>
+                <PieChart size={20} style={{ color: "#38bdf8" }} />
+                <span>{t("pie.title")}</span>
+              </h3>
+              <p className={styles.pieSubtitle}>{t("pie.subtitle")}</p>
+            </div>
+            <span className={styles.pieBadge}>
+              {expensePieData.items.length} {t("pie.title").toLowerCase().includes("pie") ? "kateqoriya" : "kateqoriya"}
+            </span>
           </div>
-          <span className={styles.pieBadge}>
-            {expensePieData.items.length} {t("pie.title").toLowerCase().includes("pie") ? "kateqoriya" : "kateqoriya"}
-          </span>
-        </div>
 
-        {expensePieData.items.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "2rem", color: "#64748b", fontSize: "0.9rem" }}>
-            {t("pie.empty")}
-          </div>
-        ) : (
-          <div className={styles.pieBody}>
-            {/* Donut Chart SVG */}
-            <div className={styles.pieSvgWrapper}>
-              <svg width="220" height="220" viewBox="0 0 220 220" style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
-                {/* Background Ring */}
-                <circle
-                  cx="110"
-                  cy="110"
-                  r="70"
-                  fill="none"
-                  stroke="rgba(255, 255, 255, 0.05)"
-                  strokeWidth="24"
-                />
+          {expensePieData.items.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "2rem", color: "#64748b", fontSize: "0.9rem" }}>
+              {t("pie.empty")}
+            </div>
+          ) : (
+            <div className={styles.pieBody}>
+              {/* Donut Chart SVG */}
+              <div className={styles.pieSvgWrapper}>
+                <svg width="220" height="220" viewBox="0 0 220 220" style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
+                  {/* Background Ring */}
+                  <circle
+                    cx="110"
+                    cy="110"
+                    r="70"
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.05)"
+                    strokeWidth="24"
+                  />
 
-                {/* Data Segments */}
+                  {/* Data Segments */}
+                  {expensePieData.items.map((item, idx) => {
+                    const circumference = 2 * Math.PI * 70; // ~439.82
+                    const strokeDasharray = `${Math.max(0.1, (item.percentage / 100) * circumference)} ${circumference}`;
+                    const strokeDashoffset = -((item.startPerc / 100) * circumference);
+                    const isHovered = hoveredPieIndex === idx;
+
+                    return (
+                      <circle
+                        key={item.id}
+                        cx="110"
+                        cy="110"
+                        r="70"
+                        fill="none"
+                        stroke={item.color}
+                        strokeWidth={isHovered ? 32 : 24}
+                        strokeDasharray={strokeDasharray}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        style={{
+                          cursor: "pointer",
+                          transition: "all 0.25s ease",
+                          opacity: hoveredPieIndex === null || isHovered ? 1 : 0.45,
+                          filter: isHovered ? `drop-shadow(0 0 8px ${item.color})` : "none",
+                        }}
+                        onMouseEnter={() => setHoveredPieIndex(idx)}
+                        onMouseLeave={() => setHoveredPieIndex(null)}
+                      />
+                    );
+                  })}
+                </svg>
+
+                {/* Center Details */}
+                <div className={styles.pieCenterText}>
+                  {hoveredPieIndex !== null && expensePieData.items[hoveredPieIndex] ? (
+                    <>
+                      <div className={styles.pieCenterAmount} style={{ color: expensePieData.items[hoveredPieIndex].color }}>
+                        {expensePieData.items[hoveredPieIndex].percentage.toFixed(1)}%
+                      </div>
+                      <div className={styles.pieCenterLabel} title={expensePieData.items[hoveredPieIndex].label}>
+                        {expensePieData.items[hoveredPieIndex].label}
+                      </div>
+                      <div style={{ fontSize: "0.75rem", color: "#f8fafc", fontWeight: 700, marginTop: "2px" }}>
+                        {expensePieData.items[hoveredPieIndex].value.toLocaleString()} ₼
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.pieCenterAmount} style={{ color: "#38bdf8" }}>
+                        {expensePieData.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ₼
+                      </div>
+                      <div className={styles.pieCenterLabel}>
+                        {t("pie.totalExpenses")}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Legend Cards */}
+              <div className={styles.pieLegendGrid}>
                 {expensePieData.items.map((item, idx) => {
-                  const circumference = 2 * Math.PI * 70; // ~439.82
-                  const strokeDasharray = `${Math.max(0.1, (item.percentage / 100) * circumference)} ${circumference}`;
-                  const strokeDashoffset = -((item.startPerc / 100) * circumference);
                   const isHovered = hoveredPieIndex === idx;
-
                   return (
-                    <circle
+                    <div
                       key={item.id}
-                      cx="110"
-                      cy="110"
-                      r="70"
-                      fill="none"
-                      stroke={item.color}
-                      strokeWidth={isHovered ? 32 : 24}
-                      strokeDasharray={strokeDasharray}
-                      strokeDashoffset={strokeDashoffset}
-                      strokeLinecap="round"
-                      style={{
-                        cursor: "pointer",
-                        transition: "all 0.25s ease",
-                        opacity: hoveredPieIndex === null || isHovered ? 1 : 0.45,
-                        filter: isHovered ? `drop-shadow(0 0 8px ${item.color})` : "none",
-                      }}
+                      className={`${styles.pieLegendItem} ${isHovered ? styles.pieLegendItemActive : ''}`}
                       onMouseEnter={() => setHoveredPieIndex(idx)}
                       onMouseLeave={() => setHoveredPieIndex(null)}
-                    />
+                    >
+                      <div className={styles.pieLegendTop}>
+                        <div className={styles.pieLegendCategory}>
+                          <span className={styles.pieDot} style={{ background: item.color, boxShadow: isHovered ? `0 0 8px ${item.color}` : 'none' }} />
+                          <span>{item.label}</span>
+                        </div>
+                        <span className={styles.pieLegendPercent} style={{ color: item.color }}>
+                          {item.percentage.toFixed(1)}%
+                        </span>
+                      </div>
+
+                      <div className={styles.pieProgressBarBg}>
+                        <div
+                          className={styles.pieProgressBarFill}
+                          style={{
+                            width: `${Math.min(100, Math.max(2, item.percentage))}%`,
+                            backgroundColor: item.color
+                          }}
+                        />
+                      </div>
+
+                      <div className={styles.pieLegendBottom}>
+                        <span>{t("pie.paidExpenses")}: <strong style={{ color: "#10b981" }}>{item.paid.toLocaleString()} ₼</strong></span>
+                        {item.remaining > 0 && (
+                          <span>{t("pie.remainingDebt")}: <strong style={{ color: "#f87171" }}>-{item.remaining.toLocaleString()} ₼</strong></span>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
-              </svg>
-
-              {/* Center Details */}
-              <div className={styles.pieCenterText}>
-                {hoveredPieIndex !== null && expensePieData.items[hoveredPieIndex] ? (
-                  <>
-                    <div className={styles.pieCenterAmount} style={{ color: expensePieData.items[hoveredPieIndex].color }}>
-                      {expensePieData.items[hoveredPieIndex].percentage.toFixed(1)}%
-                    </div>
-                    <div className={styles.pieCenterLabel} title={expensePieData.items[hoveredPieIndex].label}>
-                      {expensePieData.items[hoveredPieIndex].label}
-                    </div>
-                    <div style={{ fontSize: "0.75rem", color: "#f8fafc", fontWeight: 700, marginTop: "2px" }}>
-                      {expensePieData.items[hoveredPieIndex].value.toLocaleString()} ₼
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className={styles.pieCenterAmount} style={{ color: "#38bdf8" }}>
-                      {expensePieData.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ₼
-                    </div>
-                    <div className={styles.pieCenterLabel}>
-                      {t("pie.totalExpenses")}
-                    </div>
-                  </>
-                )}
               </div>
             </div>
+          )}
+        </div>
 
-            {/* Legend Cards */}
-            <div className={styles.pieLegendGrid}>
-              {expensePieData.items.map((item, idx) => {
-                const isHovered = hoveredPieIndex === idx;
-                return (
-                  <div
-                    key={item.id}
-                    className={`${styles.pieLegendItem} ${isHovered ? styles.pieLegendItemActive : ''}`}
-                    onMouseEnter={() => setHoveredPieIndex(idx)}
-                    onMouseLeave={() => setHoveredPieIndex(null)}
-                  >
-                    <div className={styles.pieLegendTop}>
-                      <div className={styles.pieLegendCategory}>
-                        <span className={styles.pieDot} style={{ background: item.color, boxShadow: isHovered ? `0 0 8px ${item.color}` : 'none' }} />
-                        <span>{item.label}</span>
-                      </div>
-                      <span className={styles.pieLegendPercent} style={{ color: item.color }}>
-                        {item.percentage.toFixed(1)}%
-                      </span>
-                    </div>
-
-                    <div className={styles.pieProgressBarBg}>
-                      <div
-                        className={styles.pieProgressBarFill}
-                        style={{
-                          width: `${Math.min(100, Math.max(2, item.percentage))}%`,
-                          backgroundColor: item.color
-                        }}
-                      />
-                    </div>
-
-                    <div className={styles.pieLegendBottom}>
-                      <span>{t("pie.paidExpenses")}: <strong style={{ color: "#10b981" }}>{item.paid.toLocaleString()} ₼</strong></span>
-                      {item.remaining > 0 && (
-                        <span>{t("pie.remainingDebt")}: <strong style={{ color: "#f87171" }}>-{item.remaining.toLocaleString()} ₼</strong></span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+        {/* 2. KASSA VƏ HESABLAR BALANSI (BALANCE BREAKDOWN) */}
+        <div className={styles.pieSection}>
+          <div className={styles.pieHeader}>
+            <div className={styles.pieTitleGroup}>
+              <h3 className={styles.pieTitle}>
+                <Wallet size={20} style={{ color: "#10b981" }} />
+                <span>{t("pie.balanceTitle")}</span>
+              </h3>
+              <p className={styles.pieSubtitle}>{t("pie.balanceSubtitle")}</p>
             </div>
+            <span className={styles.pieBadge} style={{ background: "rgba(16, 185, 129, 0.12)", color: "#10b981", borderColor: "rgba(16, 185, 129, 0.25)" }}>
+              {balancePieData.items.length} {t("pie.activeAccountsCount")}
+            </span>
           </div>
-        )}
+
+          {balancePieData.items.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "2rem", color: "#64748b", fontSize: "0.9rem" }}>
+              {t("pie.emptyBalance")}
+            </div>
+          ) : (
+            <div className={styles.pieBody}>
+              {/* Donut Chart SVG */}
+              <div className={styles.pieSvgWrapper}>
+                <svg width="220" height="220" viewBox="0 0 220 220" style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
+                  {/* Background Ring */}
+                  <circle
+                    cx="110"
+                    cy="110"
+                    r="70"
+                    fill="none"
+                    stroke="rgba(255, 255, 255, 0.05)"
+                    strokeWidth="24"
+                  />
+
+                  {/* Data Segments */}
+                  {balancePieData.items.map((item, idx) => {
+                    const circumference = 2 * Math.PI * 70;
+                    const strokeDasharray = `${Math.max(0.1, (item.percentage / 100) * circumference)} ${circumference}`;
+                    const strokeDashoffset = -((item.startPerc / 100) * circumference);
+                    const isHovered = hoveredBalancePieIndex === idx;
+
+                    return (
+                      <circle
+                        key={item.id}
+                        cx="110"
+                        cy="110"
+                        r="70"
+                        fill="none"
+                        stroke={item.color}
+                        strokeWidth={isHovered ? 32 : 24}
+                        strokeDasharray={strokeDasharray}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                        style={{
+                          cursor: "pointer",
+                          transition: "all 0.25s ease",
+                          opacity: hoveredBalancePieIndex === null || isHovered ? 1 : 0.45,
+                          filter: isHovered ? `drop-shadow(0 0 8px ${item.color})` : "none",
+                        }}
+                        onMouseEnter={() => setHoveredBalancePieIndex(idx)}
+                        onMouseLeave={() => setHoveredBalancePieIndex(null)}
+                      />
+                    );
+                  })}
+                </svg>
+
+                {/* Center Details */}
+                <div className={styles.pieCenterText}>
+                  {hoveredBalancePieIndex !== null && balancePieData.items[hoveredBalancePieIndex] ? (
+                    <>
+                      <div className={styles.pieCenterAmount} style={{ color: balancePieData.items[hoveredBalancePieIndex].color }}>
+                        {balancePieData.items[hoveredBalancePieIndex].percentage.toFixed(1)}%
+                      </div>
+                      <div className={styles.pieCenterLabel} title={balancePieData.items[hoveredBalancePieIndex].label}>
+                        {balancePieData.items[hoveredBalancePieIndex].label}
+                      </div>
+                      <div style={{ fontSize: "0.75rem", color: "#f8fafc", fontWeight: 700, marginTop: "2px" }}>
+                        {balancePieData.items[hoveredBalancePieIndex].value.toLocaleString(undefined, { minimumFractionDigits: 2 })} ₼
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.pieCenterAmount} style={{ color: "#10b981" }}>
+                        {balancePieData.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ₼
+                      </div>
+                      <div className={styles.pieCenterLabel}>
+                        {t("pie.totalBalance")}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Legend Cards */}
+              <div className={styles.pieLegendGrid}>
+                {balancePieData.items.map((item, idx) => {
+                  const isHovered = hoveredBalancePieIndex === idx;
+                  return (
+                    <div
+                      key={item.id}
+                      className={`${styles.pieLegendItem} ${isHovered ? styles.pieLegendItemActive : ''}`}
+                      onMouseEnter={() => setHoveredBalancePieIndex(idx)}
+                      onMouseLeave={() => setHoveredBalancePieIndex(null)}
+                    >
+                      <div className={styles.pieLegendTop}>
+                        <div className={styles.pieLegendCategory}>
+                          <span className={styles.pieDot} style={{ background: item.color, boxShadow: isHovered ? `0 0 8px ${item.color}` : 'none' }} />
+                          <span style={{ fontWeight: 600 }}>{item.label}</span>
+                        </div>
+                        <span className={styles.pieLegendPercent} style={{ color: item.color }}>
+                          {item.percentage.toFixed(1)}%
+                        </span>
+                      </div>
+
+                      <div className={styles.pieProgressBarBg}>
+                        <div
+                          className={styles.pieProgressBarFill}
+                          style={{
+                            width: `${Math.min(100, Math.max(2, item.percentage))}%`,
+                            backgroundColor: item.color
+                          }}
+                        />
+                      </div>
+
+                      <div className={styles.pieLegendBottom}>
+                        <span style={{ color: "#94a3b8", fontSize: "0.78rem" }}>{item.bankName}</span>
+                        <strong style={{ color: "#38bdf8", fontSize: "0.88rem" }}>
+                          {item.value.toLocaleString(undefined, { minimumFractionDigits: 2 })} {item.currency}
+                        </strong>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* --- 4 ƏSAS TAB --- */}
@@ -2249,44 +2439,281 @@ export default function FinanceDashboardPage() {
             <motion.div className={styles.modalContent} onClick={e => e.stopPropagation()} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}>
               <h3 className={styles.modalTitle}>{t("modals.addExpenseTitle")}</h3>
 
+              {/* Növ Seçimi: Əməliyyat Xərci vs Maaş */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "1.25rem", background: "rgba(255, 255, 255, 0.05)", padding: "4px", borderRadius: "10px" }}>
+                <button
+                  type="button"
+                  style={{
+                    padding: "0.6rem 0.75rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    transition: "all 0.2s",
+                    background: expenseModalType === 'EXPENSE' ? "#38bdf8" : "transparent",
+                    color: expenseModalType === 'EXPENSE' ? "#0f172a" : "#94a3b8",
+                    boxShadow: expenseModalType === 'EXPENSE' ? "0 2px 10px rgba(56, 189, 248, 0.35)" : "none"
+                  }}
+                  onClick={() => {
+                    setExpenseModalType('EXPENSE');
+                    setNewExpenseForm(prev => ({
+                      ...prev,
+                      type: 'EXPENSE',
+                      category: 'İcarə haqqı (Rent)'
+                    }));
+                  }}
+                >
+                  🏢 Əməliyyat Xərci
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    padding: "0.6rem 0.75rem",
+                    borderRadius: "8px",
+                    border: "none",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    transition: "all 0.2s",
+                    background: expenseModalType === 'SALARY' ? "#a855f7" : "transparent",
+                    color: expenseModalType === 'SALARY' ? "#ffffff" : "#94a3b8",
+                    boxShadow: expenseModalType === 'SALARY' ? "0 2px 10px rgba(168, 85, 247, 0.35)" : "none"
+                  }}
+                  onClick={() => {
+                    setExpenseModalType('SALARY');
+                    const defaultStaff = allTeachers[0] || 'Tamerlan';
+                    setNewExpenseForm(prev => ({
+                      ...prev,
+                      type: 'SALARY',
+                      staffName: defaultStaff,
+                      category: `${defaultStaff} Maaş`,
+                      description: `${defaultStaff} aylıq maaş ödənişi`
+                    }));
+                  }}
+                >
+                  💼 Müəllim / Heyət Maaşı
+                </button>
+              </div>
+
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 try {
+                  const finalCat = expenseModalType === 'SALARY'
+                    ? (customStaffName.trim() ? `${customStaffName.trim()} Maaş` : (newExpenseForm.category || 'Maaş'))
+                    : (customExpenseCategory.trim() ? customExpenseCategory.trim() : (newExpenseForm.category || 'Əməliyyat Xərci'));
+
+                  const cAmount = Number(newExpenseForm.contractAmount) || 0;
+                  const pAmount = Number(newExpenseForm.amount) || 0;
+
+                  if (!finalCat) {
+                    toast.error("Xərc kateqoriyası və ya əməkdaş adı daxil edilməlidir");
+                    return;
+                  }
+
                   const res = await fetch("/api/finance/expenses", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(newExpenseForm)
+                    body: JSON.stringify({
+                      category: finalCat,
+                      contractAmount: cAmount,
+                      amount: pAmount,
+                      remainingAmount: Math.max(0, cAmount - pAmount),
+                      date: newExpenseForm.date || new Date().toISOString().split("T")[0],
+                      description: newExpenseForm.description.trim() || (expenseModalType === 'SALARY' ? `${finalCat} ödənişi` : finalCat),
+                      accountId: newExpenseForm.accountId || null,
+                      periodCode: selectedPeriodCode
+                    })
                   });
+
                   if (res.ok) {
-                    toast.success("Xərc qeydə alındı!");
+                    toast.success(expenseModalType === 'SALARY' ? "Maaş xərci qeydə alındı!" : "Xərc qeydə alındı!");
                     setShowAddExpenseModal(false);
+                    setCustomExpenseCategory('');
+                    setCustomStaffName('');
                     loadFinanceData(selectedPeriodCode);
+                  } else {
+                    const err = await res.json().catch(() => ({}));
+                    toast.error(err.error || "Xərc qeydə alınarkən xəta baş verdi");
                   }
                 } catch {
-                  toast.error("Xəta baş verdi");
+                  toast.error("Şəbəkə xətası baş verdi");
                 }
               }}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>{t("modals.expenseCategory")}</label>
-                  <input type="text" placeholder="İcarə, Kommunal, Maaş..." value={newExpenseForm.category} onChange={(e) => setNewExpenseForm({ ...newExpenseForm, category: e.target.value })} className={styles.input} required />
-                </div>
+                {/* Rejim 1: ƏMƏLİYYAT XƏRCİ KATEQORİYASI */}
+                {expenseModalType === 'EXPENSE' ? (
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>{t("modals.expenseCategory")}</label>
+                    <select
+                      value={customExpenseCategory ? "CUSTOM" : newExpenseForm.category}
+                      onChange={(e) => {
+                        if (e.target.value === "CUSTOM") {
+                          setCustomExpenseCategory("Digər");
+                        } else {
+                          setCustomExpenseCategory("");
+                          setNewExpenseForm({ ...newExpenseForm, category: e.target.value });
+                        }
+                      }}
+                      className={styles.input}
+                    >
+                      <option value="İcarə haqqı (Rent)">İcarə haqqı (Rent)</option>
+                      <option value="Kommunal & Rabitə">Kommunal & Rabitə (İşıq, Su, Qaz)</option>
+                      <option value="Marketinq & SMM">Marketinq & SMM (Meta, Reklam)</option>
+                      <option value="Vergilər & Rəsmi">Vergilər & Dövlət Rüsumu</option>
+                      <option value="Ofis & Təsərrüfat Xərcləri">Ofis & Təsərrüfat Xərcləri</option>
+                      <option value="Çap & Dəftərxana">Çap & Dəftərxana Ləvazimatı</option>
+                      <option value="CUSTOM">+ Digər Xərc (Fərdi daxil et)</option>
+                    </select>
 
+                    {customExpenseCategory !== "" && (
+                      <input
+                        type="text"
+                        placeholder="Xüsusi xərc kateqoriyasını yazın..."
+                        value={customExpenseCategory}
+                        onChange={(e) => setCustomExpenseCategory(e.target.value)}
+                        className={styles.input}
+                        style={{ marginTop: "0.5rem" }}
+                        required
+                      />
+                    )}
+                  </div>
+                ) : (
+                  /* Rejim 2: MÜƏLLİM VƏ YA HEYƏT MAAŞI */
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Müəllim / Heyət Üzvü</label>
+                    <select
+                      value={customStaffName ? "CUSTOM" : (newExpenseForm.staffName || allTeachers[0] || 'Tamerlan')}
+                      onChange={(e) => {
+                        if (e.target.value === "CUSTOM") {
+                          setCustomStaffName("Yeni Əməkdaş");
+                        } else {
+                          setCustomStaffName("");
+                          const staff = e.target.value;
+                          setNewExpenseForm({
+                            ...newExpenseForm,
+                            staffName: staff,
+                            category: `${staff} Maaş`,
+                            description: `${staff} aylıq maaş ödənişi`
+                          });
+                        }
+                      }}
+                      className={styles.input}
+                    >
+                      {Array.from(new Set([...allTeachers, "Tamerlan", "Nadir", "Ayan", "Nargiz", "Ulvi", "Medina", "Javid", "Humay", "Orxan", "Nailə", "Zeynmedia"])).map((name) => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                      <option value="CUSTOM">+ Digər Əməkdaş (Fərdi daxil et)</option>
+                    </select>
+
+                    {customStaffName !== "" && (
+                      <input
+                        type="text"
+                        placeholder="Əməkdaşın ad və soyadını yazın..."
+                        value={customStaffName}
+                        onChange={(e) => setCustomStaffName(e.target.value)}
+                        className={styles.input}
+                        style={{ marginTop: "0.5rem" }}
+                        required
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* Məbləğ Xanaları */}
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>{t("modals.contractAmount")}</label>
-                    <input type="number" step="0.01" value={newExpenseForm.contractAmount} onChange={(e) => {
-                      const c = Number(e.target.value) || 0;
-                      const p = Number(newExpenseForm.amount) || 0;
-                      setNewExpenseForm({ ...newExpenseForm, contractAmount: e.target.value, remainingAmount: Math.max(0, c - p).toString() });
-                    }} className={styles.input} required />
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newExpenseForm.contractAmount}
+                      onChange={(e) => {
+                        const c = Number(e.target.value) || 0;
+                        const p = Number(newExpenseForm.amount) || 0;
+                        setNewExpenseForm({
+                          ...newExpenseForm,
+                          contractAmount: e.target.value,
+                          remainingAmount: Math.max(0, c - p).toString()
+                        });
+                      }}
+                      className={styles.input}
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>{t("modals.paidAmount")} (Avans / Faktiki)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newExpenseForm.amount}
+                      onChange={(e) => {
+                        const p = Number(e.target.value) || 0;
+                        const c = Number(newExpenseForm.contractAmount) || 0;
+                        setNewExpenseForm({
+                          ...newExpenseForm,
+                          amount: e.target.value,
+                          remainingAmount: Math.max(0, c - p).toString()
+                        });
+                      }}
+                      className={styles.input}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Qalıq Borc İndikatoru */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0.75rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", marginBottom: "1rem" }}>
+                  <span style={{ fontSize: "0.82rem", color: "#94a3b8" }}>Qalıq Öhdəlik / Borc:</span>
+                  {Number(newExpenseForm.remainingAmount) > 0 ? (
+                    <span style={{ fontWeight: 700, color: "#ef4444", fontSize: "0.9rem" }}>
+                      -{Number(newExpenseForm.remainingAmount).toFixed(2)} ₼
+                    </span>
+                  ) : (
+                    <span style={{ fontWeight: 700, color: "#10b981", fontSize: "0.85rem" }}>
+                      Tam Ödənilir (Qalıq yoxdur)
+                    </span>
+                  )}
+                </div>
+
+                {/* Ödəniş Hesabı (Kassa / Bank) */}
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Ödəniş Hesabı (Kassa / Bank)</label>
+                  <select
+                    value={newExpenseForm.accountId}
+                    onChange={(e) => setNewExpenseForm({ ...newExpenseForm, accountId: e.target.value })}
+                    className={styles.input}
+                  >
+                    <option value="">Ödəniş edilməyib (Borc kimi qeydə al)</option>
+                    {accounts.map(a => (
+                      <option key={a.id} value={a.id}>
+                        {a.name} ({a.initialBalance.toFixed(2)} {a.currency}) — {a.bankName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Tarix və Təsvir */}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Tarix</label>
+                    <input
+                      type="date"
+                      value={newExpenseForm.date ? newExpenseForm.date.split("T")[0] : ""}
+                      onChange={(e) => setNewExpenseForm({ ...newExpenseForm, date: e.target.value })}
+                      className={styles.input}
+                      required
+                    />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>{t("modals.paidAmount")}</label>
-                    <input type="number" step="0.01" value={newExpenseForm.amount} onChange={(e) => {
-                      const p = Number(e.target.value) || 0;
-                      const c = Number(newExpenseForm.contractAmount) || 0;
-                      setNewExpenseForm({ ...newExpenseForm, amount: e.target.value, remainingAmount: Math.max(0, c - p).toString() });
-                    }} className={styles.input} required />
+                    <label className={styles.label}>Açıqlama / Təsvir</label>
+                    <input
+                      type="text"
+                      placeholder="Qeyd və ya təyinat..."
+                      value={newExpenseForm.description}
+                      onChange={(e) => setNewExpenseForm({ ...newExpenseForm, description: e.target.value })}
+                      className={styles.input}
+                    />
                   </div>
                 </div>
 

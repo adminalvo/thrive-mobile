@@ -832,14 +832,29 @@
 }
 
 /* --- 8. EXPENSES PIE CHART WIDGET --- */
+.pieDualContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+@media (max-width: 1280px) {
+  .pieDualContainer {
+    grid-template-columns: 1fr;
+  }
+}
+
 .pieSection {
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
   padding: 1.5rem;
-  margin-bottom: 1.75rem;
+  margin-bottom: 0;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
 }
 
 .pieHeader {

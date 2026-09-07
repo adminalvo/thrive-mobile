@@ -484,7 +484,12 @@
       "utilities": "Utilities & Internet",
       "taxes": "Taxes & Official",
       "other": "Other Operations",
-      "empty": "No expenses recorded for this period."
+      "empty": "No expenses recorded for this period.",
+      "balanceTitle": "Accounts & Cash Balance (Pie Chart)",
+      "balanceSubtitle": "Percentage breakdown of funds across cash registers and banks",
+      "totalBalance": "Total Balance",
+      "activeAccountsCount": "accounts",
+      "emptyBalance": "No active bank accounts found."
     },
     "expenses": {
       "btnAddExpense": "+ Add Expense / Salary",

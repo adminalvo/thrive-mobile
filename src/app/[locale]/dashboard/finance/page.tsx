@@ -77,6 +77,21 @@ interface PricingStandard {
   max_students: string;
 }
 
+function normalizeCategory(str: string): string {
+  return (str || '')
+    .replace(/İ/g, 'i')
+    .replace(/I/g, 'ı')
+    .toLowerCase()
+    .replace(/ə/g, 'e')
+    .replace(/ı/g, 'i')
+    .replace(/ç/g, 'c')
+    .replace(/ş/g, 's')
+    .replace(/ğ/g, 'g')
+    .replace(/ö/g, 'o')
+    .replace(/ü/g, 'u')
+    .trim();
+}
+
 export default function FinanceDashboardPage() {
   const t = useTranslations("Finance");
 
@@ -150,6 +165,7 @@ export default function FinanceDashboardPage() {
   const [editTx, setEditTx] = useState<DailyTransaction | null>(null);
   const [hoveredPieIndex, setHoveredPieIndex] = useState<number | null>(null);
   const [hoveredBalancePieIndex, setHoveredBalancePieIndex] = useState<number | null>(null);
+  const [expensePieMode, setExpensePieMode] = useState<'budget' | 'paid' | 'remaining'>('budget');
   const [expenseModalType, setExpenseModalType] = useState<'EXPENSE' | 'SALARY'>('EXPENSE');
   const [customExpenseCategory, setCustomExpenseCategory] = useState<string>('');
   const [customStaffName, setCustomStaffName] = useState<string>('');
@@ -278,16 +294,48 @@ export default function FinanceDashboardPage() {
     const paidSum = enrollments
       .filter(e => e.status === 'Paid')
       .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-    const totalExpensePaid = expenses.reduce((sum, e) => sum + Number(e.paid_amount || e.amount || 0), 0);
-    const totalRemainingDebt = expenses.reduce((sum, e) => sum + Number(e.remaining_amount || 0), 0);
+
+    let totalExpenseContract = 0;
+    let totalExpensePaid = 0;
+    let totalRemainingDebt = 0;
+
+    expenses.forEach((e) => {
+      const cAmount = Number(e.contract_amount || 0);
+      const pAmount = Number(e.paid_amount || 0);
+      const rAmount = Number(e.remaining_amount || 0);
+      const baseAmount = Number(e.amount || 0);
+
+      let contract = cAmount;
+      let paid = pAmount;
+      let rem = rAmount;
+
+      if (contract === 0) {
+        if (paid + rem > 0) {
+          contract = paid + rem;
+        } else if (baseAmount > 0) {
+          contract = baseAmount;
+          if (e.status === 'PAID') paid = baseAmount;
+          else rem = baseAmount;
+        }
+      }
+      if (rem === 0 && contract > paid) {
+        rem = contract - paid;
+      }
+
+      totalExpenseContract += contract;
+      totalExpensePaid += paid;
+      totalRemainingDebt += rem;
+    });
+
     const netProfit = (paidSum || totalTarget) - totalExpensePaid;
 
     return {
-      totalTarget: totalTarget || 20595,
-      paidSum: paidSum || 1450,
-      totalExpensePaid: totalExpensePaid || 11295,
-      totalRemainingDebt: totalRemainingDebt || 6803,
-      netProfit: netProfit || 9300,
+      totalTarget,
+      paidSum,
+      totalExpenseContract,
+      totalExpensePaid,
+      totalRemainingDebt,
+      netProfit,
       totalCash: totalOperatingCash,
       totalPersonalCash: totalPersonalCash
     };
@@ -298,8 +346,8 @@ export default function FinanceDashboardPage() {
     const op: ExpenseRecord[] = [];
     const pay: ExpenseRecord[] = [];
     expenses.forEach(exp => {
-      const cat = exp.category.toLowerCase();
-      if (cat.includes('maaş') || cat.includes('tamerlan') || cat.includes('nadir') || cat.includes('nərgiz') || cat.includes('orxan') || cat.includes('humay') || cat.includes('adil') || cat.includes('javid') || cat.includes('ayan') || cat.includes('nailə')) {
+      const cat = normalizeCategory(exp.category || '');
+      if (cat.includes('maas') || cat.includes('tamerlan') || cat.includes('nadir') || cat.includes('nergiz') || cat.includes('orxan') || cat.includes('humay') || cat.includes('adil') || cat.includes('javid') || cat.includes('ayan') || cat.includes('naile') || cat.includes('michelle') || cat.includes('zeynab')) {
         pay.push(exp);
       } else {
         op.push(exp);
@@ -311,71 +359,102 @@ export default function FinanceDashboardPage() {
   // Dynamic Expenses Pie Chart Data Breakdown
   const expensePieData = useMemo(() => {
     if (!expenses || expenses.length === 0) {
-      return { total: 0, items: [] };
+      return { total: 0, items: [], mode: expensePieMode };
     }
 
-    const categoriesMap: Record<string, { key: string; label: string; color: string; paid: number; remaining: number; contract: number }> = {
-      payroll: { key: "payroll", label: t("pie.payroll"), color: "#38bdf8", paid: 0, remaining: 0, contract: 0 },
-      rent: { key: "rent", label: t("pie.rent"), color: "#818cf8", paid: 0, remaining: 0, contract: 0 },
-      marketing: { key: "marketing", label: t("pie.marketing"), color: "#f472b6", paid: 0, remaining: 0, contract: 0 },
-      utilities: { key: "utilities", label: t("pie.utilities"), color: "#fb923c", paid: 0, remaining: 0, contract: 0 },
-      taxes: { key: "taxes", label: t("pie.taxes"), color: "#34d399", paid: 0, remaining: 0, contract: 0 },
-      other: { key: "other", label: t("pie.other"), color: "#a78bfa", paid: 0, remaining: 0, contract: 0 },
+    const categoriesMap: Record<string, { key: string; label: string; color: string; contract: number; paid: number; remaining: number; count: number }> = {
+      payroll: { key: "payroll", label: t("pie.payroll"), color: "#38bdf8", contract: 0, paid: 0, remaining: 0, count: 0 },
+      rent: { key: "rent", label: t("pie.rent"), color: "#818cf8", contract: 0, paid: 0, remaining: 0, count: 0 },
+      marketing: { key: "marketing", label: t("pie.marketing"), color: "#f472b6", contract: 0, paid: 0, remaining: 0, count: 0 },
+      utilities: { key: "utilities", label: t("pie.utilities"), color: "#fb923c", contract: 0, paid: 0, remaining: 0, count: 0 },
+      taxes: { key: "taxes", label: t("pie.taxes"), color: "#34d399", contract: 0, paid: 0, remaining: 0, count: 0 },
+      other: { key: "other", label: t("pie.other"), color: "#a78bfa", contract: 0, paid: 0, remaining: 0, count: 0 },
     };
 
     expenses.forEach((e) => {
-      const cat = (e.category || "").toLowerCase();
-      const paid = Number(e.paid_amount || e.amount || 0);
-      const rem = Number(e.remaining_amount || 0);
-      const contract = Number(e.contract_amount || (paid + rem) || 0);
+      const rawCat = e.category || '';
+      const cat = normalizeCategory(rawCat);
 
-      if (cat.includes("maaş") || cat.includes("tamerlan") || cat.includes("nadir") || cat.includes("nərgiz") || cat.includes("orxan") || cat.includes("humay") || cat.includes("adil") || cat.includes("javid") || cat.includes("ayan") || cat.includes("nailə")) {
-        categoriesMap.payroll.paid += paid;
-        categoriesMap.payroll.remaining += rem;
-        categoriesMap.payroll.contract += contract;
-      } else if (cat.includes("icarə") || cat.includes("rent") || cat.includes("ofis")) {
-        categoriesMap.rent.paid += paid;
-        categoriesMap.rent.remaining += rem;
-        categoriesMap.rent.contract += contract;
-      } else if (cat.includes("market") || cat.includes("smm") || cat.includes("reklam") || cat.includes("zeyn")) {
-        categoriesMap.marketing.paid += paid;
-        categoriesMap.marketing.remaining += rem;
-        categoriesMap.marketing.contract += contract;
-      } else if (cat.includes("kommunal") || cat.includes("internet") || cat.includes("rabitə") || cat.includes("işıq") || cat.includes("su") || cat.includes("qaz") || cat.includes("dəftərxana")) {
-        categoriesMap.utilities.paid += paid;
-        categoriesMap.utilities.remaining += rem;
-        categoriesMap.utilities.contract += contract;
-      } else if (cat.includes("vergi") || cat.includes("dsmf") || cat.includes("rəsmi") || cat.includes("bank")) {
-        categoriesMap.taxes.paid += paid;
-        categoriesMap.taxes.remaining += rem;
-        categoriesMap.taxes.contract += contract;
-      } else {
-        categoriesMap.other.paid += paid;
-        categoriesMap.other.remaining += rem;
-        categoriesMap.other.contract += contract;
+      const cAmount = Number(e.contract_amount || 0);
+      const pAmount = Number(e.paid_amount || 0);
+      const rAmount = Number(e.remaining_amount || 0);
+      const baseAmount = Number(e.amount || 0);
+
+      let contract = cAmount;
+      let paid = pAmount;
+      let rem = rAmount;
+
+      if (contract === 0) {
+        if (paid + rem > 0) {
+          contract = paid + rem;
+        } else if (baseAmount > 0) {
+          contract = baseAmount;
+          if (e.status === 'PAID') paid = baseAmount;
+          else rem = baseAmount;
+        }
       }
+      if (rem === 0 && contract > paid) {
+        rem = contract - paid;
+      }
+
+      let target = categoriesMap.other;
+      if (cat.includes("maas") || cat.includes("tamerlan") || cat.includes("nadir") || cat.includes("nergiz") || cat.includes("orxan") || cat.includes("humay") || cat.includes("adil") || cat.includes("javid") || cat.includes("ayan") || cat.includes("naile") || cat.includes("michelle") || cat.includes("zeynab")) {
+        target = categoriesMap.payroll;
+      } else if (cat.includes("icare") || cat.includes("rent") || cat.includes("ofis")) {
+        target = categoriesMap.rent;
+      } else if (cat.includes("market") || cat.includes("smm") || cat.includes("reklam") || cat.includes("zeyn")) {
+        target = categoriesMap.marketing;
+      } else if (cat.includes("kommunal") || cat.includes("internet") || cat.includes("rabite") || cat.includes("isiq") || cat.includes("su") || cat.includes("qaz") || cat.includes("defterxana") || cat.includes("teserrufat")) {
+        target = categoriesMap.utilities;
+      } else if (cat.includes("vergi") || cat.includes("dsmf") || cat.includes("resmi") || cat.includes("bank")) {
+        target = categoriesMap.taxes;
+      }
+
+      target.count++;
+      target.contract += contract;
+      target.paid += paid;
+      target.remaining += rem;
     });
 
-    const activeItems = Object.values(categoriesMap).filter((item) => item.contract > 0 || item.paid > 0);
-    const totalExpenses = activeItems.reduce((sum, item) => sum + (item.paid > 0 ? item.paid : item.contract), 0);
+    const allCategories = Object.values(categoriesMap).filter(item => item.contract > 0 || item.paid > 0 || item.remaining > 0);
+
+    // Filter and compute based on selected mode
+    const activeItems = allCategories.filter(item => {
+      if (expensePieMode === 'paid') return item.paid > 0;
+      if (expensePieMode === 'remaining') return item.remaining > 0;
+      return item.contract > 0;
+    });
+
+    let targetTotal = 0;
+    if (expensePieMode === 'paid') {
+      targetTotal = activeItems.reduce((sum, item) => sum + item.paid, 0);
+    } else if (expensePieMode === 'remaining') {
+      targetTotal = activeItems.reduce((sum, item) => sum + item.remaining, 0);
+    } else {
+      targetTotal = activeItems.reduce((sum, item) => sum + item.contract, 0);
+    }
 
     let accumulatedPercentage = 0;
     const itemsWithPerc = activeItems.map((item, idx) => {
-      const val = item.paid > 0 ? item.paid : item.contract;
-      const percentage = totalExpenses > 0 ? (val / totalExpenses) * 100 : 0;
+      const val = expensePieMode === 'paid' ? item.paid : expensePieMode === 'remaining' ? item.remaining : item.contract;
+      const percentage = targetTotal > 0 ? (val / targetTotal) * 100 : 0;
       const startPerc = accumulatedPercentage;
       accumulatedPercentage += percentage;
+
+      const completionRate = item.contract > 0 ? Math.min(100, (item.paid / item.contract) * 100) : 0;
+
       return {
         ...item,
         id: idx,
         value: val,
         percentage,
         startPerc,
+        completionRate
       };
     });
 
-    return { total: totalExpenses, items: itemsWithPerc };
-  }, [expenses, t]);
+    return { total: targetTotal, items: itemsWithPerc, mode: expensePieMode };
+  }, [expenses, expensePieMode, t]);
 
   // Dynamic Accounts Balance Pie Chart Data Breakdown (Excluding personal account)
   const balancePieData = useMemo(() => {
@@ -949,9 +1028,37 @@ export default function FinanceDashboardPage() {
               </h3>
               <p className={styles.pieSubtitle}>{t("pie.subtitle")}</p>
             </div>
-            <span className={styles.pieBadge}>
-              {expensePieData.items.length} {t("pie.title").toLowerCase().includes("pie") ? "kateqoriya" : "kateqoriya"}
-            </span>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+              {/* Segmented Mode Switcher */}
+              <div className={styles.pieModeSwitch}>
+                <button
+                  type="button"
+                  className={`${styles.pieModeBtn} ${expensePieMode === 'budget' ? styles.pieModeBtnActive : ''}`}
+                  onClick={() => { setExpensePieMode('budget'); setHoveredPieIndex(null); }}
+                >
+                  {t("pie.modeBudget") || "Büdcə (Müqavilə)"}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.pieModeBtn} ${expensePieMode === 'paid' ? styles.pieModeBtnActive : ''}`}
+                  onClick={() => { setExpensePieMode('paid'); setHoveredPieIndex(null); }}
+                >
+                  {t("pie.modePaid") || "Faktiki Ödənilən"}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.pieModeBtn} ${expensePieMode === 'remaining' ? styles.pieModeBtnActive : ''}`}
+                  onClick={() => { setExpensePieMode('remaining'); setHoveredPieIndex(null); }}
+                >
+                  {t("pie.modeRemaining") || "Qalıq Borclar"}
+                </button>
+              </div>
+
+              <span className={styles.pieBadge}>
+                {expensePieData.items.length} {t("pie.title").toLowerCase().includes("pie") ? "kateqoriya" : "kateqoriya"}
+              </span>
+            </div>
           </div>
 
           {expensePieData.items.length === 0 ? (
@@ -1025,7 +1132,11 @@ export default function FinanceDashboardPage() {
                         {expensePieData.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ₼
                       </div>
                       <div className={styles.pieCenterLabel}>
-                        {t("pie.totalExpenses")}
+                        {expensePieMode === 'paid'
+                          ? (t("pie.totalPaid") || "Cəmi Ödənilən")
+                          : expensePieMode === 'remaining'
+                          ? (t("pie.totalRemaining") || "Cəmi Qalıq Borc")
+                          : (t("pie.totalBudget") || "Cəmi Xərc Büdcəsi")}
                       </div>
                     </>
                   )}
@@ -1063,11 +1174,14 @@ export default function FinanceDashboardPage() {
                         />
                       </div>
 
+                      <div className={styles.pieLegendStatsRow}>
+                        <span>{t("pie.contractBudget") || "Büdcə"}: <strong className={styles.pieLegendStatsVal}>{item.contract.toLocaleString()} ₼</strong></span>
+                        <span className={styles.pieLegendProgressText}>{item.completionRate.toFixed(0)}% icra</span>
+                      </div>
+
                       <div className={styles.pieLegendBottom}>
                         <span>{t("pie.paidExpenses")}: <strong style={{ color: "#10b981" }}>{item.paid.toLocaleString()} ₼</strong></span>
-                        {item.remaining > 0 && (
-                          <span>{t("pie.remainingDebt")}: <strong style={{ color: "#f87171" }}>-{item.remaining.toLocaleString()} ₼</strong></span>
-                        )}
+                        <span>{t("pie.remainingDebt")}: <strong style={{ color: item.remaining > 0 ? "#f87171" : "#94a3b8" }}>{item.remaining > 0 ? `-${item.remaining.toLocaleString()}` : "0"} ₼</strong></span>
                       </div>
                     </div>
                   );

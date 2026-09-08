@@ -1038,3 +1038,60 @@
   color: #ffffff;
 }
 
+/* --- Segmented Mode Control --- */
+.pieModeSwitch {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.pieModeBtn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  padding: 0.3rem 0.65rem;
+  border-radius: 7px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.pieModeBtn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pieModeBtnActive {
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.12);
+}
+
+.pieLegendStatsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  padding-top: 2px;
+}
+
+.pieLegendStatsVal {
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.pieLegendProgressText {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+

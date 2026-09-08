@@ -809,26 +809,58 @@ export default function SchedulePage() {
             <div className={styles.panel}>
               <h3 className={styles.panelTitle}>{t("upcomingClasses")}</h3>
               <div className={styles.upcomingList}>
-                {groups.flatMap(g => g.schedules).slice(0, 5).map((s, idx) => {
-                  if(!s) return null;
-                  const group = groups.find(g => g.id === s.groupId);
-                  if(!group) return null;
-                  const isSoon = idx === 0;
-                  
-                  return (
-                    <div key={s.id || idx} className={styles.upcomingRow} onClick={() => setSelectedClass({ group, schedule: s })}>
-                      <div className={styles.statusDot} style={{ backgroundColor: isSoon ? "var(--aqua-teal, #00C4B5)" : "rgba(255,255,255,0.2)" }}></div>
-                      <div>
-                        <div className={styles.rowTitle}>{group.name}</div>
-                        <div className={styles.rowSubtitle}>{group.program?.name || t("noProgram")}</div>
-                      </div>
-                      <div className={styles.rowText}><Clock size={14} /> {s.startTime}</div>
-                      <div className={styles.rowText}><User size={14} /> {group.teacher || t("unassigned")}</div>
-                      <div className={styles.rowText}>Room {s.room || group.room || "TBA"}</div>
-                      <div className={styles.badge}>{isSoon ? "Next" : "Scheduled"}</div>
-                    </div>
+                {(() => {
+                  // Real-time upcoming: sort by next occurrence relative to now
+                  const now = new Date();
+                  // JS getDay(): 0=Sun,1=Mon...6=Sat → convert to our 1=Mon...7=Sun
+                  const jsDay = now.getDay();
+                  const todayNum = jsDay === 0 ? 7 : jsDay;
+                  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+                  const allItems = groups.flatMap(g =>
+                    (g.schedules || []).map(s => ({ group: g, schedule: s }))
                   );
-                })}
+
+                  // For each item, compute "minutes until next occurrence this week"
+                  const withOffset = allItems.map(item => {
+                    const s = item.schedule;
+                    const [hh, mm] = s.startTime.split(':').map(Number);
+                    const startMinutes = hh * 60 + mm;
+                    const dayOfWeek = s.dayOfWeek; // 1=Mon...7=Sun
+
+                    let dayDiff = dayOfWeek - todayNum;
+                    if (dayDiff < 0) dayDiff += 7;
+                    // Same day but class already started/passed → show as next week
+                    if (dayDiff === 0 && startMinutes <= nowMinutes) dayDiff = 7;
+
+                    const minutesUntil = dayDiff * 24 * 60 + startMinutes - nowMinutes;
+                    return { ...item, minutesUntil, dayOfWeek, startMinutes };
+                  });
+
+                  // Sort ascending → nearest class first
+                  withOffset.sort((a, b) => a.minutesUntil - b.minutesUntil);
+
+                  return withOffset.slice(0, 5).map((item, idx) => {
+                    const isSoon = idx === 0;
+                    const dayName = days.find(d => d.num === item.dayOfWeek)?.name || '';
+                    const s = item.schedule;
+                    const group = item.group;
+
+                    return (
+                      <div key={s.id || idx} className={styles.upcomingRow} onClick={() => setSelectedClass({ group, schedule: s })}>
+                        <div className={styles.statusDot} style={{ backgroundColor: isSoon ? "var(--aqua-teal, #00C4B5)" : "rgba(255,255,255,0.2)" }}></div>
+                        <div>
+                          <div className={styles.rowTitle}>{group.name}</div>
+                          <div className={styles.rowSubtitle}>{group.program?.name || t("noProgram")}</div>
+                        </div>
+                        <div className={styles.rowText}><Clock size={14} /> {dayName} {s.startTime}</div>
+                        <div className={styles.rowText}><User size={14} /> {group.teacher || t("unassigned")}</div>
+                        <div className={styles.rowText}>Room {s.room || group.room || "TBA"}</div>
+                        <div className={styles.badge}>{isSoon ? "Next" : "Scheduled"}</div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
 

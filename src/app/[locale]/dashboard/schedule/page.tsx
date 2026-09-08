@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import styles from "./page.module.css";
 import { Plus, ChevronDown, Calendar, Clock, User, UserCheck, Search, BookOpen, X, Trash2, Users, Phone, MapPin, Globe, Layers, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
+import MultiSelectFilter, { MultiSelectOption } from "./MultiSelectFilter";
 
 interface ScheduleItem {
   id: string;
@@ -60,17 +61,113 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  // Filters
+  // Multi-Select Filters
   const [view, setView] = useState("week");
   const [selectedMobileDay, setSelectedMobileDay] = useState<number>(() => {
     const today = new Date().getDay();
     return today === 0 ? 7 : today;
   });
-  const [selectedProgram, setSelectedProgram] = useState("all");
-  const [selectedTeacher, setSelectedTeacher] = useState("all");
-  const [selectedRoom, setSelectedRoom] = useState("all");
-  const [selectedFormat, setSelectedFormat] = useState("all"); // 'all' | 'offline' | 'online' | 'hybrid'
+  const [selectedPrograms, setSelectedPrograms] = useState<string[]>([]);
+  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
+  const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
+  const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
   const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
+
+  // Options memoized from loaded groups data with accurate schedule count badges
+  const programOptions: MultiSelectOption[] = useMemo(() => {
+    const counts: Record<string, number> = {};
+    groups.forEach(g => {
+      const p = g.program?.name;
+      if (p) {
+        counts[p] = (counts[p] || 0) + (g.schedules?.length || 0);
+      }
+    });
+    return Object.keys(counts).sort().map(p => ({
+      value: p,
+      label: p,
+      count: counts[p]
+    }));
+  }, [groups]);
+
+  const teacherOptions: MultiSelectOption[] = useMemo(() => {
+    const counts: Record<string, number> = {};
+    groups.forEach(g => {
+      const t = g.teacher?.trim();
+      if (t) {
+        counts[t] = (counts[t] || 0) + (g.schedules?.length || 0);
+      }
+    });
+    return Object.keys(counts).sort().map(t => ({
+      value: t,
+      label: t,
+      count: counts[t]
+    }));
+  }, [groups]);
+
+  const roomOptions: MultiSelectOption[] = useMemo(() => {
+    const counts: Record<string, number> = {};
+    groups.forEach(g => {
+      (g.schedules || []).forEach(s => {
+        const r = (s.room || g.room)?.trim();
+        if (r) {
+          counts[r] = (counts[r] || 0) + 1;
+        }
+      });
+    });
+    return Object.keys(counts).sort().map(r => ({
+      value: r,
+      label: r.toLowerCase().startsWith('room') || r.toLowerCase().startsWith('otaq') ? r : `Otaq ${r}`,
+      count: counts[r]
+    }));
+  }, [groups]);
+
+  const formatOptions: MultiSelectOption[] = useMemo(() => {
+    let offlineCount = 0;
+    let onlineCount = 0;
+    let hybridCount = 0;
+    groups.forEach(g => {
+      const f = g.formatStats?.primaryFormat || 'offline';
+      const schedLen = g.schedules?.length || 0;
+      if (f === 'online') onlineCount += schedLen;
+      else if (f === 'hybrid') hybridCount += schedLen;
+      else offlineCount += schedLen;
+    });
+    return [
+      { value: 'offline', label: '📍 Əyani (Offline)', count: offlineCount },
+      { value: 'online', label: '🌐 Online', count: onlineCount },
+      { value: 'hybrid', label: '🔄 Hibrid', count: hybridCount },
+    ];
+  }, [groups]);
+
+  const totalActiveFilters = selectedPrograms.length + selectedTeachers.length + selectedRooms.length + selectedFormats.length;
+
+  const clearAllFilters = () => {
+    setSelectedPrograms([]);
+    setSelectedTeachers([]);
+    setSelectedRooms([]);
+    setSelectedFormats([]);
+  };
+
+  const totalMatchingClasses = useMemo(() => {
+    return groups.flatMap(g => {
+      if (selectedPrograms.length > 0 && (!g.program?.name || !selectedPrograms.includes(g.program.name))) return [];
+      if (selectedFormats.length > 0) {
+        const fmt = g.formatStats?.primaryFormat || 'offline';
+        if (!selectedFormats.includes(fmt)) return [];
+      }
+      return (g.schedules || []).filter(s => {
+        if (selectedTeachers.length > 0) {
+          const t = g.teacher?.trim().toLowerCase();
+          if (!t || !selectedTeachers.some(st => st.trim().toLowerCase() === t)) return false;
+        }
+        if (selectedRooms.length > 0) {
+          const r = (s.room || g.room || '').trim().toLowerCase();
+          if (!r || !selectedRooms.some(sr => sr.trim().toLowerCase() === r)) return false;
+        }
+        return true;
+      });
+    }).length;
+  }, [groups, selectedPrograms, selectedTeachers, selectedRooms, selectedFormats]);
 
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -292,13 +389,19 @@ export default function SchedulePage() {
   // Filter out classes for the calendar grid
   const renderClassesForDay = (dayNum: number) => {
     const allValidClasses = groups.flatMap(g => {
-      if (selectedProgram !== "all" && g.program?.name !== selectedProgram) return [];
-      if (selectedFormat !== "all" && (g.formatStats?.primaryFormat || 'offline') !== selectedFormat) return [];
+      if (selectedPrograms.length > 0 && (!g.program?.name || !selectedPrograms.includes(g.program.name))) return [];
+      if (selectedFormats.length > 0 && !selectedFormats.includes(g.formatStats?.primaryFormat || 'offline')) return [];
 
       const daySchedules = (g.schedules || []).filter(s => {
         if (s.dayOfWeek !== dayNum) return false;
-        if (selectedTeacher !== "all" && (g.teacher !== selectedTeacher)) return false;
-        if (selectedRoom !== "all" && (s.room || g.room) !== selectedRoom) return false;
+        if (selectedTeachers.length > 0) {
+          const t = g.teacher?.trim().toLowerCase();
+          if (!t || !selectedTeachers.some(st => st.trim().toLowerCase() === t)) return false;
+        }
+        if (selectedRooms.length > 0) {
+          const r = (s.room || g.room || '').trim().toLowerCase();
+          if (!r || !selectedRooms.some(sr => sr.trim().toLowerCase() === r)) return false;
+        }
         return true;
       });
       return daySchedules.map(s => ({ group: g, schedule: s }));
@@ -390,12 +493,18 @@ export default function SchedulePage() {
     const dayClasses = groups.flatMap(g => 
       g.schedules.filter(s => s.dayOfWeek === dayNum).map(s => ({ group: g, schedule: s }))
     ).filter(({ group, schedule }) => {
-      if (selectedProgram !== "all" && group.program?.name !== selectedProgram) return false;
-      if (selectedTeacher !== "all" && group.teacher !== selectedTeacher) return false;
-      if (selectedRoom !== "all" && (schedule.room || group.room) !== selectedRoom) return false;
-      if (selectedFormat !== "all") {
+      if (selectedPrograms.length > 0 && (!group.program?.name || !selectedPrograms.includes(group.program.name))) return false;
+      if (selectedTeachers.length > 0) {
+        const t = group.teacher?.trim().toLowerCase();
+        if (!t || !selectedTeachers.some(st => st.trim().toLowerCase() === t)) return false;
+      }
+      if (selectedRooms.length > 0) {
+        const r = (schedule.room || group.room || '').trim().toLowerCase();
+        if (!r || !selectedRooms.some(sr => sr.trim().toLowerCase() === r)) return false;
+      }
+      if (selectedFormats.length > 0) {
         const primary = group.formatStats?.primaryFormat || 'offline';
-        if (primary !== selectedFormat) return false;
+        if (!selectedFormats.includes(primary)) return false;
       }
       return true;
     }).sort((a, b) => a.schedule.startTime.localeCompare(b.schedule.startTime));
@@ -488,43 +597,38 @@ export default function SchedulePage() {
 
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
-          <div className={styles.filterSelectWrapper}>
-            <select value={selectedProgram} onChange={e => setSelectedProgram(e.target.value)}>
-              <option value="all">{t("allPrograms")}</option>
-              {Array.from(new Set(groups.map(g => g.program?.name).filter(Boolean))).map(p => (
-                <option key={p as string} value={p as string}>{p as string}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} />
-          </div>
-          <div className={styles.filterSelectWrapper}>
-            <select value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)}>
-              <option value="all">{t("allTeachers")}</option>
-              {Array.from(new Set(groups.map(g => g.teacher).filter(Boolean))).map(t => (
-                <option key={t as string} value={t as string}>{t as string}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} />
-          </div>
-          <div className={styles.filterSelectWrapper}>
-            <select value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
-              <option value="all">{t("allRooms")}</option>
-              {Array.from(new Set(groups.flatMap(g => [g.room, ...g.schedules.map(s => s.room)]).filter(Boolean))).map(r => (
-                <option key={r as string} value={r as string}>Room {r as string}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} />
-          </div>
-
-          <div className={styles.filterSelectWrapper}>
-            <select value={selectedFormat} onChange={e => setSelectedFormat(e.target.value)}>
-              <option value="all">Bütün Formatlar</option>
-              <option value="offline">📍 Əyani (Offline)</option>
-              <option value="online">🌐 Online</option>
-              <option value="hybrid">🔄 Hibrid</option>
-            </select>
-            <ChevronDown size={16} />
-          </div>
+          <MultiSelectFilter
+            label={t("allPrograms")}
+            icon={<BookOpen size={15} />}
+            options={programOptions}
+            selectedValues={selectedPrograms}
+            onChange={setSelectedPrograms}
+            placeholder="Proqram axtar..."
+          />
+          <MultiSelectFilter
+            label={t("allTeachers")}
+            icon={<User size={15} />}
+            options={teacherOptions}
+            selectedValues={selectedTeachers}
+            onChange={setSelectedTeachers}
+            placeholder="Müəllim axtar..."
+          />
+          <MultiSelectFilter
+            label={t("allRooms")}
+            icon={<MapPin size={15} />}
+            options={roomOptions}
+            selectedValues={selectedRooms}
+            onChange={setSelectedRooms}
+            placeholder="Otaq axtar..."
+          />
+          <MultiSelectFilter
+            label="Bütün Formatlar"
+            icon={<Layers size={15} />}
+            options={formatOptions}
+            selectedValues={selectedFormats}
+            onChange={setSelectedFormats}
+            placeholder="Format axtar..."
+          />
         </div>
         
         <div className={styles.viewToggle}>
@@ -533,6 +637,55 @@ export default function SchedulePage() {
           <button className={`${styles.viewBtn} ${view === "list" ? styles.active : ""}`} onClick={() => setView("list")}>{t("list")}</button>
         </div>
       </div>
+
+      {totalActiveFilters > 0 && (
+        <div className={styles.activeFiltersBar}>
+          <div className={styles.activeChipsGroup}>
+            <span className={styles.matchCountText}>Filtrlər:</span>
+            {selectedPrograms.map(p => (
+              <span key={p} className={`${styles.activeFilterChip} ${styles.activeFilterChipProgram}`}>
+                <BookOpen size={11} /> {p}
+                <button type="button" className={styles.chipRemoveBtn} onClick={() => setSelectedPrograms(selectedPrograms.filter(v => v !== p))} title="Sil">
+                  <X size={11} />
+                </button>
+              </span>
+            ))}
+            {selectedTeachers.map(teach => (
+              <span key={teach} className={`${styles.activeFilterChip} ${styles.activeFilterChipTeacher}`}>
+                <User size={11} /> {teach}
+                <button type="button" className={styles.chipRemoveBtn} onClick={() => setSelectedTeachers(selectedTeachers.filter(v => v !== teach))} title="Sil">
+                  <X size={11} />
+                </button>
+              </span>
+            ))}
+            {selectedRooms.map(r => (
+              <span key={r} className={`${styles.activeFilterChip} ${styles.activeFilterChipRoom}`}>
+                <MapPin size={11} /> {r.toLowerCase().startsWith('room') || r.toLowerCase().startsWith('otaq') ? r : `Otaq ${r}`}
+                <button type="button" className={styles.chipRemoveBtn} onClick={() => setSelectedRooms(selectedRooms.filter(v => v !== r))} title="Sil">
+                  <X size={11} />
+                </button>
+              </span>
+            ))}
+            {selectedFormats.map(f => (
+              <span key={f} className={`${styles.activeFilterChip} ${styles.activeFilterChipFormat}`}>
+                <Layers size={11} /> {f === 'offline' ? 'Əyani' : f === 'online' ? 'Online' : 'Hibrid'}
+                <button type="button" className={styles.chipRemoveBtn} onClick={() => setSelectedFormats(selectedFormats.filter(v => v !== f))} title="Sil">
+                  <X size={11} />
+                </button>
+              </span>
+            ))}
+          </div>
+
+          <div className={styles.activeFilterSummaryRight}>
+            <span className={styles.matchCountText}>
+              <strong>{totalMatchingClasses}</strong> dərs tapıldı
+            </span>
+            <button type="button" className={styles.resetAllFiltersBtn} onClick={clearAllFilters}>
+              <X size={12} /> Bütün filtrləri sıfırla
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className={styles.loading}>{t("loading")}</div>
@@ -618,9 +771,19 @@ export default function SchedulePage() {
               <div className={styles.upcomingList}>
                 {groups.flatMap(g => g.schedules.map(s => ({ group: g, schedule: s })))
                   .filter(({ group, schedule }) => {
-                    if (selectedProgram !== "all" && group.program?.name !== selectedProgram) return false;
-                    if (selectedTeacher !== "all" && group.teacher !== selectedTeacher) return false;
-                    if (selectedRoom !== "all" && (schedule.room || group.room) !== selectedRoom) return false;
+                    if (selectedPrograms.length > 0 && (!group.program?.name || !selectedPrograms.includes(group.program.name))) return false;
+                    if (selectedTeachers.length > 0) {
+                      const t = group.teacher?.trim().toLowerCase();
+                      if (!t || !selectedTeachers.some(st => st.trim().toLowerCase() === t)) return false;
+                    }
+                    if (selectedRooms.length > 0) {
+                      const r = (schedule.room || group.room || '').trim().toLowerCase();
+                      if (!r || !selectedRooms.some(sr => sr.trim().toLowerCase() === r)) return false;
+                    }
+                    if (selectedFormats.length > 0) {
+                      const primary = group.formatStats?.primaryFormat || 'offline';
+                      if (!selectedFormats.includes(primary)) return false;
+                    }
                     return true;
                   })
                   .sort((a, b) => a.schedule.dayOfWeek - b.schedule.dayOfWeek || a.schedule.startTime.localeCompare(b.schedule.startTime))

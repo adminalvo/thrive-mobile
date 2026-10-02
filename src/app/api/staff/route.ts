@@ -9,7 +9,7 @@ export async function GET() {
       SELECT 
         u.id as user_id, 
         u.email, 
-        r.role,
+        r.role::text as role,
         p.first_name, 
         p.last_name,
         p.phone,
@@ -19,15 +19,15 @@ export async function GET() {
       JOIN user_roles r ON u.id = r.user_id
       LEFT JOIN user_profiles p ON u.id = p.user_id
       LEFT JOIN staff_salaries s ON u.id = s.user_id
-      WHERE r.role IN ('super_admin', 'admin', 'staff', 'sales', 'teacher')
+      WHERE r.role::text IN ('super_admin', 'admin', 'staff', 'sales', 'teacher')
         AND r.is_active = true
         AND p.first_name IS NOT NULL
       ORDER BY 
         CASE 
-          WHEN r.role = 'super_admin' THEN 1
-          WHEN r.role = 'admin' THEN 2
-          WHEN r.role = 'staff' THEN 3
-          WHEN r.role = 'sales' THEN 4
+          WHEN r.role::text = 'super_admin' THEN 1
+          WHEN r.role::text = 'admin' THEN 2
+          WHEN r.role::text = 'staff' THEN 3
+          WHEN r.role::text = 'sales' THEN 4
           ELSE 5
         END ASC;
     `;

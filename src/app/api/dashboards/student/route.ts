@@ -34,7 +34,7 @@ export async function GET() {
     const groupIds = groupsRes.map((g: any) => g.group_id);
 
     // Get Schedules
-    let schedules = [];
+    let schedules: any[] = [];
     if (groupIds.length > 0) {
       schedules = await sql`
         SELECT c.id, c.start_time, c.end_time, 'SCHEDULED' as status, g.name as group_name, g.room, c.day_of_week
@@ -46,7 +46,7 @@ export async function GET() {
     }
 
     // Get Notes & Homework
-    let notes = [];
+    let notes: any[] = [];
     if (groupIds.length > 0) {
       notes = await sql`
         SELECT n.id, n.content, n.created_at, u.email as teacher_email, g.name as group_name
@@ -97,7 +97,7 @@ export async function GET() {
     }
 
     // Get Active Assignments
-    let activeAssignments = [];
+    let activeAssignments: any[] = [];
     if (groupIds.length > 0) {
       activeAssignments = await sql`
         SELECT a.id, a.title, a.due_date, g.name as group_name

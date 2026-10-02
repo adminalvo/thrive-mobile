@@ -252,7 +252,7 @@ export default function ParentDashboard() {
                       <span style={{ fontWeight: 600, color: p.status === 'PAID' ? '#10b981' : '#f59e0b' }}>
                         {p.amount} ₼
                       </span>
-                      {p.status === "PENDING" && <AlertTriangle size={16} color="#ef4444" title="Ödəniş gecikir" />}
+                      {p.status === "PENDING" && <span title="Ödəniş gecikir"><AlertTriangle size={16} color="#ef4444" /></span>}
                     </div>
                   </div>
                 ))}

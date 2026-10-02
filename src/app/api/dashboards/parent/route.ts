@@ -23,13 +23,13 @@ export async function GET() {
 
     const parentId = parentRes.length > 0 ? parentRes[0].id : null;
     
-    let children = [];
-    let classes = [];
-    let payments = [];
-    let attendance = [];
-    let exams = [];
-    let assignments = [];
-    let notes = [];
+    let children: any[] = [];
+    let classes: any[] = [];
+    let payments: any[] = [];
+    let attendance: any[] = [];
+    let exams: any[] = [];
+    let assignments: any[] = [];
+    let notes: any[] = [];
 
     if (parentId) {
       // Get children

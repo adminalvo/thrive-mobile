@@ -56,8 +56,8 @@
       ]
     ],
     "extra": {
-      "supabaseUrl": "https://bhiqieseyeamiqfgjssh.supabase.co",
-      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoaXFpZXNleWVhbWlxZmdqc3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY3NzAwNDgsImV4cCI6MjEwMjM0NjA0OH0._C57EWi20k9OPitcYJSYJOvhQrWwdeuSwMzQINDX-kk",
+      "supabaseUrl": "https://iwdiesbffkvyuaptcyka.supabase.co",
+      "supabaseAnonKey": "sb_publishable_ujDeM-PXpF3crV9Gx0H43A_QUSouPgN",
       "eas": {
         "projectId": "1becbce6-661b-447e-bf98-dc82ae5596cd"
       }

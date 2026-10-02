@@ -1,4 +1,19 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+const AsyncStorage = {
+  getItem: async (key: string) => {
+    if (typeof window !== 'undefined') return localStorage.getItem(key);
+    return null;
+  },
+  setItem: async (key: string, value: string) => {
+    if (typeof window !== 'undefined') localStorage.setItem(key, value);
+  },
+  removeItem: async (key: string) => {
+    if (typeof window !== 'undefined') localStorage.removeItem(key);
+  },
+  getAllKeys: async (): Promise<string[]> => {
+    if (typeof window !== 'undefined') return Object.keys(localStorage);
+    return [];
+  }
+};
 
 interface CacheEntry<T> {
   data: T;
@@ -97,7 +112,7 @@ class CacheManager {
     // Invalidate AsyncStorage keys
     try {
       const allKeys = await AsyncStorage.getAllKeys();
-      const targetKeys = allKeys.filter((k) => k.startsWith(`@thrive_cache_${keyPrefix}`));
+      const targetKeys = allKeys.filter((k: string) => k.startsWith(`@thrive_cache_${keyPrefix}`));
       for (const k of targetKeys) {
         await AsyncStorage.removeItem(k);
       }
@@ -110,7 +125,7 @@ class CacheManager {
     this.memoryCache.clear();
     try {
       const allKeys = await AsyncStorage.getAllKeys();
-      const thriveKeys = allKeys.filter((k) => k.startsWith('@thrive_cache_'));
+      const thriveKeys = allKeys.filter((k: string) => k.startsWith('@thrive_cache_'));
       for (const k of thriveKeys) {
         await AsyncStorage.removeItem(k);
       }

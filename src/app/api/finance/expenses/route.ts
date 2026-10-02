@@ -166,9 +166,9 @@ export async function PUT(req: Request) {
 
     if (!id) return NextResponse.json({ error: "ID tələb olunur" }, { status: 400 });
 
-    const cAmt = contract_amount !== undefined ? Number(contract_amount) : undefined;
-    const pAmt = paid_amount !== undefined ? Number(paid_amount) : undefined;
-    const rAmt = remaining_amount !== undefined ? Number(remaining_amount) : (cAmt !== undefined && pAmt !== undefined ? Math.max(0, cAmt - pAmt) : undefined);
+    const cAmt = contract_amount !== undefined ? Number(contract_amount) : null;
+    const pAmt = paid_amount !== undefined ? Number(paid_amount) : null;
+    const rAmt = remaining_amount !== undefined ? Number(remaining_amount) : (cAmt !== null && pAmt !== null ? Math.max(0, cAmt - pAmt) : null);
 
     const [updated] = await sql`
       UPDATE expenses

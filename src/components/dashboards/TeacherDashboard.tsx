@@ -628,7 +628,7 @@ export default function TeacherDashboard() {
                 style={{ width: "100%", padding: "0.8rem", background: "rgba(var(--glass-color), 0.05)", border: "1px solid rgba(var(--glass-color), 0.1)", color: "var(--text-primary)", borderRadius: "8px" }}
               >
                 <option value="" style={{ color: "#000" }}>Qrup Seçin</option>
-                {dashboardData?.groups?.map((g: any) => (
+                {Array.from(new Map(students.map(s => [s.groupId, {id: s.groupId, name: s.group}])).values()).map((g: any) => (
                   <option key={g.id} value={g.id} style={{ color: "#000" }}>{g.name}</option>
                 ))}
               </select>
@@ -700,9 +700,9 @@ export default function TeacherDashboard() {
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", background: "rgba(16, 185, 129, 0.05)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
                         <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
                           <label style={{ fontSize: "0.9rem", color: "#ccc" }}>Bal (Max: {sub.max_score}):</label>
-                          <input type="number" value={gradingForm.score} onChange={e => setGradingForm({...gradingForm, score: e.target.value})} style={{ width: "80px", padding: "0.5rem", borderRadius: "4px", border: "1px solid rgba(var(--glass-color), 0.1)", background: "rgba(var(--glass-color), 0.1)", color: "var(--text-primary)" }} />
+                          <input type="number" value={gradingForm?.score || ""} onChange={e => setGradingForm(prev => prev ? ({ ...prev, score: e.target.value }) : null)} style={{ width: "80px", padding: "0.5rem", borderRadius: "4px", border: "1px solid rgba(var(--glass-color), 0.1)", background: "rgba(var(--glass-color), 0.1)", color: "var(--text-primary)" }} />
                         </div>
-                        <input type="text" placeholder={tPlh("optionalFeedback")} value={gradingForm.feedback} onChange={e => setGradingForm({...gradingForm, feedback: e.target.value})} style={{ width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid rgba(var(--glass-color), 0.1)", background: "rgba(var(--glass-color), 0.1)", color: "var(--text-primary)" }} />
+                        <input type="text" placeholder={tPlh("optionalFeedback")} value={gradingForm?.feedback || ""} onChange={e => setGradingForm(prev => prev ? ({ ...prev, feedback: e.target.value }) : null)} style={{ width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid rgba(var(--glass-color), 0.1)", background: "rgba(var(--glass-color), 0.1)", color: "var(--text-primary)" }} />
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem", marginTop: "0.5rem" }}>
                           <button onClick={() => setGradingForm(null)} style={{ background: "transparent", color: "var(--text-primary)", border: "none", cursor: "pointer", fontSize: "0.85rem" }}>Ləğv et</button>
                           <button onClick={gradeSubmission} style={{ background: "#10b981", color: "var(--text-primary)", border: "none", padding: "0.4rem 1rem", borderRadius: "4px", cursor: "pointer", fontSize: "0.85rem" }}>Qiymətləndir</button>

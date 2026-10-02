@@ -198,7 +198,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const totalAttendance = attendance.length;
 
     // 6.5 Fetch student programs
-    let programs = [];
+    let programs: any[] = [];
     try {
       const progRows = await sql`
         SELECT * FROM student_programs 

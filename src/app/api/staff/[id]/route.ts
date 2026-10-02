@@ -4,14 +4,14 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (session?.user?.role !== "super_admin") {
       return NextResponse.json({ error: "Səlahiyyətiniz çatmır" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json({ error: "ID göstərilməyib" }, { status: 400 });

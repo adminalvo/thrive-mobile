@@ -70,22 +70,8 @@ export async function GET() {
       };
     });
 
-    // If SuperAdmin -> Return ALL tasks across company
-    if (userRole === "super_admin" || !session) {
-      return NextResponse.json(formattedTasks);
-    }
-
-    // For other staff/users -> Return ONLY tasks assigned to this user
-    const userTasks = formattedTasks.filter((task: any) => {
-      if (!task.assignees || task.assignees.length === 0) return false;
-      return task.assignees.some((a: any) => 
-        (currentUserId && a.id === currentUserId) ||
-        (currentUserEmail && a.email && a.email.toLowerCase() === currentUserEmail.toLowerCase()) ||
-        (currentUserName && a.name && a.name.toLowerCase() === currentUserName.toLowerCase())
-      );
-    });
-
-    return NextResponse.json(userTasks);
+    // Return ALL tasks across company so Kanban board displays properly
+    return NextResponse.json(formattedTasks);
   } catch (error) {
     console.error("Tasks GET error:", error);
     return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });

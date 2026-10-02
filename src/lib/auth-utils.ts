@@ -2,10 +2,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { NextResponse } from "next/server";
 
+export type AuthCheckResult = 
+  | { authorized: true; error: null; session: any }
+  | { authorized: false; error: NextResponse; session: any };
+
 export async function checkApiPermission(
   moduleName: string, 
   action: 'read' | 'view' | 'create' | 'update' | 'edit' | 'delete' | 'export'
-) {
+): Promise<AuthCheckResult> {
   const session = await getServerSession(authOptions);
   
   if (!session || !session.user) {

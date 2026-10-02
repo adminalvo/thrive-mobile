@@ -1,5 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const AsyncStorage = {
+  getItem: async (key: string) => {
+    if (typeof window !== 'undefined') return localStorage.getItem(key);
+    return null;
+  },
+  setItem: async (key: string, value: string) => {
+    if (typeof window !== 'undefined') localStorage.setItem(key, value);
+  },
+  removeItem: async (key: string) => {
+    if (typeof window !== 'undefined') localStorage.removeItem(key);
+  }
+};
 import az from '../../locales/az.json';
 import en from '../../locales/en.json';
 import ru from '../../locales/ru.json';

@@ -445,8 +445,8 @@ export default function SchedulePage() {
     if(currentCluster.length > 0) clusters.push(currentCluster);
     
     return clusters.flatMap(cluster => {
-       const maxCol = Math.max(...cluster.map(c => c.column)) + 1;
-       return cluster.map(item => {
+       const maxCol = Math.max(...cluster.map((c: any) => c.column)) + 1;
+       return cluster.map((item: any) => {
          const { top, height } = calculateTopAndHeight(item.schedule.startTime, item.schedule.endTime);
          const color = getColorClass(item.group.program?.name || "");
          

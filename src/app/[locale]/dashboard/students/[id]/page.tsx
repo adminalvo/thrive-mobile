@@ -740,7 +740,7 @@ export default function StudentDetailPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {groups.map(g => (
+                    {groups.map((g: any) => (
                       <tr key={g.id}>
                         <td>
                           <Link href={`/dashboard/groups/${g.id}`} style={{ color: "var(--aqua-teal)", fontWeight: 600 }}>
@@ -798,7 +798,7 @@ export default function StudentDetailPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {payments.map(p => (
+                    {payments.map((p: any) => (
                       <tr key={p.id}>
                         <td>#{p?.id ? String(p.id).substring(0, 8).toUpperCase() : ""}</td>
                         <td style={{ fontWeight: 600 }}>{p.amount} ₼</td>
@@ -852,7 +852,7 @@ export default function StudentDetailPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {attendance.map(a => (
+                    {attendance.map((a: any) => (
                       <tr key={a.id}>
                         <td>{a.date}</td>
                         <td>{a.groupName}</td>
@@ -980,7 +980,7 @@ export default function StudentDetailPage({
                     body: JSON.stringify({
                       name: newProgram.name,
                       price: newProgram.price || 0,
-                      status: newProgram.status || "ACTIVE"
+                      status: (newProgram as any).status || "ACTIVE"
                     })
                   });
                   

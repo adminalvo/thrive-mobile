@@ -41,6 +41,7 @@ interface ExpenseRecord {
   remaining_amount: number;
   date: string;
   description: string;
+  status?: string;
 }
 
 interface DailyTransaction {
@@ -60,9 +61,11 @@ interface BankAccount {
   name: string;
   code: string;
   bankName: string;
+  accountNumber?: string;
   initialBalance: number;
   currentBalance: number;
   currency: string;
+  is_active?: boolean;
 }
 
 interface PricingStandard {
@@ -3001,7 +3004,7 @@ export default function FinanceDashboardPage() {
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Müəllim / Heyət Üzvü</label>
                     <select
-                      value={customStaffName ? "CUSTOM" : (newExpenseForm.staffName || allTeachers[0] || 'Tamerlan')}
+                      value={customStaffName ? "CUSTOM" : ((newExpenseForm as any).staffName || allTeachers[0] || 'Tamerlan')}
                       onChange={(e) => {
                         if (e.target.value === "CUSTOM") {
                           setCustomStaffName("Yeni Əməkdaş");
@@ -3010,7 +3013,6 @@ export default function FinanceDashboardPage() {
                           const staff = e.target.value;
                           setNewExpenseForm({
                             ...newExpenseForm,
-                            staffName: staff,
                             category: `${staff} Maaş`,
                             description: `${staff} aylıq maaş ödənişi`
                           });

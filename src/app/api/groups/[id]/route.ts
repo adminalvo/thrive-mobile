@@ -73,7 +73,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     try {
       const scheduleRows = await sql`
         SELECT s.id, s.day_of_week, s.start_time, s.end_time, g.room
-        FROM schedules s
+        FROM group_schedules s
         JOIN groups g ON s.group_id = g.id
         WHERE s.group_id = ${id}
       `;

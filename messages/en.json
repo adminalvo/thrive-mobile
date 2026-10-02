@@ -949,7 +949,7 @@
     "s9_1": "7.1. The Contract is drawn up in 2 (two) copies.",
     "parties": "Parties",
     "executor": "EXECUTOR",
-    "executorDetails": "\"Thrive\" LLC\nAddress: Baku, Sabail, Nizami 6A\nTIN: 2008351441\nTel.: +994(99)446-60-00\nBank: \"Kapital Bank\" OJSC",
+    "executorDetails": "\"Thrive\" LLC\nAddress: Baku, Sabail, Said Rustamov str.\nTIN: 2008351441\nTel.: +994(99)446-60-00\nBank: \"Kapital Bank\" OJSC",
     "director": "Tamerlan Mammadov\nDirector",
     "student": "STUDENT",
     "studentDetails": "{studentName}\nID No: {idCard}\nFIN: {fin}\nTel.: {phone}",

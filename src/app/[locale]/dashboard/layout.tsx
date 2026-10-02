@@ -30,6 +30,7 @@ import GlobalSearch from "@/components/GlobalSearch";
 import Sidebar from "@/components/Sidebar";
 import SettingsSlideover from "@/components/SettingsSlideover";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import SecurityAlertModal from "@/components/SecurityAlertModal";
 
 export default function DashboardLayout({
   children,
@@ -135,6 +136,9 @@ export default function DashboardLayout({
 
       {/* Pure Mobile Bottom App Navigation */}
       <MobileBottomNav onOpenMenu={() => setSidebarOpen(true)} />
+
+      {/* High Severity System Security Notification */}
+      <SecurityAlertModal />
     </div>
   );
 }

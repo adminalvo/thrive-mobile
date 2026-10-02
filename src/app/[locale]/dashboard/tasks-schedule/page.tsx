@@ -71,6 +71,9 @@ export default function TasksSchedulePage() {
     return (
       userRole === "super_admin" ||
       userRole === "admin" ||
+      userRole === "staff" ||
+      userRole === "sales" ||
+      userRole === "teacher" ||
       userEmail.includes("zeyn") ||
       userEmail.includes("turalzeynalov") ||
       userEmail.includes("yusifverdiyev") ||

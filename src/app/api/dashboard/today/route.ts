@@ -32,8 +32,7 @@ export async function GET() {
         pr.last_name
       FROM group_schedules s
       JOIN groups g ON s.group_id = g.id
-      LEFT JOIN auth.users u ON g.teacher_id = u.id
-      LEFT JOIN user_profiles pr ON pr.user_id = u.id
+      LEFT JOIN user_profiles pr ON (pr.user_id = g.teacher_id OR pr.id = g.teacher_id)
       WHERE s.day_of_week = ${dbDay}
       ORDER BY s.start_time ASC
       LIMIT 10

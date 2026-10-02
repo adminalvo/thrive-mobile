@@ -17,7 +17,11 @@ export async function GET() {
       FROM groups g
       LEFT JOIN programs p ON g.program_id = p.id
       LEFT JOIN teachers t ON g.teacher_id = t.id
-      LEFT JOIN user_profiles up ON t.profile_id = up.id
+      LEFT JOIN user_profiles up ON (
+        g.teacher_id = up.user_id 
+        OR g.teacher_id = up.id 
+        OR (t.id IS NOT NULL AND t.profile_id = up.id)
+      )
       ORDER BY g.created_at DESC
     `;
 

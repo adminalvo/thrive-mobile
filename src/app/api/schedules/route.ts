@@ -59,7 +59,7 @@ export async function GET() {
           (
             SELECT json_agg(
               json_build_object(
-                'id', st.id,
+                'id', gs.student_id,
                 'name', COALESCE(stp.first_name || ' ' || stp.last_name, 'Tələbə'),
                 'phone', COALESCE(stp.phone, '—'),
                 'email', COALESCE(stp.email, ''),
@@ -67,8 +67,7 @@ export async function GET() {
               ) ORDER BY stp.first_name ASC
             )
             FROM group_students gs
-            JOIN students st ON gs.student_id = st.id
-            LEFT JOIN user_profiles stp ON st.profile_id = stp.id
+            LEFT JOIN user_profiles stp ON (gs.student_id = stp.user_id OR gs.student_id = stp.id)
             WHERE gs.group_id = g.id
           ),
           '[]'::json
@@ -76,7 +75,11 @@ export async function GET() {
       FROM groups g
       LEFT JOIN programs p ON g.program_id = p.id
       LEFT JOIN teachers t ON g.teacher_id = t.id
-      LEFT JOIN user_profiles up ON t.profile_id = up.id
+      LEFT JOIN user_profiles up ON (
+        g.teacher_id = up.user_id 
+        OR g.teacher_id = up.id 
+        OR (t.id IS NOT NULL AND t.profile_id = up.id)
+      )
       ORDER BY g.name ASC
     `;
 

@@ -23,7 +23,7 @@ export async function GET() {
       sql`
         SELECT u.id, u.email, p.first_name, p.last_name, p.phone
         FROM auth.users u
-        LEFT JOIN user_profiles p ON u.id = p.user_id
+        LEFT JOIN user_profiles p ON u.id = p.user_id OR u.id = p.id
       `
     ]);
 

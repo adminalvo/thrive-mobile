@@ -5,10 +5,30 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import { logAction } from "@/lib/logger";
 
+async function ensureTable() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS task_schedules (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title TEXT NOT NULL,
+      type TEXT DEFAULT 'Shooting',
+      date DATE NOT NULL,
+      start_time TEXT,
+      end_time TEXT,
+      location TEXT,
+      participants TEXT,
+      description TEXT,
+      status TEXT DEFAULT 'PLANNED',
+      created_by TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `;
+}
+
 function isAuthorized(session: any) {
   if (!session?.user) return false;
   const role = (session.user.role || "").toLowerCase();
-  if (role === "super_admin" || role === "admin") return true;
+  if (role === "super_admin" || role === "admin" || role === "staff" || role === "sales" || role === "teacher") return true;
 
   const email = (session.user.email || "").toLowerCase();
   const name = (session.user.name || "").toLowerCase();
@@ -33,6 +53,8 @@ export async function GET(req: Request) {
     if (!isAuthorized(session)) {
       return NextResponse.json({ error: "İcazəsiz giriş (Unauthorized)" }, { status: 403 });
     }
+
+    await ensureTable();
 
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
@@ -100,6 +122,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+    await ensureTable();
     const { title, type, date, startTime, endTime, location, participants, description, status } = body;
 
     if (!title || !date) {

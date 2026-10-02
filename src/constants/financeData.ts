@@ -308,7 +308,7 @@ export const INITIAL_ACCOUNT_REGISTERS: BankAccountRegister[] = [
 export const BRANCH_FINANCIALS: BranchFinancials[] = [
   {
     branchId: 'nizami',
-    branchName: 'Nizami Filialı',
+    branchName: 'Əsas Mərkəz',
     totalRevenue: 20120,
     totalExpenses: 12845,
     netProfit: 7275,
@@ -319,7 +319,7 @@ export const BRANCH_FINANCIALS: BranchFinancials[] = [
       { category: 'Müəllim Maaşı', amount: 500, recipient: 'Nərgiz müəllimə', note: 'Math dərsləri', periodCode: '2026-08' },
       { category: 'Müəllim Maaşı', amount: 500, recipient: 'Nailə müəllimə', note: 'İngilis dili', periodCode: '2026-08' },
       { category: 'Müəllim Maaşı', amount: 300, recipient: 'Hümayə müəllimə', note: 'General English', periodCode: '2026-08' },
-      { category: 'Marketinq & Reklam', amount: 850, recipient: 'Meta / Google Ads', note: 'Nizami filialı üzrə tələbə qəbulu', periodCode: '2026-08' },
+      { category: 'Marketinq & Reklam', amount: 850, recipient: 'Meta / Google Ads', note: 'Əsas mərkəz üzrə tələbə qəbulu', periodCode: '2026-08' },
       { category: 'Kommunal Xərclər', amount: 500, recipient: 'Azərişıq / Azərsu / Azəriqaz', note: 'Aylıq kommunal', periodCode: '2026-08' },
       { category: 'İnternet & Şəbəkə', amount: 45, recipient: 'CityNet', note: 'Optik internet', periodCode: '2026-08' },
       { category: 'Vergi Ödənişləri', amount: 300, recipient: 'Dövlət Vergi Xidməti', note: 'Aylıq sadələşdirilmiş vergi', periodCode: '2026-08' },

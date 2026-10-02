@@ -53,7 +53,7 @@ const CORE_TEAM_MEMBERS = [
 
 const LOCATION_SUGGESTIONS = [
   "Əsas Studiya (Otaq 3)",
-  "Nizami Filialı",
+  "Əsas Mərkəz",
   "İclas Otağı (Konfrans)",
   "Online (Zoom / Google Meet)"
 ];

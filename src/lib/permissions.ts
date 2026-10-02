@@ -61,11 +61,15 @@ export async function requirePermission(moduleName: ModuleName, action: ActionTy
   }
 }
 
+export type RoleGuardResult = 
+  | { authorized: true; errorResponse: null; session: any }
+  | { authorized: false; errorResponse: NextResponse; session: any };
+
 /**
  * Strict RBAC check for API route handlers
  * Returns { errorResponse: null, session } if authorized, or { errorResponse: NextResponse, session: null } if forbidden
  */
-export async function checkRoleGuard(allowedRoles: string[] = ["super_admin", "admin"]) {
+export async function checkRoleGuard(allowedRoles: string[] = ["super_admin", "admin"]): Promise<RoleGuardResult> {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return {
